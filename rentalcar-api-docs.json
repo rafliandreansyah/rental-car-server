@@ -1,0 +1,148 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Rental Car Server",
+    "description": "Api documentation rental car server",
+    "version": "1.0.0",
+    "contact": {
+      "name": "Rafli Andreansyah",
+      "email": "rafliandreansyah957@gmail.com",
+      "url": "https://www.linkedin.com/in/rafli-andreansyah-86299217a"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://{env}:{port}/api/{version}",
+      "description": "Server developer rental car",
+      "variables": {
+        "env": {
+          "description": "Environtment url",
+          "default": "localhost",
+          "enum": [
+            "localhost"
+          ]
+        },
+        "port": {
+          "description": "port server rental car",
+          "default": "8080",
+          "enum": [
+            "8080",
+            "8081"
+          ]
+        },
+        "version": {
+          "description": "api version",
+          "default": "v1",
+          "enum": [
+            "v1"
+          ]
+        }
+      }
+    }
+  ],
+  "paths": {
+    "/auth/authenticate": {
+      "post": {
+        "description": "end point for a authentication user",
+        "tags": ["Authentication"],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "required": true
+                  },
+                  "password": {
+                    "type": "string",
+                    "required": true
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "success login",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GeneralResponse"
+                },
+                "examples": {
+                  "success": {
+                    "value": {
+                      "status": 200,
+                      "error": null,
+                      "data": {
+                        "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Account does not exist response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GeneralResponse"
+                },
+                "examples": {
+                  "not found": {
+                    "value": {
+                      "status": 404,
+                      "error": "Account does not exist",
+                      "data": null
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid email or password",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GeneralResponse"
+                },
+                "examples": {
+                  "not found": {
+                    "value": {
+                      "status": 401,
+                      "error": "Account does not exist",
+                      "data": null
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "GeneralResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "integer"
+          },
+          "error": {
+            "type": "string"
+          },
+          "data": {
+            "type": "object"
+          }
+        }
+      }
+    }
+  }
+}
