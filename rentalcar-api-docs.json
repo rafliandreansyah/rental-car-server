@@ -59,6 +59,15 @@
                     "required": true
                   }
                 }
+              },
+              "examples": {
+                "login": {
+                  "summary": "request login",
+                  "value": {
+                    "email": "test@gmail.com",
+                    "password": "secure"
+                  }
+                }
               }
             }
           }
@@ -115,6 +124,75 @@
                   "not found": {
                     "value": {
                       "status": 401,
+                      "error": "Invalid email or password",
+                      "data": null
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/reset": {
+      "post": {
+        "description": "end point for reset password",
+        "tags": ["Authentication"],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "required": true
+                  }
+                }
+              },
+              "examples": {
+                "reset": {
+                  "value": {
+                    "email": "reset@gmail.com"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "response success send reset password to email",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GeneralResponse"
+                },
+                "examples": {
+                  "success": {
+                    "value": {
+                      "status": 200,
+                      "error": null,
+                      "data": {
+                        "message": "Send link reset password success. Please check your email message to reset password"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "response email not found reset password",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GeneralResponse"
+                },
+                "examples": {
+                  "error": {
+                    "value": {
+                      "status": 404,
                       "error": "Account does not exist",
                       "data": null
                     }
