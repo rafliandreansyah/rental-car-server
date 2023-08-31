@@ -80,7 +80,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/GeneralResponse"
+                  "$ref": "#/components/schemas/GeneralResponseWithDataObject"
                 },
                 "examples": {
                   "success": {
@@ -104,7 +104,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/GeneralResponse"
+                  "$ref": "#/components/schemas/GeneralResponseWithDataObject"
                 },
                 "examples": {
                   "not found": {
@@ -154,7 +154,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/GeneralResponse"
+                  "$ref": "#/components/schemas/GeneralResponseWithDataObject"
                 },
                 "examples": {
                   "success": {
@@ -186,7 +186,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/GeneralResponse"
+                "$ref": "#/components/schemas/GeneralResponseWithDataObject"
               },
               "examples": {
                 "register": {
@@ -207,7 +207,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/GeneralResponse"
+                  "$ref": "#/components/schemas/GeneralResponseWithDataObject"
                 },
                 "examples": {
                   "success": {
@@ -227,7 +227,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/GeneralResponse"
+                  "$ref": "#/components/schemas/GeneralResponseWithDataObject"
                 },
                 "examples": {
                   "bad request": {
@@ -246,7 +246,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/GeneralResponse"
+                  "$ref": "#/components/schemas/GeneralResponseWithDataObject"
                 },
                 "examples": {
                   "conflict": {
@@ -262,11 +262,84 @@
           }
         }
       }
+    },
+    "/users": {
+      "get": {
+        "description": "get list of users",
+        "tags": [
+          "Users"
+        ],
+        "parameters": [
+          {
+            "name": "role",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "is_active",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "success response get list users",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GeneralResponseWithDataArrayObject"
+                },
+                "examples": {
+                  "success": {
+                    "value": {
+                      "status": 200,
+                      "error": null,
+                      "data": [
+                        {
+                          "id": "0092HSH-0092HSH",
+                          "name": "rafli a",
+                          "phone": "+62039477755",
+                          "is_active": "true"
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "response error forbidden access",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GeneralResponseWithDataArrayObject"
+                },
+                "examples": {
+                  "forbidden": {
+                    "value": {
+                      "status": 403,
+                      "error": "access forbidden to access this data",
+                      "data": null
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
     "schemas": {
-      "GeneralResponse": {
+      "GeneralResponseWithDataObject": {
         "type": "object",
         "properties": {
           "status": {
@@ -279,6 +352,23 @@
             "type": "object"
           }
         }
+      },
+      "GeneralResponseWithDataArrayObject": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "integer"
+          },
+          "error": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          }
+        }
       }
     },
     "responses": {
@@ -287,7 +377,7 @@
         "content": {
           "application/json": {
             "schema": {
-              "$ref": "#/components/schemas/GeneralResponse"
+              "$ref": "#/components/schemas/GeneralResponseWithDataObject"
             },
             "examples": {
               "error": {
