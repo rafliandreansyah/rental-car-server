@@ -44,7 +44,9 @@
     "/auth/authenticate": {
       "post": {
         "description": "end point for a authentication user",
-        "tags": ["Authentication"],
+        "tags": [
+          "Authentication"
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -95,26 +97,10 @@
             }
           },
           "404": {
-            "description": "Account does not exist response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GeneralResponse"
-                },
-                "examples": {
-                  "not found": {
-                    "value": {
-                      "status": 404,
-                      "error": "Account does not exist",
-                      "data": null
-                    }
-                  }
-                }
-              }
-            }
+            "$ref": "#/components/responses/UserNotFoundError"
           },
           "401": {
-            "description": "Invalid email or password",
+            "description": "invalid email or password",
             "content": {
               "application/json": {
                 "schema": {
@@ -138,7 +124,9 @@
     "/auth/reset": {
       "post": {
         "description": "end point for reset password",
-        "tags": ["Authentication"],
+        "tags": [
+          "Authentication"
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -183,17 +171,101 @@
             }
           },
           "404": {
-            "description": "response email not found reset password",
+            "$ref": "#/components/responses/UserNotFoundError"
+          }
+        }
+      }
+    },
+    "/auth/register": {
+      "post": {
+        "description": "Registration new user",
+        "tags": [
+          "Authentication"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "email": {
+                    "type": "string"
+                  },
+                  "password": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "phone": {
+                    "type": "string"
+                  }
+                }
+              },
+              "examples": {
+                "register": {
+                  "value": {
+                    "email": "email@mail.com",
+                    "password": "secretpassword",
+                    "name": "alexandre",
+                    "phone": "+6281232720821"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "response register success",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/GeneralResponse"
                 },
                 "examples": {
-                  "error": {
+                  "success": {
+                    "description": "register success example",
                     "value": {
-                      "status": 404,
-                      "error": "Account does not exist",
+                      "status": 200,
+                      "error": null,
+                      "data": "success register"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "error validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GeneralResponse"
+                },
+                "examples": {
+                  "bad request": {
+                    "value": {
+                      "status": 400,
+                      "error": "format email not valid",
+                      "data": null
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "error when user already registered",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GeneralResponse"
+                },
+                "examples": {
+                  "conflict": {
+                    "value": {
+                      "status": 409,
+                      "error": "user with this email already registered",
                       "data": null
                     }
                   }
@@ -218,6 +290,27 @@
           },
           "data": {
             "type": "object"
+          }
+        }
+      }
+    },
+    "responses": {
+      "UserNotFoundError": {
+        "description": "Response error for user not found",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/GeneralResponse"
+            },
+            "examples": {
+              "error": {
+                "value": {
+                  "status": 404,
+                  "error": "user doesn't exist",
+                  "data": null
+                }
+              }
+            }
           }
         }
       }
