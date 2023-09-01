@@ -303,6 +303,7 @@
                       "data": [
                         {
                           "id": "0092HSH-0092HSH",
+                          "image_url": "https://user-profilerafli.com",
                           "name": "rafli a",
                           "phone": "+62039477755",
                           "is_active": "true"
@@ -315,23 +316,59 @@
             }
           },
           "403": {
-            "description": "response error forbidden access",
+            "$ref": "#/components/responses/AccessForbiddenError"
+          }
+        }
+      }
+    },
+    "/users/{id}": {
+      "get": {
+        "description": "get detail user by id",
+        "tags": ["Users"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "response success get detail users",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/GeneralResponseWithDataArrayObject"
+                  "$ref": "#/components/schemas/GeneralResponseWithDataObject"
                 },
                 "examples": {
-                  "forbidden": {
+                  "success": {
                     "value": {
-                      "status": 403,
-                      "error": "access forbidden to access this data",
-                      "data": null
+                      "status": 200,
+                      "error": null,
+                      "data": {
+                        "id": "8DJS-KWME-DMWA-MDMM",
+                        "name": "suprianto alexandre",
+                        "image_url": "https://media.istockphoto.com/id/1386479313/photo/happy-millennial-afro-american-business-woman-posing-isolated-on-white.webp?b=1&s=170667a&w=0&k=20&c=ahypUC_KTc95VOsBkzLFZiCQ0VJwewfrSV43BOrLETM=",
+                        "dob": "1996-12-20",
+                        "phone": "+6289373622",
+                        "is_active": "true",
+                        "role": "USER",
+                        "date_created": "2023-10-30"
+                      }
                     }
                   }
                 }
               }
             }
+          },
+          "404": {
+            "$ref": "#/components/responses/UserNotFoundError"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbiddenError"
           }
         }
       }
@@ -384,6 +421,25 @@
                 "value": {
                   "status": 404,
                   "error": "user doesn't exist",
+                  "data": null
+                }
+              }
+            }
+          }
+        }
+      },
+      "AccessForbiddenError": {
+        "description": "response error forbidden access",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/GeneralResponseWithDataArrayObject"
+            },
+            "examples": {
+              "forbidden": {
+                "value": {
+                  "status": 403,
+                  "error": "access forbidden to access this data",
                   "data": null
                 }
               }
