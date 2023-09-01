@@ -371,6 +371,47 @@
             "$ref": "#/components/responses/AccessForbiddenError"
           }
         }
+      },
+      "delete": {
+        "description": "delete user by id",
+        "tags": ["Users"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "success delete user data",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GeneralResponseWithDataString"
+                },
+                "examples": {
+                  "success": {
+                    "value": {
+                      "status": "200",
+                      "error": null,
+                      "data": "success delete data user"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/UserNotFoundError"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbiddenError"
+          }
+        }
       }
     }
   },
@@ -404,6 +445,20 @@
             "items": {
               "type": "object"
             }
+          }
+        }
+      },
+      "GeneralResponseWithDataString": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "integer"
+          },
+          "error": {
+            "type": "string"
+          },
+          "data": {
+            "type": "string"
           }
         }
       }
