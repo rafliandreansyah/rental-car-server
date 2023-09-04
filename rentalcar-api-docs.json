@@ -583,6 +583,76 @@
           }
         }
       }
+    },
+    "/cars": {
+      "get": {
+        "description": "get list of cars",
+        "tags": ["Cars"],
+        "parameters": [
+          {
+            "name": "start_date_rent",
+            "in": "query",
+            "description": "required for role user",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "duration",
+            "in": "query",
+            "description": "required for role user",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "order_by_date_created",
+            "in": "query",
+            "description": "only admin can access",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "transactions",
+            "in": "query",
+            "description": "onlu admin can access",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "success get list car",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GeneralResponseWithDataArrayObject"
+                },
+                "examples": {
+                  "success": {
+                    "value": {
+                      "status": 200,
+                      "error": null,
+                      "data": [
+                        {
+                          "id": "00FYY-66DYY-666DH",
+                          "name": "Toyota Fortuner",
+                          "image_url": "https://fortunerfjjs888s.com",
+                          "year": 2020,
+                          "transmission": "Automatic",
+                          "price": 250000.00
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
