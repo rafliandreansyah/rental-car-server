@@ -503,6 +503,85 @@
             "$ref": "#/components/responses/AccessForbiddenError"
           }
         }
+      },
+      "patch": {
+        "description": "patch user data",
+        "tags": ["Users"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "phone": {
+                    "type": "string"
+                  },
+                  "image" : {
+                    "type": "array",
+                    "items": {
+                      "format": "binary"
+                    }
+                  },
+                  "dob": {
+                    "type": "string"
+                  },
+                  "is_active": {
+                    "description": "only role admin",
+                    "type": "string"
+                  },
+                  "role": {
+                    "description": "only role admin",
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "success edit user",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GeneralResponseWithDataObject"
+                },
+                "examples": {
+                  "success": {
+                    "value": {
+                      "status": 200,
+                      "error": null,
+                      "data": {
+                        "id": "00AAS-83JJD-00AAS-83JJD",
+                        "name": "081232720888",
+                        "image": "https://imageprofile0837ssss",
+                        "dob": null,
+                        "is_active": true,
+                        "role": "USER"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/UserNotFoundError"
+          }
+        }
       }
     }
   },
