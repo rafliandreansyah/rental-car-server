@@ -319,6 +319,97 @@
             "$ref": "#/components/responses/AccessForbiddenError"
           }
         }
+      },
+      "post": {
+        "description": "create data users",
+        "tags": ["Users"],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "required": true,
+                    "type": "string"
+                  },
+                  "password": {
+                    "required": true,
+                    "type": "string"
+                  },
+                  "name": {
+                    "required": true,
+                    "type": "string"
+                  },
+                  "phone": {
+                    "required": true,
+                    "type": "string"
+                  },
+                  "role": {
+                    "required": true,
+                    "type": "string"
+                  },
+                  "dob": {
+                    "description": "timestamp",
+                    "required": false,
+                    "type": "number"
+                  },
+                  "image": {
+                    "required": false,
+                    "type": "array",
+                    "items": {
+                      "format": "binary",
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "success create user",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GeneralResponseWithDataString"
+                },
+                "examples": {
+                  "success": {
+                    "value": {
+                      "status": 201,
+                      "error": null,
+                      "data": "success create user"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbiddenError"
+          },
+          "409": {
+            "description": "error when user already registered",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GeneralResponseWithDataObject"
+                },
+                "examples": {
+                  "conflict": {
+                    "value": {
+                      "status": 409,
+                      "error": "user with this email already registered",
+                      "data": null
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/users/{id}": {
