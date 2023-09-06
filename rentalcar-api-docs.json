@@ -317,12 +317,17 @@
           },
           "403": {
             "$ref": "#/components/responses/AccessForbiddenError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
           }
         }
       },
       "post": {
         "description": "create data users",
-        "tags": ["Users"],
+        "tags": [
+          "Users"
+        ],
         "requestBody": {
           "content": {
             "multipart/form-data": {
@@ -417,6 +422,9 @@
                 }
               }
             }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
           }
         }
       }
@@ -424,7 +432,9 @@
     "/users/{id}": {
       "get": {
         "description": "get detail user by id",
-        "tags": ["Users"],
+        "tags": [
+          "Users"
+        ],
         "parameters": [
           {
             "name": "id",
@@ -469,12 +479,17 @@
           },
           "403": {
             "$ref": "#/components/responses/AccessForbiddenError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
           }
         }
       },
       "delete": {
         "description": "delete user by id",
-        "tags": ["Users"],
+        "tags": [
+          "Users"
+        ],
         "parameters": [
           {
             "name": "id",
@@ -510,12 +525,17 @@
           },
           "403": {
             "$ref": "#/components/responses/AccessForbiddenError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
           }
         }
       },
       "patch": {
         "description": "patch user data",
-        "tags": ["Users"],
+        "tags": [
+          "Users"
+        ],
         "parameters": [
           {
             "name": "id",
@@ -538,7 +558,7 @@
                   "phone": {
                     "type": "string"
                   },
-                  "image" : {
+                  "image": {
                     "type": "array",
                     "items": {
                       "format": "binary"
@@ -589,6 +609,67 @@
           },
           "404": {
             "$ref": "#/components/responses/UserNotFoundError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          }
+        }
+      }
+    },
+    "/users/{id}/transactions": {
+      "get": {
+        "description": "get list transaction by user id",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "tags": ["Users"],
+        "responses": {
+          "200": {
+            "description": "success get list transaction by user id",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GeneralResponseWithDataArrayObject"
+                },
+                "examples": {
+                  "success": {
+                    "value": {
+                      "status": 200,
+                      "error": null,
+                      "data": [
+                        {
+                          "id": "0JJS8-884JN-MMMS8-KKSK0",
+                          "no_invoice": "trx-snn89920mmdsm",
+                          "start_date": "2022-10-25T10:00:00",
+                          "end_date": "2022-10-26T10:00:00",
+                          "duration": 1,
+                          "car_name": "pajero",
+                          "brand": "mitsubishi",
+                          "total_price": 300000.00,
+                          "status": "finish"
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbiddenError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/UserNotFoundError"
           }
         }
       }
@@ -596,7 +677,9 @@
     "/cars": {
       "get": {
         "description": "get list of cars",
-        "tags": ["Cars"],
+        "tags": [
+          "Cars"
+        ],
         "parameters": [
           {
             "name": "start_date_rent",
@@ -659,12 +742,17 @@
                 }
               }
             }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
           }
         }
       },
       "post": {
         "description": "create data cars and only admin can create",
-        "tags": ["Cars"],
+        "tags": [
+          "Cars"
+        ],
         "requestBody": {
           "content": {
             "multipart/form-data": {
@@ -716,6 +804,9 @@
           },
           "403": {
             "$ref": "#/components/responses/AccessForbiddenError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
           }
         }
       }
@@ -733,7 +824,9 @@
             }
           }
         ],
-        "tags": ["Cars"],
+        "tags": [
+          "Cars"
+        ],
         "responses": {
           "200": {
             "description": "success get data car",
@@ -770,6 +863,9 @@
           },
           "404": {
             "$ref": "#/components/responses/CarNotFoundError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
           }
         }
       },
@@ -785,7 +881,9 @@
             }
           }
         ],
-        "tags": ["Cars"],
+        "tags": [
+          "Cars"
+        ],
         "responses": {
           "200": {
             "description": "success delete car data",
@@ -811,12 +909,17 @@
           },
           "403": {
             "$ref": "#/components/responses/AccessForbiddenError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
           }
         }
       },
       "patch": {
         "description": "edit car data by id",
-        "tags": ["Cars"],
+        "tags": [
+          "Cars"
+        ],
         "parameters": [
           {
             "name": "id",
@@ -875,6 +978,9 @@
           },
           "404": {
             "$ref": "#/components/responses/CarNotFoundError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
           }
         }
       }
@@ -1040,6 +1146,25 @@
                 "value": {
                   "status": 403,
                   "error": "access forbidden to access this data",
+                  "data": null
+                }
+              }
+            }
+          }
+        }
+      },
+      "UnauthorizedError": {
+        "description": "response error forbidden access",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/GeneralResponseWithDataArrayObject"
+            },
+            "examples": {
+              "unauthorized": {
+                "value": {
+                  "status": 401,
+                  "error": "authorization required",
                   "data": null
                 }
               }
