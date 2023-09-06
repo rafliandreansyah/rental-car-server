@@ -661,6 +661,63 @@
             }
           }
         }
+      },
+      "post": {
+        "description": "create data cars and only admin can create",
+        "tags": ["Cars"],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/RequestPostAndPutCars"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "success create car",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GeneralResponseWithDataObject"
+                },
+                "examples": {
+                  "success": {
+                    "value": {
+                      "status": 201,
+                      "error": null,
+                      "data": {
+                        "id": "0KDD2-HJSK9-KKS00-23KSS",
+                        "name": "Pajero",
+                        "image": "https://pajero.com",
+                        "image_detail": [
+                          {
+                            "id": "DD23S-KDSKJ-99DUS",
+                            "image": "https://pajero1.com"
+                          }
+                        ],
+                        "brand": "mitsubishi",
+                        "year": 2022,
+                        "capacity": 7,
+                        "cc": 2000,
+                        "price": 300000.00,
+                        "description": "this is description car",
+                        "transmission": "automatic",
+                        "tax": 0,
+                        "discount": 0,
+                        "is_active": true
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbiddenError"
+          }
+        }
       }
     },
     "/cars/{id}": {
@@ -756,6 +813,70 @@
             "$ref": "#/components/responses/AccessForbiddenError"
           }
         }
+      },
+      "patch": {
+        "description": "edit car data by id",
+        "tags": ["Cars"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/RequestPostAndPutCars"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "success edit cars",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GeneralResponseWithDataObject"
+                },
+                "examples": {
+                  "success": {
+                    "value": {
+                      "status": 200,
+                      "error": null,
+                      "data": {
+                        "id": "00JS8-77SHS-88JJJ-UHH77-2DSSA",
+                        "name": "Avanza",
+                        "image": "https://avanza.com",
+                        "brand": "Toyota",
+                        "year": 2020,
+                        "capacity": 6,
+                        "cc": 1500,
+                        "price_per_day": 250000.00,
+                        "tax": null,
+                        "discount": null,
+                        "description": "description of avanza",
+                        "transmission": "automatic",
+                        "is_active": true
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbiddenError"
+          },
+          "404": {
+            "$ref": "#/components/responses/CarNotFoundError"
+          }
+        }
       }
     }
   },
@@ -803,6 +924,67 @@
           },
           "data": {
             "type": "string"
+          }
+        }
+      },
+      "RequestPostAndPutCars": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "required": true
+          },
+          "image": {
+            "type": "array",
+            "required": true,
+            "items": {
+              "format": "binary",
+              "type": "string"
+            }
+          },
+          "image_detail": {
+            "type": "array",
+            "required": false,
+            "items": {
+              "format": "binary",
+              "type": "string"
+            }
+          },
+          "brand": {
+            "type": "string",
+            "required": true
+          },
+          "year": {
+            "type": "number",
+            "required": true
+          },
+          "capacity": {
+            "type": "number",
+            "required": true
+          },
+          "cc": {
+            "type": "number",
+            "required": true
+          },
+          "price": {
+            "type": "number",
+            "required": true
+          },
+          "description": {
+            "type": "string",
+            "required": true
+          },
+          "transmission": {
+            "type": "string",
+            "required": true
+          },
+          "tax": {
+            "type": "number",
+            "required": false
+          },
+          "discount": {
+            "type": "number",
+            "required": false
           }
         }
       }
