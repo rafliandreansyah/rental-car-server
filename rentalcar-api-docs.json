@@ -984,6 +984,311 @@
           }
         }
       }
+    },
+    "/transactions": {
+      "get": {
+        "tags": ["Transactions"],
+        "description": "get list of transactions an only admin can access",
+        "responses": {
+          "200": {
+            "description": "success get list of transactions",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GeneralResponseWithDataArrayObject"
+                },
+                "examples": {
+                  "success": {
+                    "value": {
+                      "status": 200,
+                      "error": null,
+                      "data": [
+                        {
+                          "id": "0JJS8-884JN-MMMS8-KKSK0",
+                          "no_invoice": "trx-snn89920mmdsm",
+                          "start_date": "2022-10-25T10:00:00",
+                          "end_date": "2022-10-26T10:00:00",
+                          "duration": 1,
+                          "car_name": "pajero",
+                          "brand": "mitsubishi",
+                          "total_price": 300000.00,
+                          "status": "finish"
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }  ,
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbiddenError"
+          }
+        }
+      },
+      "post": {
+        "description": "user post transactions",
+        "tags": ["Transactions"],
+        "requestBody": {
+          "content": {
+            "application/json" : {
+              "schema": {
+                "properties": {
+                  "start_date": {
+                    "type": "string",
+                    "required": true
+                  },
+                  "duration": {
+                    "type": "number",
+                    "required": true
+                  },
+                  "user_id": {
+                    "type": "string",
+                    "required": true
+                  },
+                  "car_id": {
+                    "type": "string",
+                    "required": true
+                  }
+                }
+              },
+              "examples": {
+                "success": {
+                  "value": {
+                    "start_date": "2020-08-22T10:00:00",
+                    "duration": 1,
+                    "user_id": "HHSY8-9JDN9-LLSJI-80KSM",
+                    "car_id": "88MSS-LLLSJ-KEWM8-SKKDS"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "success create transactions",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GeneralResponseWithDataObject"
+                },
+                "examples": {
+                  "success": {
+                    "value": {
+                      "status": 200,
+                      "error": null,
+                      "data": {
+                        "id": "0JJS8-884JN-MMMS8-KKSK0",
+                        "no_invoice": "trx-snn89920mmdsm",
+                        "start_date": "2022-10-25T10:00:00",
+                        "end_date": "2022-10-26T10:00:00",
+                        "duration": 1,
+                        "car_name": "pajero",
+                        "car_image_url": "https://image.com",
+                        "brand": "mitsubishi",
+                        "year": 2020,
+                        "capacity": 6,
+                        "cc": 2500,
+                        "price": 300000.00,
+                        "tax": 0,
+                        "discount": 0,
+                        "total_price": 300000.00
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          }
+        }
+      }
+    },
+    "/transactions/{id}": {
+      "get": {
+        "description": "get detail transactions",
+        "tags": ["Transactions"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "success get detail transactions",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GeneralResponseWithDataObject"
+                },
+                "examples": {
+                  "success": {
+                    "value": {
+                      "status": 200,
+                      "error": null,
+                      "data": {
+                        "id": "0JJS8-884JN-MMMS8-KKSK0",
+                        "no_invoice": "trx-snn89920mmdsm",
+                        "start_date": "2022-10-25T10:00:00",
+                        "end_date": "2022-10-26T10:00:00",
+                        "duration": 1,
+                        "car_name": "pajero",
+                        "car_image_url": "https://image.com",
+                        "brand": "mitsubishi",
+                        "year": 2020,
+                        "capacity": 6,
+                        "cc": 2500,
+                        "price": 300000.00,
+                        "tax": 0,
+                        "discount": 0,
+                        "total_price": 300000.00,
+                        "status": "finish",
+                        "user_id": "0KSK0-884JN-MMMS8-KKSK0",
+                        "car_id": "0JJS8-000KK-MMMS8-KKSK0",
+                        "user_approved": "Abid Perintis",
+                        "payment_image": "https://payment",
+                        "created_at": "2022-10-20T23:21:00"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbiddenError"
+          },
+          "404": {
+            "$ref": "#/components/responses/TransactionNotFoundError"
+          }
+        }
+      },
+      "delete": {
+        "description": "delete transaction by id",
+        "tags": ["Transactions"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "success delete transaction by id",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GeneralResponseWithDataString"
+                },
+                "examples": {
+                  "success": {
+                    "value": {
+                      "status": 200,
+                      "error": null,
+                      "data": "success delete transaction"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbiddenError"
+          },
+          "404": {
+            "$ref": "#/components/responses/TransactionNotFoundError"
+          }
+        }
+      },
+      "patch": {
+        "description": "edit transaction",
+        "tags": ["Transactions"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "status": {
+                    "type": "integer"
+                  },
+                  "payment_image": {
+                    "type": "array",
+                    "items": {
+                      "format": "binary",
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "success edit transaction",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GeneralResponseWithDataObject"
+                },
+                "examples": {
+                  "success": {
+                    "value": {
+                      "status": 200,
+                      "error": null,
+                      "data": {
+                        "status": 1,
+                        "payment_image": "https://payment.com"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbiddenError"
+          },
+          "404": {
+            "$ref": "#/components/responses/TransactionNotFoundError"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -1127,6 +1432,25 @@
                 "value": {
                   "status": 404,
                   "error": "car doesn't exist",
+                  "data": null
+                }
+              }
+            }
+          }
+        }
+      },
+      "TransactionNotFoundError": {
+        "description": "Response error for transaction not found",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/GeneralResponseWithDataObject"
+            },
+            "examples": {
+              "error": {
+                "value": {
+                  "status": 404,
+                  "error": "transaction doesn't exist",
                   "data": null
                 }
               }
