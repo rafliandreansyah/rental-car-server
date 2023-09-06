@@ -265,6 +265,11 @@
     },
     "/users": {
       "get": {
+        "security": [
+          {
+            "AppSecurity": []
+          }
+        ],
         "description": "get list of users",
         "tags": [
           "Users"
@@ -285,6 +290,22 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "number",
+              "default": "1"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "number",
+              "default": "20"
+            }
           }
         ],
         "responses": {
@@ -298,6 +319,14 @@
                 "examples": {
                   "success": {
                     "value": {
+                      "total": 50,
+                      "per_page": 10,
+                      "current_page": 1,
+                      "last_page": 5,
+                      "next_page_url": null,
+                      "prev_page_url": null,
+                      "from": 1,
+                      "to": 10,
                       "status": 200,
                       "error": null,
                       "data": [
@@ -324,6 +353,11 @@
         }
       },
       "post": {
+        "security": [
+          {
+            "AppSecurity": []
+          }
+        ],
         "description": "create data users",
         "tags": [
           "Users"
@@ -431,6 +465,11 @@
     },
     "/users/{id}": {
       "get": {
+        "security": [
+          {
+            "AppSecurity": []
+          }
+        ],
         "description": "get detail user by id",
         "tags": [
           "Users"
@@ -486,6 +525,11 @@
         }
       },
       "delete": {
+        "security": [
+          {
+            "AppSecurity": []
+          }
+        ],
         "description": "delete user by id",
         "tags": [
           "Users"
@@ -532,6 +576,11 @@
         }
       },
       "patch": {
+        "security": [
+          {
+            "AppSecurity": []
+          }
+        ],
         "description": "patch user data",
         "tags": [
           "Users"
@@ -618,6 +667,11 @@
     },
     "/users/{id}/transactions": {
       "get": {
+        "security": [
+          {
+            "AppSecurity": []
+          }
+        ],
         "description": "get list transaction by user id",
         "parameters": [
           {
@@ -626,6 +680,22 @@
             "required": true,
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "number",
+              "default": "1"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "number",
+              "default": "20"
             }
           }
         ],
@@ -641,6 +711,14 @@
                 "examples": {
                   "success": {
                     "value": {
+                      "total": 50,
+                      "per_page": 10,
+                      "current_page": 1,
+                      "last_page": 5,
+                      "next_page_url": null,
+                      "prev_page_url": null,
+                      "from": 1,
+                      "to": 10,
                       "status": 200,
                       "error": null,
                       "data": [
@@ -676,6 +754,11 @@
     },
     "/cars": {
       "get": {
+        "security": [
+          {
+            "AppSecurity": []
+          }
+        ],
         "description": "get list of cars",
         "tags": [
           "Cars"
@@ -712,6 +795,22 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "number",
+              "default": "1"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "number",
+              "default": "20"
+            }
           }
         ],
         "responses": {
@@ -725,6 +824,14 @@
                 "examples": {
                   "success": {
                     "value": {
+                      "total": 50,
+                      "per_page": 10,
+                      "current_page": 1,
+                      "last_page": 5,
+                      "next_page_url": null,
+                      "prev_page_url": null,
+                      "from": 1,
+                      "to": 10,
                       "status": 200,
                       "error": null,
                       "data": [
@@ -749,6 +856,11 @@
         }
       },
       "post": {
+        "security": [
+          {
+            "AppSecurity": []
+          }
+        ],
         "description": "create data cars and only admin can create",
         "tags": [
           "Cars"
@@ -813,6 +925,11 @@
     },
     "/cars/{id}": {
       "get": {
+        "security": [
+          {
+            "AppSecurity": []
+          }
+        ],
         "description": "get car data by id",
         "parameters": [
           {
@@ -870,6 +987,11 @@
         }
       },
       "delete": {
+        "security": [
+          {
+            "AppSecurity": []
+          }
+        ],
         "description": "delete car data by id",
         "parameters": [
           {
@@ -916,6 +1038,11 @@
         }
       },
       "patch": {
+        "security": [
+          {
+            "AppSecurity": []
+          }
+        ],
         "description": "edit car data by id",
         "tags": [
           "Cars"
@@ -987,8 +1114,31 @@
     },
     "/transactions": {
       "get": {
+        "security": [
+          {
+            "AppSecurity": []
+          }
+        ],
         "tags": ["Transactions"],
         "description": "get list of transactions an only admin can access",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "number",
+              "default": "1"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "number",
+              "default": "20"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "success get list of transactions",
@@ -1000,6 +1150,14 @@
                 "examples": {
                   "success": {
                     "value": {
+                      "total": 50,
+                      "per_page": 10,
+                      "current_page": 1,
+                      "last_page": 5,
+                      "next_page_url": null,
+                      "prev_page_url": null,
+                      "from": 1,
+                      "to": 10,
                       "status": 200,
                       "error": null,
                       "data": [
@@ -1030,6 +1188,11 @@
         }
       },
       "post": {
+        "security": [
+          {
+            "AppSecurity": []
+          }
+        ],
         "description": "user post transactions",
         "tags": ["Transactions"],
         "requestBody": {
@@ -1112,6 +1275,11 @@
     },
     "/transactions/{id}": {
       "get": {
+        "security": [
+          {
+            "AppSecurity": []
+          }
+        ],
         "description": "get detail transactions",
         "tags": ["Transactions"],
         "parameters": [
@@ -1178,6 +1346,11 @@
         }
       },
       "delete": {
+        "security": [
+          {
+            "AppSecurity": []
+          }
+        ],
         "description": "delete transaction by id",
         "tags": ["Transactions"],
         "parameters": [
@@ -1222,6 +1395,11 @@
         }
       },
       "patch": {
+        "security": [
+          {
+            "AppSecurity": []
+          }
+        ],
         "description": "edit transaction",
         "tags": ["Transactions"],
         "parameters": [
@@ -1289,9 +1467,111 @@
           }
         }
       }
+    },
+    "/logs": {
+      "get": {
+        "security": [
+          {
+            "AppSecurity": []
+          }
+        ],
+        "description": "get logs all operation application",
+        "tags": ["Logs"],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "number",
+              "default": "1"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "number",
+              "default": "20"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "success get list of logs",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GeneralResponseWithDataArrayObjectPaging"
+                },
+                "examples": {
+                  "success": {
+                    "value": {
+                      "total": 50,
+                      "per_page": 10,
+                      "current_page": 1,
+                      "last_page": 5,
+                      "next_page_url": null,
+                      "prev_page_url": null,
+                      "from": 1,
+                      "to": 10,
+                      "status": 200,
+                      "error": null,
+                      "data": [
+                        {
+                          "id": "JDSS8-LSL99-MSMM9-NS997",
+                          "user": {
+                            "id": "JDSS8-LSL99-MSMM9-NS997",
+                            "name": "Jono Joni",
+                            "email": "jono@gmail.com",
+                            "phone": "08123299990"
+                          },
+                          "url": "/transactions",
+                          "method": "POST",
+                          "status": "FAILED",
+                          "error_logs": "Main.java:8: error: unreported exception FileNotFoundException; must be caught or declared to be thrown\n    FileReader fileReader = new FileReader(\"Test.txt\");\n                            ^\nMain.java:10: error: unreported exception IOException; must be caught or declared to be thrown\n    System.out.println(fileReader.read());\n                                      ^\nMain.java:12: error: unreported exception IOException; must be caught or declared to be thrown\n    fileReader.close();",
+                          "activity": "create transactions",
+                          "created_at": "2020-08-15T20:13:00"
+                        },
+                        {
+                          "id": "9092K-JJJSJ-MSMM9-NS997",
+                          "user": {
+                            "id": "JDSS8-LSL99-MSMM9-NS997",
+                            "name": "Jono Joni",
+                            "email": "jono@gmail.com",
+                            "phone": "08123299990"
+                          },
+                          "url": "/auth/register",
+                          "method": "POST",
+                          "status": "SUCCESS",
+                          "error_logs": null,
+                          "activity": "user registration to system",
+                          "created_at": "2020-08-15T19:40:23"
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbiddenError"
+          }
+        }
+      }
     }
   },
   "components": {
+    "securitySchemes": {
+      "AppSecurity": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
     "schemas": {
       "GeneralResponseWithDataObject": {
         "type": "object",
@@ -1310,6 +1590,47 @@
       "GeneralResponseWithDataArrayObject": {
         "type": "object",
         "properties": {
+          "status": {
+            "type": "integer"
+          },
+          "error": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          }
+        }
+      },
+      "GeneralResponseWithDataArrayObjectPaging": {
+        "type": "object",
+        "properties": {
+          "total": {
+            "type": "integer"
+          },
+          "per_page": {
+            "type": "integer"
+          },
+          "current_page": {
+            "type": "integer"
+          },
+          "last_page": {
+            "type": "integer"
+          },
+          "next_page_url": {
+            "type": "string"
+          },
+          "prev_page_url": {
+            "type": "string"
+          },
+          "from": {
+            "type": "number"
+          },
+          "to": {
+            "type": "number"
+          },
           "status": {
             "type": "integer"
           },
