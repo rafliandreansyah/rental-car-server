@@ -500,6 +500,7 @@
                       "data": {
                         "id": "8DJS-KWME-DMWA-MDMM",
                         "name": "suprianto alexandre",
+                        "email": "supri@gmail.com",
                         "image_url": "https://media.istockphoto.com/id/1386479313/photo/happy-millennial-afro-american-business-woman-posing-isolated-on-white.webp?b=1&s=170667a&w=0&k=20&c=ahypUC_KTc95VOsBkzLFZiCQ0VJwewfrSV43BOrLETM=",
                         "dob": "1996-12-20",
                         "phone": "+6289373622",
@@ -699,7 +700,9 @@
             }
           }
         ],
-        "tags": ["Users"],
+        "tags": [
+          "Users"
+        ],
         "responses": {
           "200": {
             "description": "success get list transaction by user id",
@@ -1119,7 +1122,9 @@
             "AppSecurity": []
           }
         ],
-        "tags": ["Transactions"],
+        "tags": [
+          "Transactions"
+        ],
         "description": "get list of transactions an only admin can access",
         "parameters": [
           {
@@ -1178,7 +1183,7 @@
                 }
               }
             }
-          }  ,
+          },
           "401": {
             "$ref": "#/components/responses/UnauthorizedError"
           },
@@ -1194,10 +1199,12 @@
           }
         ],
         "description": "user post transactions",
-        "tags": ["Transactions"],
+        "tags": [
+          "Transactions"
+        ],
         "requestBody": {
           "content": {
-            "application/json" : {
+            "application/json": {
               "schema": {
                 "properties": {
                   "start_date": {
@@ -1281,7 +1288,9 @@
           }
         ],
         "description": "get detail transactions",
-        "tags": ["Transactions"],
+        "tags": [
+          "Transactions"
+        ],
         "parameters": [
           {
             "name": "id",
@@ -1323,6 +1332,17 @@
                         "total_price": 300000.00,
                         "status": "finish",
                         "user_id": "0KSK0-884JN-MMMS8-KKSK0",
+                        "user": {
+                          "id": "8DJS-KWME-DMWA-MDMM",
+                          "name": "suprianto alexandre",
+                          "email": "supri@gmail.com",
+                          "image_url": "https://media.istockphoto.com/id/1386479313/photo/happy-millennial-afro-american-business-woman-posing-isolated-on-white.webp?b=1&s=170667a&w=0&k=20&c=ahypUC_KTc95VOsBkzLFZiCQ0VJwewfrSV43BOrLETM=",
+                          "dob": "1996-12-20",
+                          "phone": "+6289373622",
+                          "is_active": "true",
+                          "role": "USER",
+                          "date_created": "2023-10-30"
+                        },
                         "car_id": "0JJS8-000KK-MMMS8-KKSK0",
                         "user_approved": "Abid Perintis",
                         "payment_image": "https://payment",
@@ -1352,7 +1372,9 @@
           }
         ],
         "description": "delete transaction by id",
-        "tags": ["Transactions"],
+        "tags": [
+          "Transactions"
+        ],
         "parameters": [
           {
             "name": "id",
@@ -1401,7 +1423,9 @@
           }
         ],
         "description": "edit transaction",
-        "tags": ["Transactions"],
+        "tags": [
+          "Transactions"
+        ],
         "parameters": [
           {
             "name": "id",
@@ -1476,7 +1500,9 @@
           }
         ],
         "description": "get logs all operation application",
-        "tags": ["Logs"],
+        "tags": [
+          "Logs"
+        ],
         "parameters": [
           {
             "name": "page",
