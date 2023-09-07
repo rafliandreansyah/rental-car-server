@@ -1,3 +1,5 @@
+CREATE DATABASE rental_car_db;
+
 CREATE TABLE "users" (
   "id" uuid PRIMARY KEY,
   "name" varchar,
