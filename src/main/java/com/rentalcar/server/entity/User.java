@@ -13,9 +13,9 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
+import java.util.UUID;
 
 @Entity
 @Table(name = "users")
@@ -27,7 +27,8 @@ import java.util.List;
 public class User implements UserDetails {
 
     @Id
-    private String id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
     private String name;
 
@@ -39,7 +40,7 @@ public class User implements UserDetails {
     private String imageUrl;
 
     @Column(name = "date_of_birth")
-    private String dateOfBirth;
+    private Instant dateOfBirth;
 
     @Column(name = "phone_number")
     private String phoneNumber;
@@ -66,6 +67,16 @@ public class User implements UserDetails {
 
     @Column(name = "is_deleted")
     private Boolean isDeleted;
+
+    @PrePersist
+    public void prePersist() {
+        if (isActive == null) {
+            isActive = true;
+        }
+        if (isDeleted == null) {
+            isDeleted = false;
+        }
+    }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
