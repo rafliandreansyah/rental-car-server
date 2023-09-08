@@ -12,8 +12,7 @@ CREATE TABLE "users" (
   "is_active" boolean NOT NULL,
   "created_at" timestamp DEFAULT (now()),
   "updated_at" timestamp,
-  "is_deleted" boolean,
-  PRIMARY KEY ("id")
+  "is_deleted" boolean
 );
 
 CREATE TABLE "cars_authorization" (
@@ -21,9 +20,7 @@ CREATE TABLE "cars_authorization" (
   "user_id" uuid,
   "car_id" uuid,
   "created_at" timestamp DEFAULT (now()),
-  "updated_at" timestamp,
-  "is_deleted" boolean,
-  PRIMARY KEY ("id")
+  "updated_at" timestamp
 );
 
 CREATE TABLE "cars" (
@@ -42,8 +39,7 @@ CREATE TABLE "cars" (
   "is_active" boolean NOT NULL DEFAULT true,
   "created_at" timestamp DEFAULT (now()),
   "updated_at" timestamp,
-  "is_deleted" boolean,
-  PRIMARY KEY ("id")
+  "is_deleted" boolean
 );
 
 CREATE TABLE "cars_image_details" (
@@ -51,8 +47,7 @@ CREATE TABLE "cars_image_details" (
   "image_url" varchar(255) NOT NULL,
   "car_id" uuid,
   "created_at" timestamp DEFAULT (now()),
-  "updated_at" timestamp,
-  "is_deleted" boolean
+  "updated_at" timestamp
 );
 
 CREATE TABLE "transactions" (
@@ -60,16 +55,16 @@ CREATE TABLE "transactions" (
   "no_invoice" varchar(255) UNIQUE NOT NULL,
   "car_name" varchar(255) NOT NULL,
   "car_image_url" varchar(255) NOT NULL,
-  "brand" varchar(100) NOT NULL,
-  "year" int NOT NULL,
-  "capacity" int NOT NULL,
-  "cc" int NOT NULL,
+  "car_brand" varchar(100) NOT NULL,
+  "car_year" int NOT NULL,
+  "car_capacity" int NOT NULL,
+  "car_cc" int NOT NULL,
   "start_date" timestamp NOT NULL,
   "end_date" timestamp NOT NULL,
   "duration_day" int NOT NULL,
-  "price" numeric(8, 2) NOT NULL,
-  "tax" int NOT NULL DEFAULT 0,
-  "discount" int NOT NULL DEFAULT 0,
+  "car_price" numeric(8, 2) NOT NULL,
+  "car_tax" int NOT NULL DEFAULT 0,
+  "car_discount" int NOT NULL DEFAULT 0,
   "total_price" numeric(12, 2) NOT NULL,
   "user_id" uuid,
   "user_approved" varchar(100) NOT NULL,
@@ -78,22 +73,20 @@ CREATE TABLE "transactions" (
   "payment_image" varchar(255),
   "created_at" timestamp DEFAULT (now()),
   "updated_at" timestamp,
-  "is_deleted" timestamp,
-  PRIMARY KEY ("id")
+  "is_deleted" timestamp
 );
 
-CREATE TABLE "logs" (
-  "id" uuid UNIQUE PRIMARY KEY NOT NULL,
-  "user_id" uuid,
-  "url" varchar(255) NOT NULL,
-  "method" varchar(50) NOT NULL,
-  "status" varchar(50) NOT NULL,
-  "error_log" text,
-  "activity" varchar(255) NOT NULL,
-  "created_at" timestamp DEFAULT (now()),
-  "updated_at" timestamp,
-  PRIMARY KEY ("id")
-);
+-- CREATE TABLE "logs" (
+--   "id" uuid UNIQUE PRIMARY KEY NOT NULL,
+--   "user_id" uuid,
+--   "url" varchar(255) NOT NULL,
+--   "method" varchar(50) NOT NULL,
+--   "status" varchar(50) NOT NULL,
+--   "error_log" text,
+--   "activity" varchar(255) NOT NULL,
+--   "created_at" timestamp DEFAULT (now()),
+--   "updated_at" timestamp
+-- );
 
 CREATE INDEX ON "users" ("name");
 
@@ -115,4 +108,4 @@ ALTER TABLE "transactions" ADD FOREIGN KEY ("user_id") REFERENCES "users" ("id")
 
 ALTER TABLE "transactions" ADD FOREIGN KEY ("car_id") REFERENCES "cars" ("id");
 
-ALTER TABLE "logs" ADD FOREIGN KEY ("user_id") REFERENCES "users" ("id");
+-- ALTER TABLE "logs" ADD FOREIGN KEY ("user_id") REFERENCES "users" ("id");
