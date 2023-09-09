@@ -2,12 +2,19 @@ package com.rentalcar.server.service;
 
 import com.rentalcar.server.entity.User;
 import com.rentalcar.server.entity.UserRoleEnum;
+import com.rentalcar.server.model.AuthenticateRequest;
+import com.rentalcar.server.model.AuthenticateResponse;
 import com.rentalcar.server.model.RegisterRequest;
 import com.rentalcar.server.repository.UserRepository;
+import com.rentalcar.server.security.JwtService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Optional;
@@ -19,7 +26,10 @@ public class AuthServiceImpl implements AuthService{
     private final UserRepository userRepository;
     private final ValidationService validationService;
     private final PasswordEncoder passwordEncoder;
+    private final AuthenticationManager authenticationManager;
+    private final JwtService jwtService;
 
+    @Transactional
     @Override
     public String register(RegisterRequest request) {
         validationService.validate(request);
@@ -42,6 +52,7 @@ public class AuthServiceImpl implements AuthService{
         return "registration successful";
     }
 
+    @Transactional
     @Override
     public User createAdmin(User user) {
         var userData = User.builder()
@@ -52,5 +63,27 @@ public class AuthServiceImpl implements AuthService{
                 .role(UserRoleEnum.ADMIN)
                 .build();
         return userRepository.save(userData);
+    }
+
+    @Override
+    public AuthenticateResponse authenticate(AuthenticateRequest authenticateRequest) {
+        validationService.validate(authenticateRequest);
+
+        try {
+            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
+                    authenticateRequest.getEmail(),
+                    authenticateRequest.getPassword()
+            ));
+        }catch (BadCredentialsException exception) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "invalid email or password");
+        }
+
+
+        User user = userRepository.findByEmail(authenticateRequest.getEmail()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "email doesn't exists"));
+
+
+        return AuthenticateResponse.builder()
+                .token(jwtService.generateToken(user))
+                .build();
     }
 }

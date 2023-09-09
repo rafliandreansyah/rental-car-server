@@ -1,5 +1,7 @@
 package com.rentalcar.server.restcontroller;
 
+import com.rentalcar.server.model.AuthenticateRequest;
+import com.rentalcar.server.model.AuthenticateResponse;
 import com.rentalcar.server.model.RegisterRequest;
 import com.rentalcar.server.model.WebResponse;
 import com.rentalcar.server.service.AuthService;
@@ -23,6 +25,12 @@ public class AuthController {
     public ResponseEntity<WebResponse<String>> register(@RequestBody RegisterRequest request){
         String register = authService.register(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(WebResponse.<String>builder().data(register).status(HttpStatus.CREATED.value()).build());
+    }
+
+    @PostMapping(value = "/authenticate", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<WebResponse<AuthenticateResponse>> authenticate(@RequestBody AuthenticateRequest request) {
+        var authenticate = authService.authenticate(request);
+        return ResponseEntity.ok(WebResponse.<AuthenticateResponse>builder().data(authenticate).build());
     }
 
 }
