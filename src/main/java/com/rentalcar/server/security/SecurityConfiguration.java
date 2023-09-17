@@ -47,8 +47,10 @@ public class SecurityConfiguration {
                                 new AntPathRequestMatcher("/api/v1/transactions/**", HttpMethod.DELETE.name())
                         ).hasAnyAuthority(UserRoleEnum.ADMIN.name())
                         .requestMatchers(
-                                new AntPathRequestMatcher("/api/v1/auth/**")
-                        ).permitAll()
+                                new AntPathRequestMatcher("/api/v1/auth/**"),
+                                new AntPathRequestMatcher("/images/**")
+                        )
+                        .permitAll()
                         .anyRequest()
                         .authenticated()
                 )

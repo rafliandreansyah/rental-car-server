@@ -18,7 +18,7 @@ public class CustomAuthenticationEntryPointHandler implements AuthenticationEntr
     @Override
     public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) throws IOException, ServletException {
         WebResponse<String> re = WebResponse.<String>builder()
-                .error("Authentication failed").build();
+                .error("authentication failed").status(HttpServletResponse.SC_UNAUTHORIZED).build();
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         OutputStream responseStream = response.getOutputStream();

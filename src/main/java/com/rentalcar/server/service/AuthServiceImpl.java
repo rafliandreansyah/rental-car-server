@@ -39,6 +39,11 @@ public class AuthServiceImpl implements AuthService{
             throw new ResponseStatusException(HttpStatus.CONFLICT, "email already register");
         }
 
+        Optional<User> userByPhoneNumber = userRepository.findByPhoneNumber(request.getPhone().trim());
+        if (userByPhoneNumber.isPresent()){
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "phone number already use");
+        }
+
         var userData = User.builder()
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
