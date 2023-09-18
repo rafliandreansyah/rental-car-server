@@ -4,6 +4,7 @@ import com.rentalcar.server.entity.User;
 import com.rentalcar.server.entity.UserRoleEnum;
 import com.rentalcar.server.model.CreateUserRequest;
 import com.rentalcar.server.model.CreateUserResponse;
+import com.rentalcar.server.model.GetDetailUserResponse;
 import com.rentalcar.server.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -16,7 +17,9 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -72,6 +75,37 @@ public class UserServiceImpl implements UserService {
                 .dob(LocalDateTime.ofInstant(saveUserData.getDateOfBirth(), ZoneId.of("Asia/Jakarta")).toString())
                 .role(saveUserData.getRole().name().trim().toLowerCase())
                 .isActive(saveUserData.getIsActive())
+                .build();
+    }
+
+    @Override
+    public GetDetailUserResponse getDetailUser(User user, String userId) {
+
+        if (!Objects.equals(user.getId().toString(), userId.trim())) {
+            if (user.getRole() != null && user.getRole().equals(UserRoleEnum.USER)) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "don't have a access");
+            }
+        }
+
+        UUID idUser;
+        try {
+            idUser = UUID.fromString(userId);
+        }catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "user not found");
+        }
+
+        User userLoadedDB = userRepository.findById(idUser).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "user not found"));
+
+        return GetDetailUserResponse.builder()
+                .id(userLoadedDB.getId().toString())
+                .name(userLoadedDB.getName())
+                .email(userLoadedDB.getEmail())
+                .imageUrl(userLoadedDB.getImageUrl())
+                .dob(LocalDateTime.ofInstant(userLoadedDB.getDateOfBirth(), ZoneId.of("Asia/Jakarta")).toString())
+                .phone(userLoadedDB.getPhoneNumber())
+                .isActive(userLoadedDB.getIsActive())
+                .role(userLoadedDB.getRole().equals(UserRoleEnum.ADMIN) ? userLoadedDB.getRole().name() : null)
+                .dateCreated(LocalDateTime.ofInstant(userLoadedDB.getCreatedAt(), ZoneId.of("Asia/Jakarta")).toString())
                 .build();
     }
 }
