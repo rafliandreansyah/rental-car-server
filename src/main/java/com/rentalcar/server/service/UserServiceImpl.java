@@ -108,4 +108,24 @@ public class UserServiceImpl implements UserService {
                 .dateCreated(LocalDateTime.ofInstant(userLoadedDB.getCreatedAt(), ZoneId.of("Asia/Jakarta")).toString())
                 .build();
     }
+
+    @Override
+    public String deleteUserById(User user, String userId) {
+        if (user.getRole().equals(UserRoleEnum.USER)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "don't have a access");
+        }
+
+        UUID idUser;
+        try {
+            idUser = UUID.fromString(userId);
+        }catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "user not found");
+        }
+
+        userRepository.findById(idUser).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "user not found"));
+
+        userRepository.deleteById(idUser);
+
+        return "success delete data user";
+    }
 }

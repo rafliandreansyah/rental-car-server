@@ -12,4 +12,6 @@ public interface UserService {
 
     GetDetailUserResponse getDetailUser(User user, String userId);
 
+    String deleteUserById(User user, String userId);
+
 }
