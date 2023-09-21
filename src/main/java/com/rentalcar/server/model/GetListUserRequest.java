@@ -13,10 +13,10 @@ public class GetListUserRequest {
 
     private String role;
 
-    private String isActive;
+    private Boolean isActive;
 
-    private String page;
+    private Integer page;
 
-    private String size;
+    private Integer size;
 
 }

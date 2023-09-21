@@ -1,18 +1,19 @@
 package com.rentalcar.server.restcontroller;
 
 import com.rentalcar.server.entity.User;
-import com.rentalcar.server.model.CreateUserRequest;
-import com.rentalcar.server.model.CreateUserResponse;
-import com.rentalcar.server.model.GetDetailUserResponse;
-import com.rentalcar.server.model.WebResponse;
+import com.rentalcar.server.entity.UserRoleEnum;
+import com.rentalcar.server.model.*;
 import com.rentalcar.server.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/users")
@@ -47,6 +48,38 @@ public class UserController {
     public ResponseEntity<WebResponse<String>> deleteUserById(User user, @PathVariable("id") String userId) {
         String deleteUserMessage = userService.deleteUserById(user, userId);
         return ResponseEntity.ok(WebResponse.<String>builder().data(deleteUserMessage).status(HttpStatus.OK.value()).build());
+    }
+
+
+    @GetMapping(
+            produces = MediaType.APPLICATION_JSON_VALUE
+    )
+    public ResponseEntity<WebResponsePaging<List<GetListUserResponse>>> getUsers(
+            User user,
+            @RequestParam(name = "role", required = false, defaultValue = "USER") String role,
+            @RequestParam(name = "is_active", required = false, defaultValue = "true") Boolean isActive,
+            @RequestParam(name = "page", defaultValue = "0") Integer page,
+            @RequestParam(name = "size", defaultValue = "10") Integer size
+    ) {
+
+        GetListUserRequest getListRequest = GetListUserRequest.builder()
+                .role(role)
+                .isActive(isActive)
+                .page(page)
+                .size(size)
+                .build();
+
+        Page<GetListUserResponse> listUser = userService.getListUser(user, getListRequest);
+
+        return ResponseEntity.ok(WebResponsePaging.<List<GetListUserResponse>>builder()
+                .totalItem(listUser.getTotalElements())
+                .perPage(listUser.getSize())
+                .currentPage(listUser.getNumber() + 1)
+                .lastPage(listUser.getTotalPages())
+                .status(HttpStatus.OK.value())
+                .data(listUser.getContent())
+                .build());
+
     }
 
 }
