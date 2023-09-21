@@ -2,12 +2,11 @@ package com.rentalcar.server.service;
 
 import com.rentalcar.server.entity.User;
 import com.rentalcar.server.entity.UserRoleEnum;
-import com.rentalcar.server.model.CreateUserRequest;
-import com.rentalcar.server.model.CreateUserResponse;
-import com.rentalcar.server.model.GetDetailUserResponse;
+import com.rentalcar.server.model.*;
 import com.rentalcar.server.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -107,5 +106,10 @@ public class UserServiceImpl implements UserService {
                 .role(userLoadedDB.getRole().equals(UserRoleEnum.ADMIN) ? userLoadedDB.getRole().name() : null)
                 .dateCreated(LocalDateTime.ofInstant(userLoadedDB.getCreatedAt(), ZoneId.of("Asia/Jakarta")).toString())
                 .build();
+    }
+
+    @Override
+    public Page<GetListUserResponse> getListUser(User user, GetListUserRequest getListUserRequest) {
+        return null;
     }
 }

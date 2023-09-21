@@ -1,9 +1,8 @@
 package com.rentalcar.server.service;
 
 import com.rentalcar.server.entity.User;
-import com.rentalcar.server.model.CreateUserRequest;
-import com.rentalcar.server.model.CreateUserResponse;
-import com.rentalcar.server.model.GetDetailUserResponse;
+import com.rentalcar.server.model.*;
+import org.springframework.data.domain.Page;
 import org.springframework.web.multipart.MultipartFile;
 
 public interface UserService {
@@ -11,5 +10,7 @@ public interface UserService {
     CreateUserResponse createUser(CreateUserRequest request, MultipartFile file);
 
     GetDetailUserResponse getDetailUser(User user, String userId);
+
+    Page<GetListUserResponse> getListUser(User user, GetListUserRequest getListUserRequest);
 
 }
