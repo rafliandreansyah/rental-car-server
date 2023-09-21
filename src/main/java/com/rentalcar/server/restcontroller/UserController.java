@@ -40,4 +40,13 @@ public class UserController {
         return ResponseEntity.ok(WebResponse.<GetDetailUserResponse>builder().status(HttpStatus.OK.value()).data(detailUser).build());
     }
 
+    @DeleteMapping(
+            value = "/{id}",
+            produces = MediaType.APPLICATION_JSON_VALUE
+    )
+    public ResponseEntity<WebResponse<String>> deleteUserById(User user, @PathVariable("id") String userId) {
+        String deleteUserMessage = userService.deleteUserById(user, userId);
+        return ResponseEntity.ok(WebResponse.<String>builder().data(deleteUserMessage).status(HttpStatus.OK.value()).build());
+    }
+
 }

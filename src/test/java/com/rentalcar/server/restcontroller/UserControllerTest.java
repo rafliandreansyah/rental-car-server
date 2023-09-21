@@ -29,6 +29,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -746,5 +747,136 @@ class UserControllerTest {
 
                 });
 
+    }
+
+    @Test
+    void deleteUserSuccessTest() throws Exception {
+
+        User user = User.builder()
+                .name("User")
+                .email("user@yahoo.com")
+                .password("amaterasu")
+                .phoneNumber("+62892838399")
+                .dateOfBirth(Instant.now())
+                .role(UserRoleEnum.USER)
+                .build();
+
+        userRepository.save(user);
+
+        String token = jwtService.generateToken(admin);
+
+        mockMvc.perform(
+                        delete("/api/v1/users/" + user.getId())
+                                .header(AUTHORIZATION, "Bearer " + token)
+                                .accept(MediaType.APPLICATION_JSON)
+                ).andExpectAll(status().isOk())
+                .andExpectAll(result -> {
+
+                    WebResponse<String> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+                    });
+                    Assertions.assertNotNull(response.getData());
+                    Assertions.assertNull(response.getError());
+                    Assertions.assertEquals("success delete data user", response.getData());
+
+                });
+
+    }
+
+    @Test
+    void deleteUserAccessForbiddenErrorTest() throws Exception {
+
+        User user = User.builder()
+                .name("User")
+                .email("user@yahoo.com")
+                .password("amaterasu")
+                .phoneNumber("+62892838399")
+                .dateOfBirth(Instant.now())
+                .role(UserRoleEnum.USER)
+                .build();
+
+        User user2 = User.builder()
+                .name("User")
+                .email("user2@yahoo.com")
+                .password("amaterasu")
+                .phoneNumber("+628922838399")
+                .dateOfBirth(Instant.now())
+                .role(UserRoleEnum.USER)
+                .build();
+
+        userRepository.save(user);
+        User user2Saved = userRepository.save(user2);
+
+        String token = jwtService.generateToken(user);
+
+        mockMvc.perform(
+                        delete("/api/v1/users/" + user2Saved.getId())
+                                .header(AUTHORIZATION, "Bearer " + token)
+                                .accept(MediaType.APPLICATION_JSON)
+                ).andExpectAll(status().isForbidden())
+                .andExpectAll(result -> {
+
+                    WebResponse<String> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+                    });
+                    Assertions.assertNull(response.getData());
+                    Assertions.assertNotNull(response.getError());
+                    Assertions.assertEquals("don't have a access", response.getError());
+
+                });
+
+    }
+
+
+    @Test
+    void deleteUserNotFoundErrorTest() throws Exception {
+
+        User user = User.builder()
+                .name("User")
+                .email("user@yahoo.com")
+                .password("amaterasu")
+                .phoneNumber("+62892838399")
+                .dateOfBirth(Instant.now())
+                .role(UserRoleEnum.USER)
+                .build();
+
+        User userSave = userRepository.save(user);
+        userRepository.deleteById(userSave.getId());
+
+        String token = jwtService.generateToken(admin);
+
+        mockMvc.perform(
+                        delete("/api/v1/users/" + userSave.getId())
+                                .header(AUTHORIZATION, "Bearer " + token)
+                                .accept(MediaType.APPLICATION_JSON)
+                ).andExpectAll(status().isNotFound())
+                .andExpectAll(result -> {
+
+                    WebResponse<String> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+                    });
+                    Assertions.assertNull(response.getData());
+                    Assertions.assertNotNull(response.getError());
+                    Assertions.assertEquals("user not found", response.getError());
+
+                });
+    }
+
+    @Test
+    void deleteUserNotFoundIdRandomErrorTest() throws Exception {
+
+        String token = jwtService.generateToken(admin);
+
+        mockMvc.perform(
+                        delete("/api/v1/users/not-found")
+                                .header(AUTHORIZATION, "Bearer " + token)
+                                .accept(MediaType.APPLICATION_JSON)
+                ).andExpectAll(status().isNotFound())
+                .andExpectAll(result -> {
+
+                    WebResponse<String> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+                    });
+                    Assertions.assertNull(response.getData());
+                    Assertions.assertNotNull(response.getError());
+                    Assertions.assertEquals("user not found", response.getError());
+
+                });
     }
 }
