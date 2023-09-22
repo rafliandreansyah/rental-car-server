@@ -43,16 +43,16 @@ public class UserServiceImpl implements UserService {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "email already register");
         }
         Optional<User> userByPhoneNumber = userRepository.findByPhoneNumber(request.getPhone().trim());
-        if (userByPhoneNumber.isPresent()){
+        if (userByPhoneNumber.isPresent()) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "phone number already use");
         }
 
         String pathImage = null;
-        if (!file.isEmpty()){
+        if (!file.isEmpty()) {
             pathImage = fileStorageService.storeFile(file, userPath);
         }
 
-        if (!request.getRole().equalsIgnoreCase("admin") && !request.getRole().equalsIgnoreCase("user")){
+        if (!request.getRole().equalsIgnoreCase("admin") && !request.getRole().equalsIgnoreCase("user")) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "user role is not found");
         }
 
@@ -92,7 +92,7 @@ public class UserServiceImpl implements UserService {
         UUID idUser;
         try {
             idUser = UUID.fromString(userId);
-        }catch (Exception e) {
+        } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "user not found");
         }
 
@@ -120,7 +120,7 @@ public class UserServiceImpl implements UserService {
         UUID idUser;
         try {
             idUser = UUID.fromString(userId);
-        }catch (Exception e) {
+        } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "user not found");
         }
 
@@ -129,12 +129,12 @@ public class UserServiceImpl implements UserService {
         userRepository.deleteById(idUser);
 
         return "success delete data user";
-        
+
     }
-    
+
     public Page<GetListUserResponse> getListUser(User user, GetListUserRequest getListUserRequest) {
 
-        getListUserRequest.setPage(getListUserRequest.getPage() > 0 ? getListUserRequest.getPage() -1 : getListUserRequest.getPage());
+        getListUserRequest.setPage(getListUserRequest.getPage() > 0 ? getListUserRequest.getPage() - 1 : getListUserRequest.getPage());
 
         if (user.getRole().equals(UserRoleEnum.USER)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "don't have a access");
@@ -149,6 +149,22 @@ public class UserServiceImpl implements UserService {
                             root.get("id"), user.getId()
                     )
             );
+
+            if (Objects.nonNull(getListUserRequest.getName())) {
+                predicates.add(
+                        criteriaBuilder.like(
+                                root.get("name"), "%" + getListUserRequest.getName() + "%"
+                        )
+                );
+            }
+
+            if (Objects.nonNull(getListUserRequest.getEmail())) {
+                predicates.add(
+                        criteriaBuilder.like(
+                                root.get("email"), "%" + getListUserRequest.getEmail() + "%"
+                        )
+                );
+            }
 
             if (Objects.nonNull(getListUserRequest.getRole())) {
                 predicates.add(
@@ -176,6 +192,7 @@ public class UserServiceImpl implements UserService {
                 .map(userData -> GetListUserResponse
                         .builder()
                         .id(userData.getId().toString())
+                        .email(userData.getEmail())
                         .name(userData.getName())
                         .imageUrl(userData.getImageUrl())
                         .isActive(userData.getIsActive())

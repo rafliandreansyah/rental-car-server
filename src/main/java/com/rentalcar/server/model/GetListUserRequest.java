@@ -11,6 +11,10 @@ import lombok.NoArgsConstructor;
 @Builder
 public class GetListUserRequest {
 
+    private String name;
+
+    private String email;
+
     private String role;
 
     private Boolean isActive;

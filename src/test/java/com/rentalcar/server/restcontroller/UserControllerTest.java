@@ -919,6 +919,86 @@ class UserControllerTest {
     }
 
     @Test
+    void getListDataUserPagingQueryEmailSuccessTest() throws Exception {
+
+        for (int i = 1; i <= 50; i++) {
+            User user = User.builder()
+                    .email("user" + i + "@gmail.com")
+                    .name("user " + i)
+                    .password("secretpassword")
+                    .phoneNumber("+62883748473" + i)
+                    .role(UserRoleEnum.USER)
+                    .build();
+
+            userRepository.save(user);
+        }
+
+        String token = jwtService.generateToken(admin);
+
+        mockMvc.perform(
+                get("/api/v1/users?page=1&size10&email=user49")
+                        .header(AUTHORIZATION,"Bearer " + token)
+                        .accept(MediaType.APPLICATION_JSON)
+        ).andExpectAll(
+                status().isOk()
+        ).andExpectAll(
+                result -> {
+                    WebResponsePaging<List<GetListUserResponse>> responsePaging = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>(){});
+                    Assertions.assertNull(responsePaging.getError());
+                    Assertions.assertNotNull(responsePaging.getData());
+                    Assertions.assertEquals(responsePaging.getStatus(), HttpStatus.OK.value());
+                    Assertions.assertEquals(1, responsePaging.getTotalItem());
+                    Assertions.assertEquals(1, responsePaging.getCurrentPage());
+                    Assertions.assertEquals(10, responsePaging.getPerPage());
+                    Assertions.assertEquals(1, responsePaging.getLastPage());
+                    Assertions.assertEquals("user 49", responsePaging.getData().get(0).getName());
+                    Assertions.assertEquals("user49@gmail.com", responsePaging.getData().get(0).getEmail());
+                }
+        );
+
+    }
+
+    @Test
+    void getListDataUserPagingQueryNameSuccessTest() throws Exception {
+
+        for (int i = 1; i <= 50; i++) {
+            User user = User.builder()
+                    .email("user" + i + "@gmail.com")
+                    .name("user " + i)
+                    .password("secretpassword")
+                    .phoneNumber("+62883748473" + i)
+                    .role(UserRoleEnum.USER)
+                    .build();
+
+            userRepository.save(user);
+        }
+
+        String token = jwtService.generateToken(admin);
+
+        mockMvc.perform(
+                get("/api/v1/users?page=1&size10&name=10")
+                        .header(AUTHORIZATION,"Bearer " + token)
+                        .accept(MediaType.APPLICATION_JSON)
+        ).andExpectAll(
+                status().isOk()
+        ).andExpectAll(
+                result -> {
+                    WebResponsePaging<List<GetListUserResponse>> responsePaging = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>(){});
+                    Assertions.assertNull(responsePaging.getError());
+                    Assertions.assertNotNull(responsePaging.getData());
+                    Assertions.assertEquals(responsePaging.getStatus(), HttpStatus.OK.value());
+                    Assertions.assertEquals(1, responsePaging.getTotalItem());
+                    Assertions.assertEquals(1, responsePaging.getCurrentPage());
+                    Assertions.assertEquals(10, responsePaging.getPerPage());
+                    Assertions.assertEquals(1, responsePaging.getLastPage());
+                    Assertions.assertEquals("user 10", responsePaging.getData().get(0).getName());
+                    Assertions.assertEquals("user10@gmail.com", responsePaging.getData().get(0).getEmail());
+                }
+        );
+
+    }
+
+    @Test
     void getListDataAdminPagingSuccessTest() throws Exception {
 
         for (int i = 1; i <= 50; i++) {

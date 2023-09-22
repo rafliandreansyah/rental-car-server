@@ -17,6 +17,8 @@ public class GetListUserResponse {
     @JsonProperty("image_url")
     private String imageUrl;
 
+    private String email;
+
     private String name;
 
     private String phone;

@@ -57,12 +57,16 @@ public class UserController {
     public ResponseEntity<WebResponsePaging<List<GetListUserResponse>>> getUsers(
             User user,
             @RequestParam(name = "role", required = false, defaultValue = "USER") String role,
+            @RequestParam(name = "email", required = false) String email,
+            @RequestParam(name = "name", required = false) String name,
             @RequestParam(name = "is_active", required = false, defaultValue = "true") Boolean isActive,
             @RequestParam(name = "page", defaultValue = "0") Integer page,
             @RequestParam(name = "size", defaultValue = "10") Integer size
     ) {
 
         GetListUserRequest getListRequest = GetListUserRequest.builder()
+                .email(email)
+                .name(name)
                 .role(role)
                 .isActive(isActive)
                 .page(page)
