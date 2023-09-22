@@ -276,6 +276,22 @@
         ],
         "parameters": [
           {
+            "name": "name",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "email",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "role",
             "in": "query",
             "required": false,
@@ -459,6 +475,115 @@
           },
           "401": {
             "$ref": "#/components/responses/UnauthorizedError"
+          }
+        }
+      }
+    },
+    "/users/authorization": {
+      "get": {
+        "description": "get user car authorization",
+        "security": [
+          {
+            "AppSecurity": []
+          }
+        ],
+        "tags": [
+          "Users"
+        ],
+        "parameters": [
+          {
+            "name": "name",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "email",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "role",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "is_active",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "number",
+              "default": "1"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "number",
+              "default": "20"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "success get user authorization",
+            "content": {
+              "application/json" : {
+                "schema": {
+                  "$ref": "#/components/schemas/GeneralResponseWithDataArrayObjectPaging"
+                },
+                "examples": {
+                  "success": {
+                    "value": {
+                      "total": 50,
+                      "per_page": 10,
+                      "current_page": 1,
+                      "last_page": 5,
+                      "next_page_url": null,
+                      "prev_page_url": null,
+                      "status": 200,
+                      "error": null,
+                      "data": [
+                        {
+                          "id": "0092HSH-0092HSH",
+                          "image_url": "https://user-profilerafli.com",
+                          "name": "rafli a",
+                          "email": "rafli@gmail.com",
+                          "phone": "+62039477755",
+                          "is_active": "true",
+                          "cars_authorizations": [
+                            {
+                              "id": "00FYY-66DYY-666DH",
+                              "name": "Toyota Fortuner",
+                              "image_url": "https://fortunerfjjs888s.com",
+                              "year": 2020,
+                              "transmission": "Automatic",
+                              "price": 250000.00
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
           }
         }
       }
@@ -1111,6 +1236,140 @@
           },
           "401": {
             "$ref": "#/components/responses/UnauthorizedError"
+          }
+        }
+      }
+    },
+    "/cars/authorization": {
+      "get": {
+        "security": [
+          {
+            "AppSecurity": []
+          }
+        ],
+        "description": "get authorization car",
+        "tags": [
+          "Cars"
+        ],
+        "responses": {
+          "200": {
+            "description": "success get list authorization car",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GeneralResponseWithDataArrayObject"
+                },
+                "examples": {
+                  "success": {
+                    "value": {
+                      "total_item": 50,
+                      "per_page": 10,
+                      "current_page": 1,
+                      "last_page": 5,
+                      "next_page_url": null,
+                      "prev_page_url": null,
+                      "status": 200,
+                      "error": null,
+                      "data": [
+                        {
+                          "id": "00FYY-66DYY-666DH",
+                          "name": "Toyota Fortuner",
+                          "image_url": "https://fortunerfjjs888s.com",
+                          "year": 2020,
+                          "transmission": "Automatic",
+                          "price": 250000.00,
+                          "has_authorizations": [
+                            {
+                              "id": "0092HSH-0092HSH",
+                              "image_url": "https://user-profilerafli.com",
+                              "name": "rafli a",
+                              "email": "rafli@gmail.com",
+                              "phone": "+62039477755",
+                              "is_active": "true"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbiddenErrorPaging"
+          }
+        }
+      },
+      "post": {
+        "description": "post authorization car",
+        "security": [
+          {
+            "AppSercurity": []
+          }
+        ],
+        "tags": [
+          "Cars"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json" : {
+              "schema": {
+                "properties": {
+                  "user_id": {
+                    "type": "array",
+                    "required": true,
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "car_id": {
+                    "type": "array",
+                    "required": true,
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                }
+              },
+              "examples": {
+                "success": {
+                  "value": {
+                    "user_id": [
+                      "KD009-DWK9D-DMWWW-9DWMKDMW",
+                      "aD009-DWK9D-DMWWW-9DWMKDMW",
+                      "mD009-DWK9D-DMWWW-9DWMKDMW"
+                    ],
+                    "car_id": [
+                      "KD049-DWK9D-DMWWW-9DWMKDMW",
+                      "KD209-DWK9D-DMWWW-9DWMKDMW",
+                      "KD109-DWK9D-DMWWW-9DWMKDMW"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "success post authorization car",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GeneralResponseWithDataString"
+                },
+                "examples": {
+                  "success": {
+                    "value": {
+                      "status": 200,
+                      "error": null,
+                      "data": "success add car authorization"
+                    }
+                  }
+                }
+              }
+            }
           }
         }
       }
@@ -1815,6 +2074,31 @@
             "examples": {
               "forbidden": {
                 "value": {
+                  "status": 403,
+                  "error": "access forbidden to access this data",
+                  "data": null
+                }
+              }
+            }
+          }
+        }
+      },
+      "AccessForbiddenErrorPaging": {
+        "description": "response error forbidden access",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/GeneralResponseWithDataArrayObject"
+            },
+            "examples": {
+              "forbidden": {
+                "value": {
+                  "total_item": 50,
+                  "per_page": 10,
+                  "current_page": 1,
+                  "last_page": 5,
+                  "next_page_url": null,
+                  "prev_page_url": null,
                   "status": 403,
                   "error": "access forbidden to access this data",
                   "data": null
