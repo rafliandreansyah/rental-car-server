@@ -88,6 +88,9 @@ public class Transaction {
     )
     private Car car;
 
+    @OneToOne(mappedBy = "transaction")
+    private CarRented carRented;
+
     @CreatedDate
     @Column(name = "created_at")
     private Instant createdAt;

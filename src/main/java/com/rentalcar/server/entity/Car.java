@@ -62,6 +62,9 @@ public class Car {
     @OneToMany(mappedBy = "car")
     private List<CarImageDetail> carImageDetails;
 
+    @OneToMany(mappedBy = "car")
+    private List<CarRented> carsRented;
+
     @CreatedDate
     @Column(name = "created_at")
     private Instant createdAt;
