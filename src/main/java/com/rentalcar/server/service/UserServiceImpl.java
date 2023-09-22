@@ -4,9 +4,14 @@ import com.rentalcar.server.entity.User;
 import com.rentalcar.server.entity.UserRoleEnum;
 import com.rentalcar.server.model.*;
 import com.rentalcar.server.repository.UserRepository;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.domain.Page;
+import org.springframework.data.domain.*;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -16,9 +21,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -130,6 +133,54 @@ public class UserServiceImpl implements UserService {
     }
     
     public Page<GetListUserResponse> getListUser(User user, GetListUserRequest getListUserRequest) {
-        return null;
+
+        getListUserRequest.setPage(getListUserRequest.getPage() > 0 ? getListUserRequest.getPage() -1 : getListUserRequest.getPage());
+
+        if (user.getRole().equals(UserRoleEnum.USER)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "don't have a access");
+        }
+
+        Specification<User> specification = (root, query, criteriaBuilder) -> {
+
+            List<Predicate> predicates = new ArrayList<>();
+
+            predicates.add(
+                    criteriaBuilder.notEqual(
+                            root.get("id"), user.getId()
+                    )
+            );
+
+            if (Objects.nonNull(getListUserRequest.getRole())) {
+                predicates.add(
+                        criteriaBuilder.equal(
+                                root.get("role"), getListUserRequest.getRole().equalsIgnoreCase(UserRoleEnum.ADMIN.name()) ? UserRoleEnum.ADMIN : UserRoleEnum.USER
+                        )
+                );
+            }
+
+            if (Objects.nonNull(getListUserRequest.getIsActive())) {
+                predicates.add(
+                        criteriaBuilder.equal(
+                                root.get("isActive"), getListUserRequest.getIsActive()
+                        )
+                );
+            }
+
+            return query.where(predicates.toArray(new Predicate[]{})).getRestriction();
+        };
+
+        Pageable pageable = PageRequest.of(getListUserRequest.getPage(), getListUserRequest.getSize(), Sort.by(Sort.Order.desc("createdAt")));
+        Page<User> pagingUsers = userRepository.findAll(specification, pageable);
+
+        List<GetListUserResponse> responses = pagingUsers.stream()
+                .map(userData -> GetListUserResponse
+                        .builder()
+                        .id(userData.getId().toString())
+                        .name(userData.getName())
+                        .imageUrl(userData.getImageUrl())
+                        .isActive(userData.getIsActive())
+                        .build()
+                ).toList();
+        return new PageImpl<>(responses, pageable, pagingUsers.getTotalElements());
     }
 }

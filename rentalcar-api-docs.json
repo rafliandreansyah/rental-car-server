@@ -335,14 +335,12 @@
                 "examples": {
                   "success": {
                     "value": {
-                      "total": 50,
+                      "total_item": 50,
                       "per_page": 10,
                       "current_page": 1,
                       "last_page": 5,
                       "next_page_url": null,
                       "prev_page_url": null,
-                      "from": 1,
-                      "to": 10,
                       "status": 200,
                       "error": null,
                       "data": [
@@ -839,14 +837,12 @@
                 "examples": {
                   "success": {
                     "value": {
-                      "total": 50,
+                      "total_item": 50,
                       "per_page": 10,
                       "current_page": 1,
                       "last_page": 5,
                       "next_page_url": null,
                       "prev_page_url": null,
-                      "from": 1,
-                      "to": 10,
                       "status": 200,
                       "error": null,
                       "data": [
@@ -952,14 +948,12 @@
                 "examples": {
                   "success": {
                     "value": {
-                      "total": 50,
+                      "total_item": 50,
                       "per_page": 10,
                       "current_page": 1,
                       "last_page": 5,
                       "next_page_url": null,
                       "prev_page_url": null,
-                      "from": 1,
-                      "to": 10,
                       "status": 200,
                       "error": null,
                       "data": [
@@ -1414,14 +1408,12 @@
                 "examples": {
                   "success": {
                     "value": {
-                      "total": 50,
+                      "total_item": 50,
                       "per_page": 10,
                       "current_page": 1,
                       "last_page": 5,
                       "next_page_url": null,
                       "prev_page_url": null,
-                      "from": 1,
-                      "to": 10,
                       "status": 200,
                       "error": null,
                       "data": [
@@ -1791,14 +1783,12 @@
                 "examples": {
                   "success": {
                     "value": {
-                      "total": 50,
+                      "total_item": 50,
                       "per_page": 10,
                       "current_page": 1,
                       "last_page": 5,
                       "next_page_url": null,
                       "prev_page_url": null,
-                      "from": 1,
-                      "to": 10,
                       "status": 200,
                       "error": null,
                       "data": [

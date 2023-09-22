@@ -4,10 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rentalcar.server.entity.User;
 import com.rentalcar.server.entity.UserRoleEnum;
-import com.rentalcar.server.model.CreateUserRequest;
-import com.rentalcar.server.model.CreateUserResponse;
-import com.rentalcar.server.model.GetDetailUserResponse;
-import com.rentalcar.server.model.WebResponse;
+import com.rentalcar.server.model.*;
 import com.rentalcar.server.repository.UserRepository;
 import com.rentalcar.server.security.JwtService;
 import com.rentalcar.server.service.AuthService;
@@ -27,6 +24,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.List;
 
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -878,5 +876,144 @@ class UserControllerTest {
                     Assertions.assertEquals("user not found", response.getError());
 
                 });
+    }
+
+    @Test
+    void getListDataUserPagingSuccessTest() throws Exception {
+
+        for (int i = 1; i <= 50; i++) {
+            User user = User.builder()
+                    .email("user" + i + "@gmail.com")
+                    .name("user " + i)
+                    .password("secretpassword")
+                    .phoneNumber("+62883748473" + i)
+                    .role(UserRoleEnum.USER)
+                    .build();
+
+            userRepository.save(user);
+        }
+
+        String token = jwtService.generateToken(admin);
+
+        mockMvc.perform(
+                get("/api/v1/users?page=1&size10")
+                        .header(AUTHORIZATION,"Bearer " + token)
+                        .accept(MediaType.APPLICATION_JSON)
+        ).andExpectAll(
+                status().isOk()
+        ).andExpectAll(
+                result -> {
+                    WebResponsePaging<List<GetListUserResponse>> responsePaging = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>(){});
+                    Assertions.assertNull(responsePaging.getError());
+                    Assertions.assertNotNull(responsePaging.getData());
+                    Assertions.assertEquals(responsePaging.getStatus(), HttpStatus.OK.value());
+                    Assertions.assertEquals(50, responsePaging.getTotalItem());
+                    Assertions.assertEquals(1, responsePaging.getCurrentPage());
+                    Assertions.assertEquals(10, responsePaging.getPerPage());
+                    Assertions.assertEquals(5, responsePaging.getLastPage());
+
+
+                }
+        );
+
+    }
+
+    @Test
+    void getListDataAdminPagingSuccessTest() throws Exception {
+
+        for (int i = 1; i <= 50; i++) {
+            User user = User.builder()
+                    .email("admin" + i + "@gmail.com")
+                    .name("admin " + i)
+                    .password("secretpassword")
+                    .phoneNumber("+62883348473" + i)
+                    .role(UserRoleEnum.ADMIN)
+                    .build();
+
+            userRepository.save(user);
+        }
+
+        for (int i = 1; i <= 50; i++) {
+            User user = User.builder()
+                    .email("user" + i + "@gmail.com")
+                    .name("user " + i)
+                    .password("secretpassword")
+                    .phoneNumber("+62883748473" + i)
+                    .role(UserRoleEnum.USER)
+                    .build();
+
+            userRepository.save(user);
+        }
+
+        String token = jwtService.generateToken(admin);
+
+        mockMvc.perform(
+                get("/api/v1/users?page=1&size10&role=admin")
+                        .header(AUTHORIZATION,"Bearer " + token)
+                        .accept(MediaType.APPLICATION_JSON)
+        ).andExpectAll(
+                status().isOk()
+        ).andExpectAll(
+                result -> {
+                    WebResponsePaging<List<GetListUserResponse>> responsePaging = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>(){});
+                    Assertions.assertNull(responsePaging.getError());
+                    Assertions.assertNotNull(responsePaging.getData());
+                    Assertions.assertEquals(responsePaging.getStatus(), HttpStatus.OK.value());
+                    Assertions.assertEquals(50, responsePaging.getTotalItem());
+                    Assertions.assertEquals(1, responsePaging.getCurrentPage());
+                    Assertions.assertEquals(10, responsePaging.getPerPage());
+                    Assertions.assertEquals(5, responsePaging.getLastPage());
+
+                    Assertions.assertEquals("admin 50", responsePaging.getData().get(0).getName());
+
+                }
+        );
+
+    }
+
+    @Test
+    void getListDataUserPagingErrorForbiddenTest() throws Exception {
+
+        for (int i = 1; i <= 50; i++) {
+            User user = User.builder()
+                    .email("user" + i + "@gmail.com")
+                    .name("user " + i)
+                    .password("secretpassword")
+                    .phoneNumber("+62883748473" + i)
+                    .role(UserRoleEnum.USER)
+                    .build();
+
+            userRepository.save(user);
+        }
+
+        User userData = User.builder()
+                .email("usertest@gmail.com")
+                .name("user")
+                .password("secretpassword")
+                .phoneNumber("+62883748473")
+                .role(UserRoleEnum.USER)
+                .build();
+
+        userRepository.save(userData);
+
+        String token = jwtService.generateToken(userData);
+
+        mockMvc.perform(
+                get("/api/v1/users?page=1&size10")
+                        .header(AUTHORIZATION,"Bearer " + token)
+                        .accept(MediaType.APPLICATION_JSON)
+        ).andExpectAll(
+                status().isForbidden()
+        ).andExpectAll(
+                result -> {
+                    WebResponsePaging<List<GetListUserResponse>> responsePaging = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>(){});
+                    Assertions.assertNotNull(responsePaging.getError());
+                    Assertions.assertNull(responsePaging.getData());
+
+                    Assertions.assertEquals("don't have a access", responsePaging.getError());
+                    Assertions.assertEquals(HttpStatus.FORBIDDEN.value(), responsePaging.getStatus());
+                }
+        );
+
     }
 }

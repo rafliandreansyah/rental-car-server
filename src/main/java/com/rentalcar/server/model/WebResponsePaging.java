@@ -12,7 +12,8 @@ import lombok.NoArgsConstructor;
 @Builder
 public class WebResponsePaging<T> {
 
-    private Integer total;
+    @JsonProperty("total_item")
+    private Long totalItem;
 
     @JsonProperty("per_page")
     private Integer perPage;
@@ -22,10 +23,6 @@ public class WebResponsePaging<T> {
 
     @JsonProperty("last_page")
     private Integer lastPage;
-
-    private Integer from;
-
-    private Integer to;
 
     @JsonProperty("prev_page_url")
     private String prevPageUrl;
