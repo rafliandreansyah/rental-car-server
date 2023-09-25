@@ -61,7 +61,7 @@ public class UserController {
             @RequestParam(name = "name", required = false) String name,
             @RequestParam(name = "is_active", required = false, defaultValue = "true") Boolean isActive,
             @RequestParam(name = "page", defaultValue = "0") Integer page,
-            @RequestParam(name = "size", defaultValue = "10") Integer size
+            @RequestParam(name = "size", defaultValue = "20") Integer size
     ) {
 
         GetListUserRequest getListRequest = GetListUserRequest.builder()
@@ -84,6 +84,27 @@ public class UserController {
                 .data(listUser.getContent())
                 .build());
 
+    }
+
+    @GetMapping(
+            value = "/transactions",
+            produces = MediaType.APPLICATION_JSON_VALUE
+    )
+    public ResponseEntity<WebResponsePaging<List<GetListUserTransactionResponse>>> getListUserTransactions(
+            User user,
+            @RequestParam(name = "page", defaultValue = "0") Integer page,
+            @RequestParam(name = "size", defaultValue = "20") Integer size
+    ) {
+
+        Page<GetListUserTransactionResponse> listUserTransaction = userService.getListUserTransaction(user, GetListUserTransactionRequest.builder().page(page).size(size).build());
+        return ResponseEntity.ok(WebResponsePaging.<List<GetListUserTransactionResponse>>builder()
+                .totalItem(listUserTransaction.getTotalElements())
+                .perPage(listUserTransaction.getSize())
+                .currentPage(listUserTransaction.getNumber() + 1)
+                .lastPage(listUserTransaction.getTotalPages())
+                .status(HttpStatus.OK.value())
+                .data(listUserTransaction.getContent())
+                .build());
     }
 
 }

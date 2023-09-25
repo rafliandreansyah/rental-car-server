@@ -14,4 +14,6 @@ public interface UserService {
     String deleteUserById(User user, String userId);
     Page<GetListUserResponse> getListUser(User user, GetListUserRequest getListUserRequest);
 
+    Page<GetListUserTransactionResponse> getListUserTransaction(User user, GetListUserTransactionRequest getListUserTransactionRequest);
+
 }

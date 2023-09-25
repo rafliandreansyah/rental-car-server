@@ -790,7 +790,7 @@
         }
       }
     },
-    "/users/{id}/transactions": {
+    "/users/transactions": {
       "get": {
         "security": [
           {
@@ -799,14 +799,6 @@
         ],
         "description": "get list transaction by user id",
         "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
           {
             "name": "page",
             "in": "query",

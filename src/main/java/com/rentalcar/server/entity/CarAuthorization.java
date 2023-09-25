@@ -10,6 +10,7 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.Instant;
+import java.util.UUID;
 
 @Entity
 @Table(name = "cars_authorizations")
@@ -21,7 +22,7 @@ import java.time.Instant;
 public class CarAuthorization {
 
     @Id
-    private String id;
+    private UUID id;
 
     @ManyToOne
     @JoinColumn(

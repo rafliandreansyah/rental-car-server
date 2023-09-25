@@ -1,8 +1,10 @@
 package com.rentalcar.server.service;
 
+import com.rentalcar.server.entity.Transaction;
 import com.rentalcar.server.entity.User;
 import com.rentalcar.server.entity.UserRoleEnum;
 import com.rentalcar.server.model.*;
+import com.rentalcar.server.repository.TransactionRepository;
 import com.rentalcar.server.repository.UserRepository;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
@@ -33,6 +35,7 @@ public class UserServiceImpl implements UserService {
     private final ValidationService validationService;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final TransactionRepository transactionRepository;
 
     @Transactional
     @Override
@@ -199,5 +202,32 @@ public class UserServiceImpl implements UserService {
                         .build()
                 ).toList();
         return new PageImpl<>(responses, pageable, pagingUsers.getTotalElements());
+    }
+
+    @Override
+    public Page<GetListUserTransactionResponse> getListUserTransaction(User user, GetListUserTransactionRequest getListUserTransactionRequest) {
+
+        getListUserTransactionRequest.setPage(getListUserTransactionRequest.getPage() > 0 ? getListUserTransactionRequest.getPage() - 1 : getListUserTransactionRequest.getPage());
+
+        Pageable pageable = PageRequest.of(getListUserTransactionRequest.getPage(), getListUserTransactionRequest.getSize(), Sort.by(Sort.Order.desc("createdAt")));
+        Page<Transaction> transactionsByUserId = transactionRepository.findAllByUserId(user.getId(), pageable);
+
+        List<GetListUserTransactionResponse> responses = transactionsByUserId.stream()
+                .map(transaction -> GetListUserTransactionResponse
+                        .builder()
+                        .id(transaction.getId().toString())
+                        .startDate(LocalDateTime.ofInstant(transaction.getStartDate(), ZoneId.of("Asia/Jakarta")).toString())
+                        .endDate(LocalDateTime.ofInstant(transaction.getEndDate(), ZoneId.of("Asia/Jakarta")).toString())
+                        .duration(transaction.getDuration())
+                        .noInvoice(transaction.getNoInvoice())
+                        .status(transaction.getStatus().name())
+                        .brand(transaction.getCarBrand().name().toLowerCase())
+                        .carName(transaction.getCarName())
+                        .totalPrice(transaction.getTotalPrice())
+                        .build()
+                )
+                .toList();
+
+        return new PageImpl<>(responses, pageable, transactionsByUserId.getTotalElements());
     }
 }

@@ -10,6 +10,7 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.Instant;
+import java.util.UUID;
 
 @Entity
 @Table(name = "transactions")
@@ -21,7 +22,7 @@ import java.time.Instant;
 public class Transaction {
 
     @Id
-    private String id;
+    private UUID id;
 
     @Column(name = "no_invoice")
     private String noInvoice;

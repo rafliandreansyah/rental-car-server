@@ -11,6 +11,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.UUID;
 
 @Entity
 @Table(name = "cars")
@@ -22,7 +23,7 @@ import java.util.List;
 public class Car {
 
     @Id
-    private String id;
+    private UUID id;
 
     private String name;
 
