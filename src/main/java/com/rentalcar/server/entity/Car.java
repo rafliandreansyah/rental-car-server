@@ -23,6 +23,7 @@ import java.util.UUID;
 public class Car {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
     private String name;
@@ -76,5 +77,15 @@ public class Car {
 
     @Column(name = "is_deleted")
     private Boolean isDeleted;
+
+    @PrePersist
+    public void prePersist() {
+        if (isActive == null) {
+            isActive = true;
+        }
+        if (isDeleted == null) {
+            isDeleted = false;
+        }
+    }
 
 }

@@ -218,7 +218,7 @@ public class UserServiceImpl implements UserService {
                         .id(transaction.getId().toString())
                         .startDate(LocalDateTime.ofInstant(transaction.getStartDate(), ZoneId.of("Asia/Jakarta")).toString())
                         .endDate(LocalDateTime.ofInstant(transaction.getEndDate(), ZoneId.of("Asia/Jakarta")).toString())
-                        .duration(transaction.getDuration())
+                        .duration(transaction.getDurationDay())
                         .noInvoice(transaction.getNoInvoice())
                         .status(transaction.getStatus().name())
                         .brand(transaction.getCarBrand().name().toLowerCase())

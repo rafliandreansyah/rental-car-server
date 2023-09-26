@@ -22,6 +22,7 @@ import java.util.UUID;
 public class CarImageDetail {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
     @Column(name = "image_url")

@@ -68,17 +68,17 @@ CREATE TABLE "transactions"
     "end_date"      timestamp               NOT NULL,
     "duration_day"  int                     NOT NULL,
     "car_price"     numeric(8, 2)           NOT NULL,
-    "car_tax"       int                     NOT NULL DEFAULT 0,
-    "car_discount"  int                     NOT NULL DEFAULT 0,
+    "car_tax"       int       DEFAULT 0,
+    "car_discount"  int       DEFAULT 0,
     "total_price"   numeric(12, 2)          NOT NULL,
     "user_id"       uuid,
-    "user_approved" varchar(100)            NOT NULL,
+    "user_approved" varchar(100),
     "car_id"        uuid,
     "status"        varchar(50),
     "payment_image" varchar(255),
-    "created_at"    timestamp                        DEFAULT (now()),
+    "created_at"    timestamp DEFAULT (now()),
     "updated_at"    timestamp,
-    "is_deleted"    timestamp
+    "is_deleted"    boolean
 );
 
 CREATE TABLE "car_rented"
@@ -90,7 +90,7 @@ CREATE TABLE "car_rented"
     "end_date"       timestamp,
     "created_at"     timestamp,
     "updated_at"     timestamp,
-    "is_deleted"     timestamp
+    "is_deleted"     boolean
 );
 
 -- CREATE TABLE "logs"

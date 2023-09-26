@@ -22,6 +22,7 @@ import java.util.UUID;
 public class Transaction {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
     @Column(name = "no_invoice")
@@ -41,10 +42,10 @@ public class Transaction {
     private Integer carYear;
 
     @Column(name = "car_capacity")
-    private String carCapacity;
+    private Integer carCapacity;
 
     @Column(name = "car_cc")
-    private String carCc;
+    private Integer carCc;
 
     @Column(name = "start_date")
     private Instant startDate;
@@ -52,7 +53,8 @@ public class Transaction {
     @Column(name = "end_date")
     private Instant endDate;
 
-    private Integer duration;
+    @Column(name = "duration_day")
+    private Integer durationDay;
 
     @Column(name = "car_price")
     private Double carPrice;
@@ -102,5 +104,12 @@ public class Transaction {
 
     @Column(name = "is_deleted")
     private Boolean isDeleted;
+
+    @PrePersist
+    public void prePersist() {
+        if (isDeleted == null) {
+            isDeleted = false;
+        }
+    }
 
 }

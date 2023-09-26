@@ -2,9 +2,9 @@ package com.rentalcar.server.restcontroller;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.rentalcar.server.entity.User;
-import com.rentalcar.server.entity.UserRoleEnum;
+import com.rentalcar.server.entity.*;
 import com.rentalcar.server.model.*;
+import com.rentalcar.server.repository.TransactionRepository;
 import com.rentalcar.server.repository.UserRepository;
 import com.rentalcar.server.security.JwtService;
 import com.rentalcar.server.service.AuthService;
@@ -25,6 +25,7 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
+import java.util.UUID;
 
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -54,8 +55,12 @@ class UserControllerTest {
     PasswordEncoder passwordEncoder;
     private User admin;
 
+    @Autowired
+    TransactionRepository transactionRepository;
+
     @BeforeEach
     void setUp() {
+        transactionRepository.deleteAll();
         userRepository.deleteAll();
         admin = authService.createAdmin(
                 User.builder()
@@ -897,13 +902,14 @@ class UserControllerTest {
 
         mockMvc.perform(
                 get("/api/v1/users?page=1&size10")
-                        .header(AUTHORIZATION,"Bearer " + token)
+                        .header(AUTHORIZATION, "Bearer " + token)
                         .accept(MediaType.APPLICATION_JSON)
         ).andExpectAll(
                 status().isOk()
         ).andExpectAll(
                 result -> {
-                    WebResponsePaging<List<GetListUserResponse>> responsePaging = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>(){});
+                    WebResponsePaging<List<GetListUserResponse>> responsePaging = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+                    });
                     Assertions.assertNull(responsePaging.getError());
                     Assertions.assertNotNull(responsePaging.getData());
                     Assertions.assertEquals(responsePaging.getStatus(), HttpStatus.OK.value());
@@ -937,13 +943,14 @@ class UserControllerTest {
 
         mockMvc.perform(
                 get("/api/v1/users?page=1&size10&email=user49")
-                        .header(AUTHORIZATION,"Bearer " + token)
+                        .header(AUTHORIZATION, "Bearer " + token)
                         .accept(MediaType.APPLICATION_JSON)
         ).andExpectAll(
                 status().isOk()
         ).andExpectAll(
                 result -> {
-                    WebResponsePaging<List<GetListUserResponse>> responsePaging = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>(){});
+                    WebResponsePaging<List<GetListUserResponse>> responsePaging = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+                    });
                     Assertions.assertNull(responsePaging.getError());
                     Assertions.assertNotNull(responsePaging.getData());
                     Assertions.assertEquals(responsePaging.getStatus(), HttpStatus.OK.value());
@@ -977,13 +984,14 @@ class UserControllerTest {
 
         mockMvc.perform(
                 get("/api/v1/users?page=1&size10&name=10")
-                        .header(AUTHORIZATION,"Bearer " + token)
+                        .header(AUTHORIZATION, "Bearer " + token)
                         .accept(MediaType.APPLICATION_JSON)
         ).andExpectAll(
                 status().isOk()
         ).andExpectAll(
                 result -> {
-                    WebResponsePaging<List<GetListUserResponse>> responsePaging = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>(){});
+                    WebResponsePaging<List<GetListUserResponse>> responsePaging = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+                    });
                     Assertions.assertNull(responsePaging.getError());
                     Assertions.assertNotNull(responsePaging.getData());
                     Assertions.assertEquals(responsePaging.getStatus(), HttpStatus.OK.value());
@@ -1029,13 +1037,14 @@ class UserControllerTest {
 
         mockMvc.perform(
                 get("/api/v1/users?page=1&size10&role=admin")
-                        .header(AUTHORIZATION,"Bearer " + token)
+                        .header(AUTHORIZATION, "Bearer " + token)
                         .accept(MediaType.APPLICATION_JSON)
         ).andExpectAll(
                 status().isOk()
         ).andExpectAll(
                 result -> {
-                    WebResponsePaging<List<GetListUserResponse>> responsePaging = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>(){});
+                    WebResponsePaging<List<GetListUserResponse>> responsePaging = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+                    });
                     Assertions.assertNull(responsePaging.getError());
                     Assertions.assertNotNull(responsePaging.getData());
                     Assertions.assertEquals(responsePaging.getStatus(), HttpStatus.OK.value());
@@ -1080,13 +1089,14 @@ class UserControllerTest {
 
         mockMvc.perform(
                 get("/api/v1/users?page=1&size10")
-                        .header(AUTHORIZATION,"Bearer " + token)
+                        .header(AUTHORIZATION, "Bearer " + token)
                         .accept(MediaType.APPLICATION_JSON)
         ).andExpectAll(
                 status().isForbidden()
         ).andExpectAll(
                 result -> {
-                    WebResponsePaging<List<GetListUserResponse>> responsePaging = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>(){});
+                    WebResponsePaging<List<GetListUserResponse>> responsePaging = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+                    });
                     Assertions.assertNotNull(responsePaging.getError());
                     Assertions.assertNull(responsePaging.getData());
 
@@ -1094,6 +1104,62 @@ class UserControllerTest {
                     Assertions.assertEquals(HttpStatus.FORBIDDEN.value(), responsePaging.getStatus());
                 }
         );
+
+    }
+
+    @Test
+    void getUserTransactionsSuccessTest() throws Exception {
+
+        User userData = User.builder()
+                .email("usertest@gmail.com")
+                .name("user")
+                .password("secretpassword")
+                .phoneNumber("+62883748473")
+                .role(UserRoleEnum.USER)
+                .build();
+
+        User user = userRepository.save(userData);
+
+        for (int i = 0; i < 20; i++) {
+            Transaction transaction = Transaction.builder()
+                    .noInvoice(UUID.randomUUID().toString())
+                    .carName("Avanza")
+                    .carImageUrl("url")
+                    .carBrand(CarBrandEnum.TOYOTA)
+                    .carYear(2020)
+                    .carCapacity(6)
+                    .carCc(2000)
+                    .startDate(Instant.now())
+                    .endDate(Instant.now().plusSeconds(2000))
+                    .durationDay(1)
+                    .carPrice(250000.0)
+                    .totalPrice(250000.0)
+                    .carTax(0)
+                    .carDiscount(0)
+                    .status(TransactionStatusEnum.FINISH)
+                    .user(user)
+                    .build();
+            transactionRepository.save(transaction);
+        }
+
+        String token = jwtService.generateToken(user);
+
+        mockMvc.perform(
+                        get("/api/v1/users/transactions?page=1&size=10")
+                                .header(AUTHORIZATION, "Bearer " + token)
+                                .contentType(MediaType.APPLICATION_JSON)
+                ).andExpectAll(status().isOk())
+                .andExpectAll(result -> {
+                    WebResponsePaging<List<GetListUserTransactionResponse>> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+                    });
+                    Assertions.assertNull(response.getError());
+                    Assertions.assertNotNull(response.getData());
+                    Assertions.assertEquals(10, response.getData().size());
+                    Assertions.assertEquals(20, response.getTotalItem());
+                    Assertions.assertEquals(1, response.getCurrentPage());
+                    Assertions.assertEquals(10, response.getPerPage());
+                    Assertions.assertEquals(2, response.getLastPage());
+                });
 
     }
 }
