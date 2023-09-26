@@ -30,7 +30,7 @@ public class AuthController {
     @PostMapping(value = "/authenticate", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<WebResponse<AuthenticateResponse>> authenticate(@RequestBody AuthenticateRequest request) {
         var authenticate = authService.authenticate(request);
-        return ResponseEntity.ok(WebResponse.<AuthenticateResponse>builder().data(authenticate).build());
+        return ResponseEntity.ok(WebResponse.<AuthenticateResponse>builder().data(authenticate).status(HttpStatus.OK.value()).build());
     }
 
 }

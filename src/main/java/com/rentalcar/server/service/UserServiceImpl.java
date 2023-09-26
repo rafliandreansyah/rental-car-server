@@ -244,6 +244,12 @@ public class UserServiceImpl implements UserService {
 
             List<Predicate> predicates = new ArrayList<>();
 
+            predicates.add(
+                    criteriaBuilder.notEqual(
+                            root.get("id"), user.getId()
+                    )
+            );
+
             if (Objects.nonNull(getListUserAuthorizationCarRequest.getEmail())) {
                 predicates.add(criteriaBuilder.like(
                         root.get("email"), "%" + getListUserAuthorizationCarRequest.getEmail() + "%"
@@ -267,7 +273,7 @@ public class UserServiceImpl implements UserService {
         });
 
         Pageable pageable = PageRequest.of(getListUserAuthorizationCarRequest.getPage(), getListUserAuthorizationCarRequest.getSize(), Sort.by(Sort.Order.desc("createdAt")));
-        Page<User> userWithAuthorizations = userRepository.findAllByCarAuthorizationsIsNotEmpty(specification, pageable);
+        Page<User> userWithAuthorizations = userRepository.findAll(specification, pageable);
         List<UserAuthorizationCarResponse> listUserWithCarAuthorization = userWithAuthorizations.stream()
                 .map(userData -> {
                     List<CarResponse> listCarResponses = userData.getCarAuthorizations()
@@ -294,6 +300,7 @@ public class UserServiceImpl implements UserService {
                             .carsAuthorizations(listCarResponses)
                             .build();
                 })
+                .filter(userAuthorizationCarResponse -> userAuthorizationCarResponse.getCarsAuthorizations().size() != 0)
                 .toList();
 
         return new PageImpl<>(listUserWithCarAuthorization, pageable ,userWithAuthorizations.getTotalElements());

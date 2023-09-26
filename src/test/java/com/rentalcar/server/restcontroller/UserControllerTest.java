@@ -6,6 +6,8 @@ import com.rentalcar.server.entity.*;
 import com.rentalcar.server.model.*;
 import com.rentalcar.server.model.base.WebResponse;
 import com.rentalcar.server.model.base.WebResponsePaging;
+import com.rentalcar.server.repository.CarAuthorizationRepository;
+import com.rentalcar.server.repository.CarRepository;
 import com.rentalcar.server.repository.TransactionRepository;
 import com.rentalcar.server.repository.UserRepository;
 import com.rentalcar.server.security.JwtService;
@@ -27,6 +29,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -64,8 +67,16 @@ class UserControllerTest {
     @Autowired
     DateTimeUtils dateTimeUtils;
 
+    @Autowired
+    CarAuthorizationRepository carAuthorizationRepository;
+
+    @Autowired
+    CarRepository carRepository;
+
+
     @BeforeEach
     void setUp() {
+        carAuthorizationRepository.deleteAll();
         transactionRepository.deleteAll();
         userRepository.deleteAll();
         admin = authService.createAdmin(
@@ -1166,6 +1177,289 @@ class UserControllerTest {
                     Assertions.assertEquals(10, response.getPerPage());
                     Assertions.assertEquals(2, response.getLastPage());
                 });
+
+    }
+
+    @Test
+    void getListUserWithAuthorizationSuccessTest() throws Exception {
+
+        List<User> users = new ArrayList<>();
+        List<Car> cars = new ArrayList<>();
+
+        for (int i = 0; i < 20; i++) {
+            User user = User.builder()
+                    .email("admin" + i + "@gmail.com")
+                    .name("admin " + i)
+                    .password("secretpassword")
+                    .phoneNumber("+62883748473" + i)
+                    .role(UserRoleEnum.ADMIN)
+                    .build();
+
+            User saveUser = userRepository.save(user);
+            users.add(saveUser);
+        }
+
+        for (int i = 0; i < 5; i++) {
+            Car car = Car.builder()
+                    .name("Avanza " + i)
+                    .brand(CarBrandEnum.TOYOTA)
+                    .capacity(6)
+                    .year(2020)
+                    .transmission(CarTransmissionEnum.AT)
+                    .pricePerDay(250000.0)
+                    .imageUrl("url")
+                    .cc(2000)
+                    .description("description")
+                    .discount(0)
+                    .tax(0)
+                    .build();
+            Car saveCar = carRepository.save(car);
+            cars.add(saveCar);
+        }
+
+        users.forEach(user -> {
+            cars.forEach(car -> {
+                CarAuthorization carAuthorization = CarAuthorization.builder()
+                        .user(user)
+                        .car(car)
+                        .build();
+                carAuthorizationRepository.save(carAuthorization);
+            });
+        });
+
+        String token = jwtService.generateToken(admin);
+
+        mockMvc.perform(
+                        get("/api/v1/users/authorization?page=1&size=10")
+                                .header(AUTHORIZATION, "Bearer " + token)
+                )
+                .andExpectAll(status().isOk())
+                .andExpectAll(result -> {
+                    WebResponsePaging<List<UserAuthorizationCarResponse>> responsePaging = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+                    });
+                    Assertions.assertNull(responsePaging.getError());
+                    Assertions.assertNotNull(responsePaging.getData());
+                    Assertions.assertEquals(responsePaging.getStatus(), HttpStatus.OK.value());
+                    Assertions.assertEquals(20, responsePaging.getTotalItem());
+                    Assertions.assertEquals(1, responsePaging.getCurrentPage());
+                    Assertions.assertEquals(10, responsePaging.getPerPage());
+                    Assertions.assertEquals(2, responsePaging.getLastPage());
+                });
+
+
+    }
+
+    @Test
+    void getListUserWithAuthorizationQueryEmailSuccessTest() throws Exception {
+
+        List<User> users = new ArrayList<>();
+        List<Car> cars = new ArrayList<>();
+
+        for (int i = 0; i < 20; i++) {
+            User user = User.builder()
+                    .email("admin" + i + "@gmail.com")
+                    .name("admin " + i)
+                    .password("secretpassword")
+                    .phoneNumber("+62883748473" + i)
+                    .role(UserRoleEnum.ADMIN)
+                    .build();
+
+            User saveUser = userRepository.save(user);
+            users.add(saveUser);
+        }
+
+        for (int i = 0; i < 5; i++) {
+            Car car = Car.builder()
+                    .name("Avanza " + i)
+                    .brand(CarBrandEnum.TOYOTA)
+                    .capacity(6)
+                    .year(2020)
+                    .transmission(CarTransmissionEnum.AT)
+                    .pricePerDay(250000.0)
+                    .imageUrl("url")
+                    .cc(2000)
+                    .description("description")
+                    .discount(0)
+                    .tax(0)
+                    .build();
+            Car saveCar = carRepository.save(car);
+            cars.add(saveCar);
+        }
+
+        users.forEach(user -> {
+            cars.forEach(car -> {
+                CarAuthorization carAuthorization = CarAuthorization.builder()
+                        .user(user)
+                        .car(car)
+                        .build();
+                carAuthorizationRepository.save(carAuthorization);
+            });
+        });
+
+        String token = jwtService.generateToken(admin);
+
+        mockMvc.perform(
+                        get("/api/v1/users/authorization?page=1&size=10&email=3")
+                                .header(AUTHORIZATION, "Bearer " + token)
+                )
+                .andExpectAll(status().isOk())
+                .andExpectAll(result -> {
+                    WebResponsePaging<List<UserAuthorizationCarResponse>> responsePaging = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+                    });
+                    Assertions.assertNull(responsePaging.getError());
+                    Assertions.assertNotNull(responsePaging.getData());
+                    Assertions.assertEquals(responsePaging.getStatus(), HttpStatus.OK.value());
+                    Assertions.assertEquals(2, responsePaging.getTotalItem());
+                    Assertions.assertEquals(1, responsePaging.getCurrentPage());
+                    Assertions.assertEquals(10, responsePaging.getPerPage());
+                    Assertions.assertEquals(1, responsePaging.getLastPage());
+                });
+
+
+    }
+
+    @Test
+    void getListUserWithAuthorizationQueryNameSuccessTest() throws Exception {
+
+        List<User> users = new ArrayList<>();
+        List<Car> cars = new ArrayList<>();
+
+        for (int i = 0; i < 20; i++) {
+            User user = User.builder()
+                    .email("admin" + i + "@gmail.com")
+                    .name("admin " + i)
+                    .password("secretpassword")
+                    .phoneNumber("+62883748473" + i)
+                    .role(UserRoleEnum.ADMIN)
+                    .build();
+
+            User saveUser = userRepository.save(user);
+            users.add(saveUser);
+        }
+
+        for (int i = 0; i < 5; i++) {
+            Car car = Car.builder()
+                    .name("Avanza " + i)
+                    .brand(CarBrandEnum.TOYOTA)
+                    .capacity(6)
+                    .year(2020)
+                    .transmission(CarTransmissionEnum.AT)
+                    .pricePerDay(250000.0)
+                    .imageUrl("url")
+                    .cc(2000)
+                    .description("description")
+                    .discount(0)
+                    .tax(0)
+                    .build();
+            Car saveCar = carRepository.save(car);
+            cars.add(saveCar);
+        }
+
+        users.forEach(user -> {
+            cars.forEach(car -> {
+                CarAuthorization carAuthorization = CarAuthorization.builder()
+                        .user(user)
+                        .car(car)
+                        .build();
+                carAuthorizationRepository.save(carAuthorization);
+            });
+        });
+
+        String token = jwtService.generateToken(admin);
+
+        mockMvc.perform(
+                        get("/api/v1/users/authorization?page=1&size=10&email=2")
+                                .header(AUTHORIZATION, "Bearer " + token)
+                )
+                .andExpectAll(status().isOk())
+                .andExpectAll(result -> {
+                    WebResponsePaging<List<UserAuthorizationCarResponse>> responsePaging = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+                    });
+                    Assertions.assertNull(responsePaging.getError());
+                    Assertions.assertNotNull(responsePaging.getData());
+                    Assertions.assertEquals(responsePaging.getStatus(), HttpStatus.OK.value());
+                    Assertions.assertEquals(2, responsePaging.getTotalItem());
+                    Assertions.assertEquals(1, responsePaging.getCurrentPage());
+                    Assertions.assertEquals(10, responsePaging.getPerPage());
+                    Assertions.assertEquals(1, responsePaging.getLastPage());
+                });
+
+
+    }
+
+    @Test
+    void getListUserWithAuthorizationForbiddenErrorTest() throws Exception {
+
+        User userLogin = User.builder()
+                .email("user@gmail.com")
+                .name("user")
+                .password("secretpassword")
+                .phoneNumber("+6288374222")
+                .role(UserRoleEnum.USER)
+                .build();
+
+        User userLoginSaved = userRepository.save(userLogin);
+
+        List<User> users = new ArrayList<>();
+        List<Car> cars = new ArrayList<>();
+
+        for (int i = 0; i < 20; i++) {
+            User user = User.builder()
+                    .email("admin" + i + "@gmail.com")
+                    .name("admin " + i)
+                    .password("secretpassword")
+                    .phoneNumber("+62883748473" + i)
+                    .role(UserRoleEnum.ADMIN)
+                    .build();
+
+            User saveUser = userRepository.save(user);
+            users.add(saveUser);
+        }
+
+        for (int i = 0; i < 5; i++) {
+            Car car = Car.builder()
+                    .name("Avanza " + i)
+                    .brand(CarBrandEnum.TOYOTA)
+                    .capacity(6)
+                    .year(2020)
+                    .transmission(CarTransmissionEnum.AT)
+                    .pricePerDay(250000.0)
+                    .imageUrl("url")
+                    .cc(2000)
+                    .description("description")
+                    .discount(0)
+                    .tax(0)
+                    .build();
+            Car saveCar = carRepository.save(car);
+            cars.add(saveCar);
+        }
+
+        users.forEach(user -> {
+            cars.forEach(car -> {
+                CarAuthorization carAuthorization = CarAuthorization.builder()
+                        .user(user)
+                        .car(car)
+                        .build();
+                carAuthorizationRepository.save(carAuthorization);
+            });
+        });
+
+        String token = jwtService.generateToken(userLoginSaved);
+
+        mockMvc.perform(
+                        get("/api/v1/users/authorization?page=1&size=10&email=2")
+                                .header(AUTHORIZATION, "Bearer " + token)
+                )
+                .andExpectAll(status().isForbidden())
+                .andExpectAll(result -> {
+                    WebResponsePaging<List<UserAuthorizationCarResponse>> responsePaging = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+                    });
+                    Assertions.assertNotNull(responsePaging.getError());
+                    Assertions.assertNull(responsePaging.getData());
+                    Assertions.assertEquals(responsePaging.getStatus(), HttpStatus.FORBIDDEN.value());
+                    Assertions.assertEquals("don't have a access", responsePaging.getError());
+                });
+
 
     }
 }
