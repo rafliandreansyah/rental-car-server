@@ -16,4 +16,6 @@ public interface UserService {
 
     Page<GetListUserTransactionResponse> getListUserTransaction(User user, GetListUserTransactionRequest getListUserTransactionRequest);
 
+    Page<GetListUserAuthorizationCarResponse> getListUserAuthorizationCar(User user, GetListUserAuthorizationCarRequest getListUserAuthorizationCarRequest);
+
 }

@@ -107,4 +107,35 @@ public class UserController {
                 .build());
     }
 
+    @GetMapping(
+            value = "/authorization",
+            produces = MediaType.APPLICATION_JSON_VALUE
+    )
+    public ResponseEntity<WebResponsePaging<List<GetListUserAuthorizationCarResponse>>> getListUserCarAuthorization(
+            User user,
+            @RequestParam(name = "email", required = false) String email,
+            @RequestParam(name = "name", required = false) String name,
+            @RequestParam(name = "is_active", required = false, defaultValue = "true") Boolean isActive,
+            @RequestParam(name = "page", defaultValue = "0") Integer page,
+            @RequestParam(name = "size", defaultValue = "20") Integer size
+    ) {
+        GetListUserAuthorizationCarRequest listUserAuthorizationCarRequest = GetListUserAuthorizationCarRequest.builder()
+                .email(email)
+                .name(name)
+                .isActive(isActive)
+                .page(page)
+                .size(size)
+                .build();
+
+        Page<GetListUserAuthorizationCarResponse> listUserAuthorizationCar = userService.getListUserAuthorizationCar(user, listUserAuthorizationCarRequest);
+        return ResponseEntity.ok(WebResponsePaging.<List<GetListUserAuthorizationCarResponse>>builder()
+                .totalItem(listUserAuthorizationCar.getTotalElements())
+                .perPage(listUserAuthorizationCar.getSize())
+                .currentPage(listUserAuthorizationCar.getNumber() + 1)
+                .lastPage(listUserAuthorizationCar.getTotalPages())
+                .status(HttpStatus.OK.value())
+                .data(listUserAuthorizationCar.getContent())
+                .build());
+    }
+
 }

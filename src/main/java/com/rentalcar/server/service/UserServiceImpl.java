@@ -1,5 +1,6 @@
 package com.rentalcar.server.service;
 
+import com.rentalcar.server.entity.CarTransmissionEnum;
 import com.rentalcar.server.entity.Transaction;
 import com.rentalcar.server.entity.User;
 import com.rentalcar.server.entity.UserRoleEnum;
@@ -170,9 +171,10 @@ public class UserServiceImpl implements UserService {
             }
 
             if (Objects.nonNull(getListUserRequest.getRole())) {
+                UserRoleEnum userRoleEnum = getUserRoleEnumFromString(getListUserRequest.getRole());
                 predicates.add(
                         criteriaBuilder.equal(
-                                root.get("role"), getListUserRequest.getRole().equalsIgnoreCase(UserRoleEnum.ADMIN.name()) ? UserRoleEnum.ADMIN : UserRoleEnum.USER
+                                root.get("role"), userRoleEnum
                         )
                 );
             }
@@ -229,5 +231,86 @@ public class UserServiceImpl implements UserService {
                 .toList();
 
         return new PageImpl<>(responses, pageable, transactionsByUserId.getTotalElements());
+    }
+
+    @Override
+    public Page<GetListUserAuthorizationCarResponse> getListUserAuthorizationCar(User user, GetListUserAuthorizationCarRequest getListUserAuthorizationCarRequest) {
+
+        getListUserAuthorizationCarRequest.setPage(getListUserAuthorizationCarRequest.getPage() > 0 ? getListUserAuthorizationCarRequest.getPage() - 1 : getListUserAuthorizationCarRequest.getPage());
+
+        if (user.getRole().equals(UserRoleEnum.USER)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "don't have a access");
+        }
+
+        Specification<User> specification = ((root, query, criteriaBuilder) -> {
+
+            List<Predicate> predicates = new ArrayList<>();
+
+            if (Objects.nonNull(getListUserAuthorizationCarRequest.getEmail())) {
+                predicates.add(criteriaBuilder.like(
+                        root.get("email"), "%" + getListUserAuthorizationCarRequest.getEmail() + "%"
+                ));
+            }
+
+            if (Objects.nonNull(getListUserAuthorizationCarRequest.getName())) {
+                predicates.add(criteriaBuilder.like(
+                        root.get("name"), "%" + getListUserAuthorizationCarRequest.getName() + "%"
+                ));
+            }
+
+            if (Objects.nonNull(getListUserAuthorizationCarRequest.getIsActive())) {
+                predicates.add(criteriaBuilder.equal(
+                        root.get("isActive"), getListUserAuthorizationCarRequest.getIsActive()
+                ));
+            }
+
+
+            return query.where(predicates.toArray(new Predicate[]{})).getRestriction();
+        });
+
+        Pageable pageable = PageRequest.of(getListUserAuthorizationCarRequest.getPage(), getListUserAuthorizationCarRequest.getSize(), Sort.by(Sort.Order.desc("createdAt")));
+        Page<User> userWithAuthorizations = userRepository.findAllByCarAuthorizationsIsNotEmpty(specification, pageable);
+        List<GetListUserAuthorizationCarResponse> listUserWithCarAuthorization = userWithAuthorizations.stream()
+                .map(userData -> {
+                    List<GetListCarResponse> listCarResponses = userData.getCarAuthorizations()
+                            .stream()
+                            .map(carAuthorization -> GetListCarResponse
+                                    .builder()
+                                    .id(carAuthorization.getCar().getId().toString())
+                                    .name(carAuthorization.getCar().getName())
+                                    .year(carAuthorization.getCar().getYear())
+                                    .price(carAuthorization.getCar().getPricePerDay())
+                                    .transmission(carAuthorization.getCar().getTransmission().name())
+                                    .imageUrl(carAuthorization.getCar().getImageUrl())
+                                    .build())
+                            .toList();
+
+                    return GetListUserAuthorizationCarResponse
+                            .builder()
+                            .id(userData.getId().toString())
+                            .name(userData.getName())
+                            .phone(userData.getPhoneNumber())
+                            .imageUrl(userData.getImageUrl())
+                            .email(userData.getEmail())
+                            .isActive(userData.getIsActive())
+                            .carsAuthorizations(listCarResponses)
+                            .build();
+                })
+                .toList();
+
+        return new PageImpl<>(listUserWithCarAuthorization, pageable ,userWithAuthorizations.getTotalElements());
+    }
+
+    private static UserRoleEnum getUserRoleEnumFromString(String role) {
+        UserRoleEnum userRoleEnum;
+
+        if (role.equalsIgnoreCase(UserRoleEnum.USER.name())) {
+            userRoleEnum = UserRoleEnum.USER;
+        } else if (role.equalsIgnoreCase(UserRoleEnum.ADMIN.name())) {
+            userRoleEnum = UserRoleEnum.ADMIN;
+        } else {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "user role not found");
+        }
+        return userRoleEnum;
     }
 }
