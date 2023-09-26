@@ -10,6 +10,7 @@ import com.rentalcar.server.repository.TransactionRepository;
 import com.rentalcar.server.repository.UserRepository;
 import com.rentalcar.server.security.JwtService;
 import com.rentalcar.server.service.AuthService;
+import com.rentalcar.server.util.DateTimeUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -59,6 +60,9 @@ class UserControllerTest {
 
     @Autowired
     TransactionRepository transactionRepository;
+
+    @Autowired
+    DateTimeUtils dateTimeUtils;
 
     @BeforeEach
     void setUp() {
@@ -120,7 +124,7 @@ class UserControllerTest {
                     Assertions.assertEquals(request.getName(), response.getData().getName());
                     Assertions.assertEquals(request.getPhone(), response.getData().getPhone());
                     Assertions.assertEquals(request.getRole().toLowerCase(), response.getData().getRole());
-                    Assertions.assertEquals(LocalDateTime.ofInstant(request.getDob(), ZoneId.of("Asia/Jakarta")).toString(), response.getData().getDob());
+                    Assertions.assertEquals(dateTimeUtils.localDateFromInstantZoneJakarta(request.getDob()).toString(), response.getData().getDob());
                 });
     }
 
@@ -163,7 +167,7 @@ class UserControllerTest {
                     Assertions.assertEquals(request.getName(), response.getData().getName());
                     Assertions.assertEquals(request.getPhone(), response.getData().getPhone());
                     Assertions.assertEquals(request.getRole().toLowerCase(), response.getData().getRole());
-                    Assertions.assertEquals(LocalDateTime.ofInstant(request.getDob(), ZoneId.of("Asia/Jakarta")).toString(), response.getData().getDob());
+                    Assertions.assertEquals(dateTimeUtils.localDateFromInstantZoneJakarta(request.getDob()).toString(), response.getData().getDob());
                 });
     }
 
@@ -628,7 +632,7 @@ class UserControllerTest {
                     Assertions.assertEquals(userSave.getName(), response.getData().getName());
                     Assertions.assertEquals(userSave.getEmail(), response.getData().getEmail());
                     Assertions.assertEquals(userSave.getImageUrl(), response.getData().getImageUrl());
-                    Assertions.assertEquals(LocalDateTime.ofInstant(userSave.getDateOfBirth(), ZoneId.of("Asia/Jakarta")).toString(), response.getData().getDob());
+                    Assertions.assertEquals(dateTimeUtils.localDateFromInstantZoneJakarta(userSave.getDateOfBirth()).toString(), response.getData().getDob());
                     Assertions.assertEquals(userSave.getPhoneNumber(), response.getData().getPhone());
                     Assertions.assertEquals(userSave.getIsActive(), response.getData().isActive());
                     Assertions.assertNull(response.getData().getRole());
@@ -718,7 +722,7 @@ class UserControllerTest {
                     Assertions.assertEquals(userSave.getName(), response.getData().getName());
                     Assertions.assertEquals(userSave.getEmail(), response.getData().getEmail());
                     Assertions.assertEquals(userSave.getImageUrl(), response.getData().getImageUrl());
-                    Assertions.assertEquals(LocalDateTime.ofInstant(userSave.getDateOfBirth(), ZoneId.of("Asia/Jakarta")).toString(), response.getData().getDob());
+                    Assertions.assertEquals(dateTimeUtils.localDateFromInstantZoneJakarta(userSave.getDateOfBirth()).toString(), response.getData().getDob());
                     Assertions.assertEquals(userSave.getPhoneNumber(), response.getData().getPhone());
                     Assertions.assertEquals(userSave.getIsActive(), response.getData().isActive());
                     Assertions.assertNull(response.getData().getRole());

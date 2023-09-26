@@ -6,6 +6,7 @@ import com.rentalcar.server.entity.UserRoleEnum;
 import com.rentalcar.server.model.*;
 import com.rentalcar.server.repository.TransactionRepository;
 import com.rentalcar.server.repository.UserRepository;
+import com.rentalcar.server.util.DateTimeUtils;
 import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -33,6 +34,7 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final TransactionRepository transactionRepository;
+    private final DateTimeUtils dateTimeUtils;
 
     @Transactional
     @Override
@@ -74,7 +76,7 @@ public class UserServiceImpl implements UserService {
                 .email(saveUserData.getEmail())
                 .imageUrl(saveUserData.getImageUrl())
                 .phone(saveUserData.getPhoneNumber())
-                .dob(LocalDateTime.ofInstant(saveUserData.getDateOfBirth(), ZoneId.of("Asia/Jakarta")).toString())
+                .dob(dateTimeUtils.localDateFromInstantZoneJakarta(saveUserData.getDateOfBirth()).toString())
                 .role(saveUserData.getRole().name().trim().toLowerCase())
                 .isActive(saveUserData.getIsActive())
                 .build();
@@ -103,7 +105,7 @@ public class UserServiceImpl implements UserService {
                 .name(userLoadedDB.getName())
                 .email(userLoadedDB.getEmail())
                 .imageUrl(userLoadedDB.getImageUrl())
-                .dob(LocalDateTime.ofInstant(userLoadedDB.getDateOfBirth(), ZoneId.of("Asia/Jakarta")).toString())
+                .dob(dateTimeUtils.localDateFromInstantZoneJakarta(userLoadedDB.getDateOfBirth()).toString())
                 .phone(userLoadedDB.getPhoneNumber())
                 .isActive(userLoadedDB.getIsActive())
                 .role(userLoadedDB.getRole().equals(UserRoleEnum.ADMIN) ? userLoadedDB.getRole().name() : null)
@@ -214,8 +216,8 @@ public class UserServiceImpl implements UserService {
                 .map(transaction -> UserTransactionResponse
                         .builder()
                         .id(transaction.getId().toString())
-                        .startDate(LocalDateTime.ofInstant(transaction.getStartDate(), ZoneId.of("Asia/Jakarta")).toString())
-                        .endDate(LocalDateTime.ofInstant(transaction.getEndDate(), ZoneId.of("Asia/Jakarta")).toString())
+                        .startDate(dateTimeUtils.localDateTimeFromInstantZoneJakarta(transaction.getStartDate()).toString())
+                        .endDate(dateTimeUtils.localDateTimeFromInstantZoneJakarta(transaction.getEndDate()).toString())
                         .duration(transaction.getDurationDay())
                         .noInvoice(transaction.getNoInvoice())
                         .status(transaction.getStatus().name())
