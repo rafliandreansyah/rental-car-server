@@ -6,18 +6,10 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@NoArgsConstructor
 @AllArgsConstructor
+@NoArgsConstructor
 @Builder
-public class GetListUserRequest {
-
-    private String name;
-
-    private String email;
-
-    private String role;
-
-    private Boolean isActive;
+public class UserTransactionRequest {
 
     private Integer page;
 

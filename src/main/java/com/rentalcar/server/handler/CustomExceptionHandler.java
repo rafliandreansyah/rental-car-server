@@ -1,6 +1,6 @@
 package com.rentalcar.server.handler;
 
-import com.rentalcar.server.model.WebResponse;
+import com.rentalcar.server.model.base.WebResponse;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

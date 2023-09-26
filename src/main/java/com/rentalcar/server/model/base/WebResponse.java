@@ -1,4 +1,4 @@
-package com.rentalcar.server.model;
+package com.rentalcar.server.model.base;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

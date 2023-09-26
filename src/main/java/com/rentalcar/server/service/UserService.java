@@ -9,13 +9,13 @@ public interface UserService {
 
     CreateUserResponse createUser(CreateUserRequest request, MultipartFile file);
 
-    GetDetailUserResponse getDetailUser(User user, String userId);
+    DetailUserResponse getDetailUser(User user, String userId);
 
     String deleteUserById(User user, String userId);
-    Page<GetListUserResponse> getListUser(User user, GetListUserRequest getListUserRequest);
+    Page<UserResponse> getListUser(User user, UserRequest getListUserRequest);
 
-    Page<GetListUserTransactionResponse> getListUserTransaction(User user, GetListUserTransactionRequest getListUserTransactionRequest);
+    Page<UserTransactionResponse> getListUserTransaction(User user, UserTransactionRequest userTransactionRequest);
 
-    Page<GetListUserAuthorizationCarResponse> getListUserAuthorizationCar(User user, GetListUserAuthorizationCarRequest getListUserAuthorizationCarRequest);
+    Page<UserAuthorizationCarResponse> getListUserAuthorizationCar(User user, UserAuthorizationCarRequest getListUserAuthorizationCarRequest);
 
 }

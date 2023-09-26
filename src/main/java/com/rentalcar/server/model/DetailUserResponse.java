@@ -7,23 +7,30 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@NoArgsConstructor
 @AllArgsConstructor
+@NoArgsConstructor
 @Builder
-public class GetListUserResponse {
+public class DetailUserResponse {
 
     private String id;
+
+    private String name;
+
+    private String email;
 
     @JsonProperty("image_url")
     private String imageUrl;
 
-    private String email;
-
-    private String name;
+    private String dob;
 
     private String phone;
 
     @JsonProperty("is_active")
-    private Boolean isActive;
+    private boolean isActive;
+
+    private String role;
+
+    @JsonProperty("date_created")
+    private String dateCreated;
 
 }

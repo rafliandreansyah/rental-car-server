@@ -1,8 +1,9 @@
 package com.rentalcar.server.restcontroller;
 
 import com.rentalcar.server.entity.User;
-import com.rentalcar.server.entity.UserRoleEnum;
 import com.rentalcar.server.model.*;
+import com.rentalcar.server.model.base.WebResponse;
+import com.rentalcar.server.model.base.WebResponsePaging;
 import com.rentalcar.server.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -36,9 +37,9 @@ public class UserController {
             value = "/{id}",
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    public ResponseEntity<WebResponse<GetDetailUserResponse>> getDetailUser(User user, @PathVariable("id") String userId) {
-        GetDetailUserResponse detailUser = userService.getDetailUser(user, userId);
-        return ResponseEntity.ok(WebResponse.<GetDetailUserResponse>builder().status(HttpStatus.OK.value()).data(detailUser).build());
+    public ResponseEntity<WebResponse<DetailUserResponse>> getDetailUser(User user, @PathVariable("id") String userId) {
+        DetailUserResponse detailUser = userService.getDetailUser(user, userId);
+        return ResponseEntity.ok(WebResponse.<DetailUserResponse>builder().status(HttpStatus.OK.value()).data(detailUser).build());
     }
 
     @DeleteMapping(
@@ -54,7 +55,7 @@ public class UserController {
     @GetMapping(
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    public ResponseEntity<WebResponsePaging<List<GetListUserResponse>>> getUsers(
+    public ResponseEntity<WebResponsePaging<List<UserResponse>>> getUsers(
             User user,
             @RequestParam(name = "role", required = false, defaultValue = "USER") String role,
             @RequestParam(name = "email", required = false) String email,
@@ -64,7 +65,7 @@ public class UserController {
             @RequestParam(name = "size", defaultValue = "20") Integer size
     ) {
 
-        GetListUserRequest getListRequest = GetListUserRequest.builder()
+        UserRequest getListRequest = UserRequest.builder()
                 .email(email)
                 .name(name)
                 .role(role)
@@ -73,9 +74,9 @@ public class UserController {
                 .size(size)
                 .build();
 
-        Page<GetListUserResponse> listUser = userService.getListUser(user, getListRequest);
+        Page<UserResponse> listUser = userService.getListUser(user, getListRequest);
 
-        return ResponseEntity.ok(WebResponsePaging.<List<GetListUserResponse>>builder()
+        return ResponseEntity.ok(WebResponsePaging.<List<UserResponse>>builder()
                 .totalItem(listUser.getTotalElements())
                 .perPage(listUser.getSize())
                 .currentPage(listUser.getNumber() + 1)
@@ -90,14 +91,14 @@ public class UserController {
             value = "/transactions",
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    public ResponseEntity<WebResponsePaging<List<GetListUserTransactionResponse>>> getListUserTransactions(
+    public ResponseEntity<WebResponsePaging<List<UserTransactionResponse>>> getListUserTransactions(
             User user,
             @RequestParam(name = "page", defaultValue = "0") Integer page,
             @RequestParam(name = "size", defaultValue = "20") Integer size
     ) {
 
-        Page<GetListUserTransactionResponse> listUserTransaction = userService.getListUserTransaction(user, GetListUserTransactionRequest.builder().page(page).size(size).build());
-        return ResponseEntity.ok(WebResponsePaging.<List<GetListUserTransactionResponse>>builder()
+        Page<UserTransactionResponse> listUserTransaction = userService.getListUserTransaction(user, UserTransactionRequest.builder().page(page).size(size).build());
+        return ResponseEntity.ok(WebResponsePaging.<List<UserTransactionResponse>>builder()
                 .totalItem(listUserTransaction.getTotalElements())
                 .perPage(listUserTransaction.getSize())
                 .currentPage(listUserTransaction.getNumber() + 1)
@@ -111,7 +112,7 @@ public class UserController {
             value = "/authorization",
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    public ResponseEntity<WebResponsePaging<List<GetListUserAuthorizationCarResponse>>> getListUserCarAuthorization(
+    public ResponseEntity<WebResponsePaging<List<UserAuthorizationCarResponse>>> getListUserCarAuthorization(
             User user,
             @RequestParam(name = "email", required = false) String email,
             @RequestParam(name = "name", required = false) String name,
@@ -119,7 +120,7 @@ public class UserController {
             @RequestParam(name = "page", defaultValue = "0") Integer page,
             @RequestParam(name = "size", defaultValue = "20") Integer size
     ) {
-        GetListUserAuthorizationCarRequest listUserAuthorizationCarRequest = GetListUserAuthorizationCarRequest.builder()
+        UserAuthorizationCarRequest listUserAuthorizationCarRequest = UserAuthorizationCarRequest.builder()
                 .email(email)
                 .name(name)
                 .isActive(isActive)
@@ -127,8 +128,8 @@ public class UserController {
                 .size(size)
                 .build();
 
-        Page<GetListUserAuthorizationCarResponse> listUserAuthorizationCar = userService.getListUserAuthorizationCar(user, listUserAuthorizationCarRequest);
-        return ResponseEntity.ok(WebResponsePaging.<List<GetListUserAuthorizationCarResponse>>builder()
+        Page<UserAuthorizationCarResponse> listUserAuthorizationCar = userService.getListUserAuthorizationCar(user, listUserAuthorizationCarRequest);
+        return ResponseEntity.ok(WebResponsePaging.<List<UserAuthorizationCarResponse>>builder()
                 .totalItem(listUserAuthorizationCar.getTotalElements())
                 .perPage(listUserAuthorizationCar.getSize())
                 .currentPage(listUserAuthorizationCar.getNumber() + 1)

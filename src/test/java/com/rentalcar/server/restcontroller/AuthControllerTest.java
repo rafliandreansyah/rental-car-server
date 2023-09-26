@@ -7,7 +7,7 @@ import com.rentalcar.server.entity.UserRoleEnum;
 import com.rentalcar.server.model.AuthenticateRequest;
 import com.rentalcar.server.model.AuthenticateResponse;
 import com.rentalcar.server.model.RegisterRequest;
-import com.rentalcar.server.model.WebResponse;
+import com.rentalcar.server.model.base.WebResponse;
 import com.rentalcar.server.repository.UserRepository;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;

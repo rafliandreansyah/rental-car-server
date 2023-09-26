@@ -3,7 +3,7 @@ package com.rentalcar.server.restcontroller;
 import com.rentalcar.server.model.AuthenticateRequest;
 import com.rentalcar.server.model.AuthenticateResponse;
 import com.rentalcar.server.model.RegisterRequest;
-import com.rentalcar.server.model.WebResponse;
+import com.rentalcar.server.model.base.WebResponse;
 import com.rentalcar.server.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

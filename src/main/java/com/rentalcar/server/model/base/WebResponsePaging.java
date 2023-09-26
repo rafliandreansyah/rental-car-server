@@ -1,4 +1,4 @@
-package com.rentalcar.server.model;
+package com.rentalcar.server.model.base;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;

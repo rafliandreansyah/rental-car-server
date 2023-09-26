@@ -1,16 +1,12 @@
 package com.rentalcar.server.service;
 
-import com.rentalcar.server.entity.CarTransmissionEnum;
 import com.rentalcar.server.entity.Transaction;
 import com.rentalcar.server.entity.User;
 import com.rentalcar.server.entity.UserRoleEnum;
 import com.rentalcar.server.model.*;
 import com.rentalcar.server.repository.TransactionRepository;
 import com.rentalcar.server.repository.UserRepository;
-import jakarta.persistence.criteria.CriteriaBuilder;
-import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Predicate;
-import jakarta.persistence.criteria.Root;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.*;
@@ -85,7 +81,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public GetDetailUserResponse getDetailUser(User user, String userId) {
+    public DetailUserResponse getDetailUser(User user, String userId) {
 
         if (!Objects.equals(user.getId().toString(), userId.trim())) {
             if (user.getRole() != null && user.getRole().equals(UserRoleEnum.USER)) {
@@ -102,7 +98,7 @@ public class UserServiceImpl implements UserService {
 
         User userLoadedDB = userRepository.findById(idUser).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "user not found"));
 
-        return GetDetailUserResponse.builder()
+        return DetailUserResponse.builder()
                 .id(userLoadedDB.getId().toString())
                 .name(userLoadedDB.getName())
                 .email(userLoadedDB.getEmail())
@@ -136,7 +132,7 @@ public class UserServiceImpl implements UserService {
 
     }
 
-    public Page<GetListUserResponse> getListUser(User user, GetListUserRequest getListUserRequest) {
+    public Page<UserResponse> getListUser(User user, UserRequest getListUserRequest) {
 
         getListUserRequest.setPage(getListUserRequest.getPage() > 0 ? getListUserRequest.getPage() - 1 : getListUserRequest.getPage());
 
@@ -193,8 +189,8 @@ public class UserServiceImpl implements UserService {
         Pageable pageable = PageRequest.of(getListUserRequest.getPage(), getListUserRequest.getSize(), Sort.by(Sort.Order.desc("createdAt")));
         Page<User> pagingUsers = userRepository.findAll(specification, pageable);
 
-        List<GetListUserResponse> responses = pagingUsers.stream()
-                .map(userData -> GetListUserResponse
+        List<UserResponse> responses = pagingUsers.stream()
+                .map(userData -> UserResponse
                         .builder()
                         .id(userData.getId().toString())
                         .email(userData.getEmail())
@@ -207,15 +203,15 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Page<GetListUserTransactionResponse> getListUserTransaction(User user, GetListUserTransactionRequest getListUserTransactionRequest) {
+    public Page<UserTransactionResponse> getListUserTransaction(User user, UserTransactionRequest userTransactionRequest) {
 
-        getListUserTransactionRequest.setPage(getListUserTransactionRequest.getPage() > 0 ? getListUserTransactionRequest.getPage() - 1 : getListUserTransactionRequest.getPage());
+        userTransactionRequest.setPage(userTransactionRequest.getPage() > 0 ? userTransactionRequest.getPage() - 1 : userTransactionRequest.getPage());
 
-        Pageable pageable = PageRequest.of(getListUserTransactionRequest.getPage(), getListUserTransactionRequest.getSize(), Sort.by(Sort.Order.desc("createdAt")));
+        Pageable pageable = PageRequest.of(userTransactionRequest.getPage(), userTransactionRequest.getSize(), Sort.by(Sort.Order.desc("createdAt")));
         Page<Transaction> transactionsByUserId = transactionRepository.findAllByUserId(user.getId(), pageable);
 
-        List<GetListUserTransactionResponse> responses = transactionsByUserId.stream()
-                .map(transaction -> GetListUserTransactionResponse
+        List<UserTransactionResponse> responses = transactionsByUserId.stream()
+                .map(transaction -> UserTransactionResponse
                         .builder()
                         .id(transaction.getId().toString())
                         .startDate(LocalDateTime.ofInstant(transaction.getStartDate(), ZoneId.of("Asia/Jakarta")).toString())
@@ -234,7 +230,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Page<GetListUserAuthorizationCarResponse> getListUserAuthorizationCar(User user, GetListUserAuthorizationCarRequest getListUserAuthorizationCarRequest) {
+    public Page<UserAuthorizationCarResponse> getListUserAuthorizationCar(User user, UserAuthorizationCarRequest getListUserAuthorizationCarRequest) {
 
         getListUserAuthorizationCarRequest.setPage(getListUserAuthorizationCarRequest.getPage() > 0 ? getListUserAuthorizationCarRequest.getPage() - 1 : getListUserAuthorizationCarRequest.getPage());
 
@@ -270,11 +266,11 @@ public class UserServiceImpl implements UserService {
 
         Pageable pageable = PageRequest.of(getListUserAuthorizationCarRequest.getPage(), getListUserAuthorizationCarRequest.getSize(), Sort.by(Sort.Order.desc("createdAt")));
         Page<User> userWithAuthorizations = userRepository.findAllByCarAuthorizationsIsNotEmpty(specification, pageable);
-        List<GetListUserAuthorizationCarResponse> listUserWithCarAuthorization = userWithAuthorizations.stream()
+        List<UserAuthorizationCarResponse> listUserWithCarAuthorization = userWithAuthorizations.stream()
                 .map(userData -> {
-                    List<GetListCarResponse> listCarResponses = userData.getCarAuthorizations()
+                    List<CarResponse> listCarResponses = userData.getCarAuthorizations()
                             .stream()
-                            .map(carAuthorization -> GetListCarResponse
+                            .map(carAuthorization -> CarResponse
                                     .builder()
                                     .id(carAuthorization.getCar().getId().toString())
                                     .name(carAuthorization.getCar().getName())
@@ -285,7 +281,7 @@ public class UserServiceImpl implements UserService {
                                     .build())
                             .toList();
 
-                    return GetListUserAuthorizationCarResponse
+                    return UserAuthorizationCarResponse
                             .builder()
                             .id(userData.getId().toString())
                             .name(userData.getName())

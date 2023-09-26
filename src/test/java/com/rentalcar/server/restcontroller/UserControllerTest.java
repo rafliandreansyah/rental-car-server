@@ -4,6 +4,8 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rentalcar.server.entity.*;
 import com.rentalcar.server.model.*;
+import com.rentalcar.server.model.base.WebResponse;
+import com.rentalcar.server.model.base.WebResponsePaging;
 import com.rentalcar.server.repository.TransactionRepository;
 import com.rentalcar.server.repository.UserRepository;
 import com.rentalcar.server.security.JwtService;
@@ -615,7 +617,7 @@ class UserControllerTest {
                 .andExpectAll(status().isOk())
                 .andExpectAll(result -> {
 
-                    WebResponse<GetDetailUserResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+                    WebResponse<DetailUserResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
                     });
 
                     Assertions.assertNull(response.getError());
@@ -669,7 +671,7 @@ class UserControllerTest {
                 .andExpectAll(status().isForbidden())
                 .andExpectAll(result -> {
 
-                    WebResponse<GetDetailUserResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+                    WebResponse<DetailUserResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
                     });
 
                     Assertions.assertNotNull(response.getError());
@@ -705,7 +707,7 @@ class UserControllerTest {
                 .andExpectAll(status().isOk())
                 .andExpectAll(result -> {
 
-                    WebResponse<GetDetailUserResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+                    WebResponse<DetailUserResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
                     });
 
                     Assertions.assertNull(response.getError());
@@ -739,7 +741,7 @@ class UserControllerTest {
                 .andExpectAll(status().isNotFound())
                 .andExpectAll(result -> {
 
-                    WebResponse<GetDetailUserResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+                    WebResponse<DetailUserResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
                     });
 
                     Assertions.assertNotNull(response.getError());
@@ -901,14 +903,14 @@ class UserControllerTest {
         String token = jwtService.generateToken(admin);
 
         mockMvc.perform(
-                get("/api/v1/users?page=1&size10")
+                get("/api/v1/users?page=1&size=10")
                         .header(AUTHORIZATION, "Bearer " + token)
                         .accept(MediaType.APPLICATION_JSON)
         ).andExpectAll(
                 status().isOk()
         ).andExpectAll(
                 result -> {
-                    WebResponsePaging<List<GetListUserResponse>> responsePaging = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+                    WebResponsePaging<List<UserResponse>> responsePaging = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
                     });
                     Assertions.assertNull(responsePaging.getError());
                     Assertions.assertNotNull(responsePaging.getData());
@@ -942,14 +944,14 @@ class UserControllerTest {
         String token = jwtService.generateToken(admin);
 
         mockMvc.perform(
-                get("/api/v1/users?page=1&size10&email=user49")
+                get("/api/v1/users?page=1&size=10&email=user49")
                         .header(AUTHORIZATION, "Bearer " + token)
                         .accept(MediaType.APPLICATION_JSON)
         ).andExpectAll(
                 status().isOk()
         ).andExpectAll(
                 result -> {
-                    WebResponsePaging<List<GetListUserResponse>> responsePaging = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+                    WebResponsePaging<List<UserResponse>> responsePaging = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
                     });
                     Assertions.assertNull(responsePaging.getError());
                     Assertions.assertNotNull(responsePaging.getData());
@@ -983,14 +985,14 @@ class UserControllerTest {
         String token = jwtService.generateToken(admin);
 
         mockMvc.perform(
-                get("/api/v1/users?page=1&size10&name=10")
+                get("/api/v1/users?page=1&size=10&name=10")
                         .header(AUTHORIZATION, "Bearer " + token)
                         .accept(MediaType.APPLICATION_JSON)
         ).andExpectAll(
                 status().isOk()
         ).andExpectAll(
                 result -> {
-                    WebResponsePaging<List<GetListUserResponse>> responsePaging = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+                    WebResponsePaging<List<UserResponse>> responsePaging = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
                     });
                     Assertions.assertNull(responsePaging.getError());
                     Assertions.assertNotNull(responsePaging.getData());
@@ -1036,14 +1038,14 @@ class UserControllerTest {
         String token = jwtService.generateToken(admin);
 
         mockMvc.perform(
-                get("/api/v1/users?page=1&size10&role=admin")
+                get("/api/v1/users?page=1&size=10&role=admin")
                         .header(AUTHORIZATION, "Bearer " + token)
                         .accept(MediaType.APPLICATION_JSON)
         ).andExpectAll(
                 status().isOk()
         ).andExpectAll(
                 result -> {
-                    WebResponsePaging<List<GetListUserResponse>> responsePaging = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+                    WebResponsePaging<List<UserResponse>> responsePaging = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
                     });
                     Assertions.assertNull(responsePaging.getError());
                     Assertions.assertNotNull(responsePaging.getData());
@@ -1095,7 +1097,7 @@ class UserControllerTest {
                 status().isForbidden()
         ).andExpectAll(
                 result -> {
-                    WebResponsePaging<List<GetListUserResponse>> responsePaging = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+                    WebResponsePaging<List<UserResponse>> responsePaging = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
                     });
                     Assertions.assertNotNull(responsePaging.getError());
                     Assertions.assertNull(responsePaging.getData());
@@ -1150,7 +1152,7 @@ class UserControllerTest {
                                 .contentType(MediaType.APPLICATION_JSON)
                 ).andExpectAll(status().isOk())
                 .andExpectAll(result -> {
-                    WebResponsePaging<List<GetListUserTransactionResponse>> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+                    WebResponsePaging<List<UserTransactionResponse>> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
                     });
                     Assertions.assertNull(response.getError());
                     Assertions.assertNotNull(response.getData());

@@ -1,7 +1,7 @@
 package com.rentalcar.server.handler;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.rentalcar.server.model.WebResponse;
+import com.rentalcar.server.model.base.WebResponse;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
