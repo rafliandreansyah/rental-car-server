@@ -18,6 +18,5 @@ public interface UserRepository extends JpaRepository<User, UUID>, JpaSpecificat
 
     Optional<User> findByEmail(String email);
     Optional<User> findByPhoneNumber(String phone);
-    List<User> findAllByCarAuthorizations(List<CarAuthorization> carAuthorizations);
 
 }

@@ -7,6 +7,7 @@ import com.rentalcar.server.model.*;
 import com.rentalcar.server.repository.TransactionRepository;
 import com.rentalcar.server.repository.UserRepository;
 import com.rentalcar.server.util.DateTimeUtils;
+import com.rentalcar.server.util.EnumUtils;
 import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -35,6 +36,7 @@ public class UserServiceImpl implements UserService {
     private final PasswordEncoder passwordEncoder;
     private final TransactionRepository transactionRepository;
     private final DateTimeUtils dateTimeUtils;
+    private final EnumUtils enumUtils;
 
     @Transactional
     @Override
@@ -169,7 +171,7 @@ public class UserServiceImpl implements UserService {
             }
 
             if (Objects.nonNull(getListUserRequest.getRole())) {
-                UserRoleEnum userRoleEnum = getUserRoleEnumFromString(getListUserRequest.getRole());
+                UserRoleEnum userRoleEnum = enumUtils.getUserRoleEnumFromString(getListUserRequest.getRole());
                 predicates.add(
                         criteriaBuilder.equal(
                                 root.get("role"), userRoleEnum
@@ -250,6 +252,10 @@ public class UserServiceImpl implements UserService {
                     )
             );
 
+            predicates.add(
+                    criteriaBuilder.isNotEmpty(root.get("carAuthorizations"))
+            );
+
             if (Objects.nonNull(getListUserAuthorizationCarRequest.getEmail())) {
                 predicates.add(criteriaBuilder.like(
                         root.get("email"), "%" + getListUserAuthorizationCarRequest.getEmail() + "%"
@@ -300,22 +306,8 @@ public class UserServiceImpl implements UserService {
                             .carsAuthorizations(listCarResponses)
                             .build();
                 })
-                .filter(userAuthorizationCarResponse -> userAuthorizationCarResponse.getCarsAuthorizations().size() != 0)
                 .toList();
 
         return new PageImpl<>(listUserWithCarAuthorization, pageable ,userWithAuthorizations.getTotalElements());
-    }
-
-    private static UserRoleEnum getUserRoleEnumFromString(String role) {
-        UserRoleEnum userRoleEnum;
-
-        if (role.equalsIgnoreCase(UserRoleEnum.USER.name())) {
-            userRoleEnum = UserRoleEnum.USER;
-        } else if (role.equalsIgnoreCase(UserRoleEnum.ADMIN.name())) {
-            userRoleEnum = UserRoleEnum.ADMIN;
-        } else {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "user role not found");
-        }
-        return userRoleEnum;
     }
 }

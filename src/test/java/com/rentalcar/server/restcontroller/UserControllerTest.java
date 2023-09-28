@@ -1186,6 +1186,15 @@ class UserControllerTest {
         List<User> users = new ArrayList<>();
         List<Car> cars = new ArrayList<>();
 
+        User userData = User.builder()
+                .email("usertest@gmail.com")
+                .name("user")
+                .password("secretpassword")
+                .phoneNumber("+62883748473")
+                .role(UserRoleEnum.USER)
+                .build();
+        userRepository.save(userData);
+
         for (int i = 0; i < 20; i++) {
             User user = User.builder()
                     .email("admin" + i + "@gmail.com")
