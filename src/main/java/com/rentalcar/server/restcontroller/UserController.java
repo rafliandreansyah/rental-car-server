@@ -27,7 +27,7 @@ public class UserController {
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    public ResponseEntity<WebResponse<CreateUserResponse>> createUser(@ModelAttribute @Valid CreateUserRequest request, @RequestParam("image") MultipartFile file) {
+    public ResponseEntity<WebResponse<CreateUserResponse>> createUser(@ModelAttribute @Valid CreateUserRequest request, @RequestParam(value = "image", required = false) MultipartFile file) {
         CreateUserResponse response = userService.createUser(request, file);
         return ResponseEntity.status(HttpStatus.CREATED).body(WebResponse.<CreateUserResponse>builder().data(response).status(HttpStatus.OK.value()).build());
 
@@ -137,6 +137,25 @@ public class UserController {
                 .status(HttpStatus.OK.value())
                 .data(listUserAuthorizationCar.getContent())
                 .build());
+    }
+
+    @PatchMapping(
+            value = "/{id}",
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE
+    )
+    public ResponseEntity<WebResponse<UserEditResponse>> editUser(
+            User user,
+            @PathVariable("id") String userId,
+            @ModelAttribute @Valid UserEditRequest userEditRequest,
+            @RequestParam(value = "is_active", required = false) Boolean isActive,
+            @RequestParam(value = "image", required = false) MultipartFile multipartFile
+    ) {
+        if (isActive != null) {
+            userEditRequest.setIsActive(isActive);
+        }
+        UserEditResponse userEditResponse = userService.editUser(user, userId, userEditRequest, multipartFile);
+        return ResponseEntity.ok(WebResponse.<UserEditResponse>builder().status(HttpStatus.OK.value()).data(userEditResponse).build());
     }
 
 }

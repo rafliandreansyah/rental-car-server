@@ -18,4 +18,6 @@ public interface UserService {
 
     Page<UserAuthorizationCarResponse> getListUserAuthorizationCar(User user, UserAuthorizationCarRequest getListUserAuthorizationCarRequest);
 
+    UserEditResponse editUser(User user, String userId, UserEditRequest userEditRequest, MultipartFile file);
+
 }

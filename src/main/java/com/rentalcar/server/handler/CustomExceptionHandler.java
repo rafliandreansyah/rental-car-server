@@ -8,6 +8,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
@@ -58,6 +59,18 @@ public class CustomExceptionHandler {
     @ExceptionHandler(ResponseStatusException.class)
     public ResponseEntity<WebResponse<String>> responseStatusExceptionHandler(ResponseStatusException responseStatusException) {
         return new ResponseEntity<>(WebResponse.<String>builder().error(responseStatusException.getReason()).status(responseStatusException.getStatusCode().value()).build(), responseStatusException.getStatusCode());
+    }
+
+    @ExceptionHandler(NullPointerException.class)
+    public ResponseEntity<WebResponse<String>> nullPointerExceptionHandler(NullPointerException nullPointerException) {
+        nullPointerException.printStackTrace();
+        return new ResponseEntity<>(WebResponse.<String>builder().error("internal server error").status(HttpStatus.INTERNAL_SERVER_ERROR.value()).build(), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<WebResponse<String>> methodArgumentTypeMismatchExceptionHandler(MethodArgumentTypeMismatchException methodArgumentTypeMismatchException) {
+        methodArgumentTypeMismatchException.printStackTrace();
+        return new ResponseEntity<>(WebResponse.<String>builder().error("invalid request data type").status(HttpStatus.BAD_REQUEST.value()).build(), HttpStatus.BAD_REQUEST);
     }
 
 }

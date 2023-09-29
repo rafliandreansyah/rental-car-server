@@ -20,8 +20,11 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.time.LocalDateTime;
-import java.time.ZoneId;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.time.*;
+import java.time.format.DateTimeParseException;
 import java.util.*;
 
 @Service
@@ -52,7 +55,7 @@ public class UserServiceImpl implements UserService {
         }
 
         String pathImage = null;
-        if (!file.isEmpty()) {
+        if (Objects.nonNull(file)) {
             pathImage = fileStorageService.storeFile(file, userPath);
         }
 
@@ -309,5 +312,73 @@ public class UserServiceImpl implements UserService {
                 .toList();
 
         return new PageImpl<>(listUserWithCarAuthorization, pageable ,userWithAuthorizations.getTotalElements());
+    }
+
+    @Override
+    public UserEditResponse editUser(User user, String userId, UserEditRequest userEditRequest, MultipartFile file) {
+
+        if (user.getRole().equals(UserRoleEnum.USER)) {
+            if (!user.getId().toString().equals(userId)) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "don't have a access");
+            }
+
+            if (Objects.nonNull(userEditRequest.getRole())) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "don't have a access edit role");
+            }
+
+            if (Objects.nonNull(userEditRequest.getIsActive())) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "don't have a access edit role");
+            }
+        }
+        UUID id;
+        try {
+             id = UUID.fromString(userId);
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "user not found");
+        }
+
+        User userLoadDB = userRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "user not found"));
+
+        if (Objects.nonNull(userEditRequest.getName())) {
+            userLoadDB.setName(userEditRequest.getName().toLowerCase());
+        }
+        if (Objects.nonNull(userEditRequest.getPhone())) {
+            userLoadDB.setPhoneNumber(userEditRequest.getPhone());
+        }
+        if (Objects.nonNull(userEditRequest.getDob())) {
+            try {
+                userLoadDB.setDateOfBirth(LocalDateTime.parse(userEditRequest.getDob()).toInstant(ZoneOffset.ofHours(0)));
+            }catch (DateTimeParseException e) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "invalid format date");
+            }
+        }
+        if (Objects.nonNull(userEditRequest.getIsActive())) {
+            userLoadDB.setIsActive(userEditRequest.getIsActive());
+        }
+        if (Objects.nonNull(userEditRequest.getRole())){
+            userLoadDB.setRole(enumUtils.getUserRoleEnumFromString(userEditRequest.getRole()));
+        }
+        if (Objects.nonNull(file)) {
+            String pathImage = fileStorageService.storeFile(file, userPath);
+
+            try {
+                if (userLoadDB.getImageUrl() != null) {
+                    Files.deleteIfExists(Path.of(userLoadDB.getImageUrl()));
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            userLoadDB.setImageUrl(pathImage);
+        }
+        User userEditSaved = userRepository.save(userLoadDB);
+
+        return UserEditResponse.builder()
+                .id(userEditSaved.getId().toString())
+                .name(userEditSaved.getName())
+                .image(userEditSaved.getImageUrl())
+                .dob(userEditSaved.getDateOfBirth() != null ? dateTimeUtils.localDateFromInstantZoneJakarta(userEditSaved.getDateOfBirth()).toString() : null)
+                .role(userEditSaved.getRole().name())
+                .isActive(userEditSaved.getIsActive())
+                .build();
     }
 }
