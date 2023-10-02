@@ -317,7 +317,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserEditResponse editUser(User user, String userId, UserEditRequest userEditRequest, MultipartFile file) {
 
-        if (user.getRole().equals(UserRoleEnum.USER)) {
+        if (!user.getRole().equals(UserRoleEnum.ADMIN)) {
             if (!user.getId().toString().equals(userId)) {
                 throw new ResponseStatusException(HttpStatus.FORBIDDEN, "don't have a access");
             }
@@ -376,6 +376,7 @@ public class UserServiceImpl implements UserService {
                 .id(userEditSaved.getId().toString())
                 .name(userEditSaved.getName())
                 .image(userEditSaved.getImageUrl())
+                .phone(userEditSaved.getPhoneNumber())
                 .dob(userEditSaved.getDateOfBirth() != null ? dateTimeUtils.localDateFromInstantZoneJakarta(userEditSaved.getDateOfBirth()).toString() : null)
                 .role(userEditSaved.getRole().name())
                 .isActive(userEditSaved.getIsActive())

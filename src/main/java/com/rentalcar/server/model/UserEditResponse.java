@@ -16,6 +16,7 @@ public class UserEditResponse {
     private String name;
     private String image;
     private String dob;
+    private String phone;
     @JsonProperty("is_active")
     private Boolean isActive;
     private String role;

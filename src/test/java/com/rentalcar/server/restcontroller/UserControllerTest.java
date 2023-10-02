@@ -19,6 +19,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
@@ -26,16 +27,13 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
+import java.time.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
@@ -1469,6 +1467,70 @@ class UserControllerTest {
                     Assertions.assertEquals("don't have a access", responsePaging.getError());
                 });
 
+
+    }
+
+    @Test
+    void adminEditUserSuccessTest() throws Exception {
+        MockMultipartFile mockMultipartFile = new MockMultipartFile(
+                "image",
+                "rafli.jpg",
+                MediaType.IMAGE_JPEG_VALUE,
+                "my-images".getBytes()
+        );
+
+        User user = User.builder()
+                .name("User")
+                .email("user@yahoo.com")
+                .password("amaterasu")
+                .phoneNumber("+62892838399")
+                .dateOfBirth(Instant.now())
+                .role(UserRoleEnum.USER)
+                .build();
+        User userSave = userRepository.save(user);
+
+        String token = jwtService.generateToken(admin);
+
+        String newDob = LocalDateTime.of(1996, 12, 20, 0, 0, 0).toString();
+        String newName = "User Edited";
+        String newPhone = "+628911111111";
+        boolean newStatus = false;
+        String newRole = "ADMIN";
+        System.out.println(newDob);
+
+        mockMvc.perform(
+                MockMvcRequestBuilders.multipart("/api/v1/users/{id}", userSave.getId())
+                        .file(mockMultipartFile)
+                        .with(request -> {
+                            request.setMethod(HttpMethod.PATCH.name());
+                            return request;
+                        })
+                        .param("name", newName)
+                        .param("phone", newPhone)
+                        .param("dob", newDob)
+                        .param("is_active", Boolean.toString(newStatus))
+                        .param("role", newRole)
+                        .header(AUTHORIZATION, "Bearer " + token)
+                        .contentType(MediaType.MULTIPART_FORM_DATA)
+                        .accept(MediaType.APPLICATION_JSON)
+        )
+                .andExpectAll(status().isOk())
+                .andExpectAll(result -> {
+                    WebResponse<UserEditResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<WebResponse<UserEditResponse>>() {
+                    });
+
+                    Assertions.assertNull(response.getError());
+                    Assertions.assertNotNull(response.getData());
+                    Assertions.assertNotNull(response.getStatus());
+
+                    Assertions.assertEquals(HttpStatus.OK.value(), response.getStatus());
+                    Assertions.assertEquals(LocalDate.from(LocalDateTime.parse(newDob)).toString(), response.getData().getDob());
+                    Assertions.assertEquals(newPhone, response.getData().getPhone());
+                    Assertions.assertEquals(HttpStatus.OK.value(), response.getStatus());
+                    Assertions.assertEquals(HttpStatus.OK.value(), response.getStatus());
+                    Assertions.assertEquals(HttpStatus.OK.value(), response.getStatus());
+
+                });
 
     }
 }
