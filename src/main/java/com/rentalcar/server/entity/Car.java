@@ -86,6 +86,9 @@ public class Car {
         if (isDeleted == null) {
             isDeleted = false;
         }
+        if (name != null) {
+            name = name.toLowerCase();
+        }
     }
 
 }
