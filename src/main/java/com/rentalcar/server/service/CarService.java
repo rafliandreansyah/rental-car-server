@@ -7,4 +7,6 @@ public interface CarService {
 
     CarDetailResponse getDetailCar(User user, String carId);
 
+    String deleteCarById(User user, String carId);
+
 }

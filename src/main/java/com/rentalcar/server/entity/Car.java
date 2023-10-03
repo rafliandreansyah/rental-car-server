@@ -58,13 +58,13 @@ public class Car {
     @OneToMany(mappedBy = "car")
     private List<Transaction> transactions;
 
-    @OneToMany(mappedBy = "car")
+    @OneToMany(mappedBy = "car", cascade = CascadeType.REMOVE)
     private List<CarAuthorization> carAuthorizations;
 
-    @OneToMany(mappedBy = "car")
+    @OneToMany(mappedBy = "car", cascade = CascadeType.REMOVE)
     private List<CarImageDetail> carImageDetails;
 
-    @OneToMany(mappedBy = "car")
+    @OneToMany(mappedBy = "car", cascade = CascadeType.REMOVE)
     private List<CarRented> carsRented;
 
     @CreatedDate

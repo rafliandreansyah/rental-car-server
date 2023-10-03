@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rentalcar.server.entity.*;
 import com.rentalcar.server.model.CarDetailResponse;
 import com.rentalcar.server.model.base.WebResponse;
+import com.rentalcar.server.repository.CarAuthorizationRepository;
 import com.rentalcar.server.repository.CarRepository;
 import com.rentalcar.server.repository.UserRepository;
 import com.rentalcar.server.security.JwtService;
@@ -39,6 +40,9 @@ class CarControllerTest {
 
     @Autowired
     UserRepository userRepository;
+
+    @Autowired
+    CarAuthorizationRepository carAuthorizationRepository;
 
     @Autowired
     JwtService jwtService;
@@ -181,4 +185,164 @@ class CarControllerTest {
                     Assertions.assertEquals("car not found", response.getError());
                 });
     }
+
+    @Test
+    void deleteCarSuccessTest() throws Exception {
+
+        Car car = Car.builder()
+                .name("Avanza")
+                .brand(CarBrandEnum.TOYOTA)
+                .capacity(6)
+                .year(2020)
+                .transmission(CarTransmissionEnum.AT)
+                .pricePerDay(250000.0)
+                .imageUrl("url")
+                .cc(2000)
+                .description("description")
+                .discount(0)
+                .tax(0)
+                .build();
+        Car saveCar = carRepository.save(car);
+
+        CarAuthorization carAuthorization = CarAuthorization.builder()
+                .car(saveCar)
+                .user(admin)
+                .build();
+
+        carAuthorizationRepository.save(carAuthorization);
+
+        String token = jwtService.generateToken(admin);
+
+        mockMvc.perform(
+                        delete("/api/v1/cars/" + saveCar.getId().toString())
+                                .header(AUTHORIZATION, "Bearer " + token)
+                                .accept(MediaType.APPLICATION_JSON)
+                )
+                .andExpectAll(status().isOk())
+                .andExpectAll(result -> {
+                    WebResponse<String> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+                    });
+
+                    Assertions.assertNull(response.getError());
+                    Assertions.assertNotNull(response.getStatus());
+                    Assertions.assertNotNull(response.getData());
+
+                    Assertions.assertEquals(HttpStatus.OK.value(), response.getStatus());
+                    Assertions.assertEquals("success delete car", response.getData());
+                });
+
+    }
+
+    @Test
+    void deleteCarNotFoundErrorTest() throws Exception {
+
+        String token = jwtService.generateToken(admin);
+
+        mockMvc.perform(
+                        delete("/api/v1/cars/not-found")
+                                .header(AUTHORIZATION, "Bearer " + token)
+                                .accept(MediaType.APPLICATION_JSON)
+                )
+                .andExpectAll(status().isNotFound())
+                .andExpectAll(result -> {
+                    WebResponse<String> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+                    });
+
+                    Assertions.assertNotNull(response.getError());
+                    Assertions.assertNotNull(response.getStatus());
+                    Assertions.assertNull(response.getData());
+
+                    Assertions.assertEquals(HttpStatus.NOT_FOUND.value(), response.getStatus());
+                    Assertions.assertEquals("car not found", response.getError());
+                });
+
+    }
+
+    @Test
+    void deleteCarForbiddenErrorTest() throws Exception {
+
+        Car car = Car.builder()
+                .name("Avanza")
+                .brand(CarBrandEnum.TOYOTA)
+                .capacity(6)
+                .year(2020)
+                .transmission(CarTransmissionEnum.AT)
+                .pricePerDay(250000.0)
+                .imageUrl("url")
+                .cc(2000)
+                .description("description")
+                .discount(0)
+                .tax(0)
+                .build();
+        Car saveCar = carRepository.save(car);
+
+        CarAuthorization carAuthorization = CarAuthorization.builder()
+                .car(saveCar)
+                .user(user)
+                .build();
+
+        carAuthorizationRepository.save(carAuthorization);
+
+        String token = jwtService.generateToken(user);
+
+        mockMvc.perform(
+                        delete("/api/v1/cars/" + saveCar.getId().toString())
+                                .header(AUTHORIZATION, "Bearer " + token)
+                                .accept(MediaType.APPLICATION_JSON)
+                )
+                .andExpectAll(status().isForbidden())
+                .andExpectAll(result -> {
+                    WebResponse<String> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+                    });
+
+                    Assertions.assertNotNull(response.getError());
+                    Assertions.assertNotNull(response.getStatus());
+                    Assertions.assertNull(response.getData());
+
+                    Assertions.assertEquals(HttpStatus.FORBIDDEN.value(), response.getStatus());
+                    Assertions.assertEquals("don't have a access", response.getError());
+                });
+
+    }
+
+    @Test
+    void deleteCarNoAuthorizationCarErrorTest() throws Exception {
+
+        Car car = Car.builder()
+                .name("Avanza")
+                .brand(CarBrandEnum.TOYOTA)
+                .capacity(6)
+                .year(2020)
+                .transmission(CarTransmissionEnum.AT)
+                .pricePerDay(250000.0)
+                .imageUrl("url")
+                .cc(2000)
+                .description("description")
+                .discount(0)
+                .tax(0)
+                .build();
+        Car saveCar = carRepository.save(car);
+
+        String token = jwtService.generateToken(admin);
+
+        mockMvc.perform(
+                        delete("/api/v1/cars/" + saveCar.getId().toString())
+                                .header(AUTHORIZATION, "Bearer " + token)
+                                .accept(MediaType.APPLICATION_JSON)
+                )
+                .andExpectAll(status().isForbidden())
+                .andExpectAll(result -> {
+                    WebResponse<String> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+                    });
+
+                    Assertions.assertNotNull(response.getError());
+                    Assertions.assertNotNull(response.getStatus());
+                    Assertions.assertNull(response.getData());
+
+                    Assertions.assertEquals(HttpStatus.FORBIDDEN.value(), response.getStatus());
+                    Assertions.assertEquals("don't have authorization for this car", response.getError());
+                });
+
+    }
+
 }
