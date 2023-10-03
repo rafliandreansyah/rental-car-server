@@ -645,7 +645,7 @@ class UserControllerTest {
                     Assertions.assertEquals(userSave.getPhoneNumber(), response.getData().getPhone());
                     Assertions.assertEquals(userSave.getIsActive(), response.getData().isActive());
                     Assertions.assertNull(response.getData().getRole());
-                    Assertions.assertEquals(LocalDateTime.ofInstant(userSave.getCreatedAt(), ZoneId.of("Asia/Jakarta")).toString(), response.getData().getDateCreated());
+                    Assertions.assertEquals(dateTimeUtils.localDateTimeFromInstantZoneJakarta(userSave.getCreatedAt()).toString(), response.getData().getDateCreated());
 
                 });
 
@@ -735,7 +735,7 @@ class UserControllerTest {
                     Assertions.assertEquals(userSave.getPhoneNumber(), response.getData().getPhone());
                     Assertions.assertEquals(userSave.getIsActive(), response.getData().isActive());
                     Assertions.assertNull(response.getData().getRole());
-                    Assertions.assertEquals(LocalDateTime.ofInstant(userSave.getCreatedAt(), ZoneId.of("Asia/Jakarta")).toString(), response.getData().getDateCreated());
+                    Assertions.assertEquals(dateTimeUtils.localDateTimeFromInstantZoneJakarta(userSave.getCreatedAt()).toString(), response.getData().getDateCreated());
 
                 });
 

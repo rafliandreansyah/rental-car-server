@@ -53,9 +53,9 @@ public class UserServiceImpl implements UserService {
         if (userByPhoneNumber.isPresent()) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "phone number already use");
         }
-
+        System.out.println("File " + file);
         String pathImage = null;
-        if (Objects.nonNull(file)) {
+        if (Objects.nonNull(file) && !file.isEmpty()) {
             pathImage = fileStorageService.storeFile(file, userPath);
         }
 
@@ -114,7 +114,7 @@ public class UserServiceImpl implements UserService {
                 .phone(userLoadedDB.getPhoneNumber())
                 .isActive(userLoadedDB.getIsActive())
                 .role(userLoadedDB.getRole().equals(UserRoleEnum.ADMIN) ? userLoadedDB.getRole().name() : null)
-                .dateCreated(LocalDateTime.ofInstant(userLoadedDB.getCreatedAt(), ZoneId.of("Asia/Jakarta")).toString())
+                .dateCreated(dateTimeUtils.localDateTimeFromInstantZoneJakarta(userLoadedDB.getCreatedAt()).toString())
                 .build();
     }
 
@@ -358,7 +358,7 @@ public class UserServiceImpl implements UserService {
         if (Objects.nonNull(userEditRequest.getRole())){
             userLoadDB.setRole(enumUtils.getUserRoleEnumFromString(userEditRequest.getRole()));
         }
-        if (Objects.nonNull(file)) {
+        if (Objects.nonNull(file) && !file.isEmpty()) {
             String pathImage = fileStorageService.storeFile(file, userPath);
 
             try {
