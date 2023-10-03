@@ -76,6 +76,9 @@ public class User implements UserDetails {
         if (isDeleted == null) {
             isDeleted = false;
         }
+        if (name != null) {
+            name = name.toLowerCase();
+        }
     }
 
     @Override

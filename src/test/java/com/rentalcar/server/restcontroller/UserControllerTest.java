@@ -72,6 +72,7 @@ class UserControllerTest {
     CarRepository carRepository;
 
 
+
     @BeforeEach
     void setUp() {
         carAuthorizationRepository.deleteAll();
@@ -130,7 +131,7 @@ class UserControllerTest {
                     Assertions.assertNotNull(response.getData().getId());
                     Assertions.assertNotNull(response.getData().getImageUrl());
                     Assertions.assertEquals(request.getEmail(), response.getData().getEmail());
-                    Assertions.assertEquals(request.getName(), response.getData().getName());
+                    Assertions.assertEquals(request.getName().toLowerCase(), response.getData().getName());
                     Assertions.assertEquals(request.getPhone(), response.getData().getPhone());
                     Assertions.assertEquals(request.getRole().toLowerCase(), response.getData().getRole());
                     Assertions.assertEquals(dateTimeUtils.localDateFromInstantZoneJakarta(request.getDob()).toString(), response.getData().getDob());
@@ -173,7 +174,7 @@ class UserControllerTest {
                     Assertions.assertNotNull(response.getData().getId());
                     Assertions.assertNull(response.getData().getImageUrl());
                     Assertions.assertEquals(request.getEmail(), response.getData().getEmail());
-                    Assertions.assertEquals(request.getName(), response.getData().getName());
+                    Assertions.assertEquals(request.getName().toLowerCase(), response.getData().getName());
                     Assertions.assertEquals(request.getPhone(), response.getData().getPhone());
                     Assertions.assertEquals(request.getRole().toLowerCase(), response.getData().getRole());
                     Assertions.assertEquals(dateTimeUtils.localDateFromInstantZoneJakarta(request.getDob()).toString(), response.getData().getDob());
@@ -1491,7 +1492,7 @@ class UserControllerTest {
 
         String token = jwtService.generateToken(admin);
 
-        String newDob = LocalDateTime.of(1996, 12, 20, 0, 0, 0).toString();
+        String newDob = "1996-12-20T00:00:00";
         String newName = "User Edited";
         String newPhone = "+628911111111";
         boolean newStatus = false;
@@ -1523,14 +1524,320 @@ class UserControllerTest {
                     Assertions.assertNotNull(response.getData());
                     Assertions.assertNotNull(response.getStatus());
 
+                    Assertions.assertNotNull(response.getData().getImage());
                     Assertions.assertEquals(HttpStatus.OK.value(), response.getStatus());
                     Assertions.assertEquals(LocalDate.from(LocalDateTime.parse(newDob)).toString(), response.getData().getDob());
                     Assertions.assertEquals(newPhone, response.getData().getPhone());
-                    Assertions.assertEquals(HttpStatus.OK.value(), response.getStatus());
-                    Assertions.assertEquals(HttpStatus.OK.value(), response.getStatus());
-                    Assertions.assertEquals(HttpStatus.OK.value(), response.getStatus());
+                    Assertions.assertEquals(newName.toLowerCase(), response.getData().getName());
+                    Assertions.assertEquals(newStatus, response.getData().getIsActive());
+                    Assertions.assertEquals(newRole, response.getData().getRole());
 
                 });
 
     }
+
+    @Test
+    void adminEditUserOnlyNameSuccessTest() throws Exception {
+
+        User user = User.builder()
+                .name("User")
+                .email("user@yahoo.com")
+                .password("amaterasu")
+                .phoneNumber("+62892838399")
+                .dateOfBirth(Instant.now())
+                .role(UserRoleEnum.USER)
+                .build();
+        User userSave = userRepository.save(user);
+
+        String token = jwtService.generateToken(admin);
+
+        String newName = "User Edited";
+
+        mockMvc.perform(
+                        MockMvcRequestBuilders.multipart("/api/v1/users/{id}", userSave.getId())
+                                .with(request -> {
+                                    request.setMethod(HttpMethod.PATCH.name());
+                                    return request;
+                                })
+                                .param("name", newName)
+                                .header(AUTHORIZATION, "Bearer " + token)
+                                .contentType(MediaType.MULTIPART_FORM_DATA)
+                                .accept(MediaType.APPLICATION_JSON)
+                )
+                .andExpectAll(status().isOk())
+                .andExpectAll(result -> {
+                    WebResponse<UserEditResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<WebResponse<UserEditResponse>>() {
+                    });
+
+                    Assertions.assertNull(response.getError());
+                    Assertions.assertNotNull(response.getData());
+                    Assertions.assertNotNull(response.getStatus());
+
+                    Assertions.assertNull(response.getData().getImage());
+                    Assertions.assertEquals(HttpStatus.OK.value(), response.getStatus());
+                    Assertions.assertEquals(dateTimeUtils.localDateFromInstantZoneJakarta(userSave.getDateOfBirth()).toString(), response.getData().getDob());
+                    Assertions.assertEquals(userSave.getPhoneNumber(), response.getData().getPhone());
+                    Assertions.assertEquals(newName.toLowerCase(), response.getData().getName());
+                    Assertions.assertEquals(userSave.getIsActive(), response.getData().getIsActive());
+                    Assertions.assertEquals(userSave.getRole().name(), response.getData().getRole());
+
+                });
+
+    }
+
+    @Test
+    void adminEditUserOnlyDOBSuccessTest() throws Exception {
+
+        User user = User.builder()
+                .name("User")
+                .email("user@yahoo.com")
+                .password("amaterasu")
+                .phoneNumber("+62892838399")
+                .dateOfBirth(Instant.now())
+                .role(UserRoleEnum.USER)
+                .build();
+        User userSave = userRepository.save(user);
+
+        String token = jwtService.generateToken(admin);
+
+        String newDob = "1996-12-20T00:00:00";
+        System.out.println(newDob);
+
+        mockMvc.perform(
+                        MockMvcRequestBuilders.multipart("/api/v1/users/{id}", userSave.getId())
+                                .with(request -> {
+                                    request.setMethod(HttpMethod.PATCH.name());
+                                    return request;
+                                })
+                                .param("dob", newDob)
+                                .header(AUTHORIZATION, "Bearer " + token)
+                                .contentType(MediaType.MULTIPART_FORM_DATA)
+                                .accept(MediaType.APPLICATION_JSON)
+                )
+                .andExpectAll(status().isOk())
+                .andExpectAll(result -> {
+                    WebResponse<UserEditResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<WebResponse<UserEditResponse>>() {
+                    });
+
+                    Assertions.assertNull(response.getError());
+                    Assertions.assertNotNull(response.getData());
+                    Assertions.assertNotNull(response.getStatus());
+
+                    Assertions.assertNull(response.getData().getImage());
+                    Assertions.assertEquals(HttpStatus.OK.value(), response.getStatus());
+                    Assertions.assertEquals(LocalDate.from(LocalDateTime.parse(newDob)).toString(), response.getData().getDob());
+                    Assertions.assertEquals(userSave.getPhoneNumber(), response.getData().getPhone());
+                    Assertions.assertEquals(userSave.getName(), response.getData().getName());
+                    Assertions.assertEquals(userSave.getIsActive(), response.getData().getIsActive());
+                    Assertions.assertEquals(userSave.getRole().name(), response.getData().getRole());
+
+                });
+
+    }
+
+    @Test
+    void adminEditUserOnlyPhoneSuccessTest() throws Exception {
+
+        User user = User.builder()
+                .name("User")
+                .email("user@yahoo.com")
+                .password("amaterasu")
+                .phoneNumber("+62892838399")
+                .dateOfBirth(Instant.now())
+                .role(UserRoleEnum.USER)
+                .build();
+        User userSave = userRepository.save(user);
+
+        String token = jwtService.generateToken(admin);
+
+        String newPhone = "+628911111111";
+
+        mockMvc.perform(
+                        MockMvcRequestBuilders.multipart("/api/v1/users/{id}", userSave.getId())
+                                .with(request -> {
+                                    request.setMethod(HttpMethod.PATCH.name());
+                                    return request;
+                                })
+                                .param("phone", newPhone)
+                                .header(AUTHORIZATION, "Bearer " + token)
+                                .contentType(MediaType.MULTIPART_FORM_DATA)
+                                .accept(MediaType.APPLICATION_JSON)
+                )
+                .andExpectAll(status().isOk())
+                .andExpectAll(result -> {
+                    WebResponse<UserEditResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<WebResponse<UserEditResponse>>() {
+                    });
+
+                    Assertions.assertNull(response.getError());
+                    Assertions.assertNotNull(response.getData());
+                    Assertions.assertNotNull(response.getStatus());
+
+                    Assertions.assertNull(response.getData().getImage());
+                    Assertions.assertEquals(HttpStatus.OK.value(), response.getStatus());
+                    Assertions.assertEquals(dateTimeUtils.localDateFromInstantZoneJakarta(userSave.getDateOfBirth()).toString(), response.getData().getDob());
+                    Assertions.assertEquals(newPhone, response.getData().getPhone());
+                    Assertions.assertEquals(userSave.getName(), response.getData().getName());
+                    Assertions.assertEquals(userSave.getIsActive(), response.getData().getIsActive());
+                    Assertions.assertEquals(userSave.getRole().name(), response.getData().getRole());
+
+                });
+
+    }
+
+    @Test
+    void adminEditUserOnlyStatusSuccessTest() throws Exception {
+
+        User user = User.builder()
+                .name("User")
+                .email("user@yahoo.com")
+                .password("amaterasu")
+                .phoneNumber("+62892838399")
+                .dateOfBirth(Instant.now())
+                .role(UserRoleEnum.USER)
+                .build();
+        User userSave = userRepository.save(user);
+
+        String token = jwtService.generateToken(admin);
+
+        boolean newStatus = false;
+
+        mockMvc.perform(
+                        MockMvcRequestBuilders.multipart("/api/v1/users/{id}", userSave.getId())
+                                .with(request -> {
+                                    request.setMethod(HttpMethod.PATCH.name());
+                                    return request;
+                                })
+                                .param("is_active", Boolean.toString(newStatus))
+                                .header(AUTHORIZATION, "Bearer " + token)
+                                .contentType(MediaType.MULTIPART_FORM_DATA)
+                                .accept(MediaType.APPLICATION_JSON)
+                )
+                .andExpectAll(status().isOk())
+                .andExpectAll(result -> {
+                    WebResponse<UserEditResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<WebResponse<UserEditResponse>>() {
+                    });
+
+                    Assertions.assertNull(response.getError());
+                    Assertions.assertNotNull(response.getData());
+                    Assertions.assertNotNull(response.getStatus());
+
+                    Assertions.assertNull(response.getData().getImage());
+                    Assertions.assertEquals(HttpStatus.OK.value(), response.getStatus());
+                    Assertions.assertEquals(dateTimeUtils.localDateFromInstantZoneJakarta(userSave.getDateOfBirth()).toString(), response.getData().getDob());
+                    Assertions.assertEquals(userSave.getPhoneNumber(), response.getData().getPhone());
+                    Assertions.assertEquals(userSave.getName(), response.getData().getName());
+                    Assertions.assertEquals(newStatus, response.getData().getIsActive());
+                    Assertions.assertEquals(userSave.getRole().name(), response.getData().getRole());
+
+                });
+
+    }
+
+    @Test
+    void adminEditUserOnlyRoleSuccessTest() throws Exception {
+
+        User user = User.builder()
+                .name("User")
+                .email("user@yahoo.com")
+                .password("amaterasu")
+                .phoneNumber("+62892838399")
+                .dateOfBirth(Instant.now())
+                .role(UserRoleEnum.USER)
+                .build();
+        User userSave = userRepository.save(user);
+
+        String token = jwtService.generateToken(admin);
+
+        String newRole = "ADMIN";
+
+        mockMvc.perform(
+                        MockMvcRequestBuilders.multipart("/api/v1/users/{id}", userSave.getId())
+                                .with(request -> {
+                                    request.setMethod(HttpMethod.PATCH.name());
+                                    return request;
+                                })
+                                .param("role", newRole)
+                                .header(AUTHORIZATION, "Bearer " + token)
+                                .contentType(MediaType.MULTIPART_FORM_DATA)
+                                .accept(MediaType.APPLICATION_JSON)
+                )
+                .andExpectAll(status().isOk())
+                .andExpectAll(result -> {
+                    WebResponse<UserEditResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<WebResponse<UserEditResponse>>() {
+                    });
+
+                    Assertions.assertNull(response.getError());
+                    Assertions.assertNotNull(response.getData());
+                    Assertions.assertNotNull(response.getStatus());
+
+                    Assertions.assertNull(response.getData().getImage());
+                    Assertions.assertEquals(HttpStatus.OK.value(), response.getStatus());
+                    Assertions.assertEquals(dateTimeUtils.localDateFromInstantZoneJakarta(userSave.getDateOfBirth()).toString(), response.getData().getDob());
+                    Assertions.assertEquals(userSave.getPhoneNumber(), response.getData().getPhone());
+                    Assertions.assertEquals(userSave.getName(), response.getData().getName());
+                    Assertions.assertEquals(userSave.getIsActive(), response.getData().getIsActive());
+                    Assertions.assertEquals(newRole, response.getData().getRole());
+
+                });
+
+    }
+
+    @Test
+    void adminEditUserWithoutPhotoSuccessTest() throws Exception {
+
+        User user = User.builder()
+                .name("User")
+                .email("user@yahoo.com")
+                .password("amaterasu")
+                .phoneNumber("+62892838399")
+                .dateOfBirth(Instant.now())
+                .role(UserRoleEnum.USER)
+                .build();
+        User userSave = userRepository.save(user);
+
+        String token = jwtService.generateToken(admin);
+
+        String newDob = "1996-12-20T00:00:00";
+        String newName = "User Edited";
+        String newPhone = "+628911111111";
+        boolean newStatus = false;
+        String newRole = "ADMIN";
+        System.out.println(newDob);
+
+        mockMvc.perform(
+                        MockMvcRequestBuilders.multipart("/api/v1/users/{id}", userSave.getId())
+                                .with(request -> {
+                                    request.setMethod(HttpMethod.PATCH.name());
+                                    return request;
+                                })
+                                .param("name", newName)
+                                .param("phone", newPhone)
+                                .param("dob", newDob)
+                                .param("is_active", Boolean.toString(newStatus))
+                                .param("role", newRole)
+                                .header(AUTHORIZATION, "Bearer " + token)
+                                .contentType(MediaType.MULTIPART_FORM_DATA)
+                                .accept(MediaType.APPLICATION_JSON)
+                )
+                .andExpectAll(status().isOk())
+                .andExpectAll(result -> {
+                    WebResponse<UserEditResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<WebResponse<UserEditResponse>>() {
+                    });
+
+                    Assertions.assertNull(response.getError());
+                    Assertions.assertNotNull(response.getData());
+                    Assertions.assertNotNull(response.getStatus());
+
+                    Assertions.assertNull(response.getData().getImage());
+                    Assertions.assertEquals(HttpStatus.OK.value(), response.getStatus());
+                    Assertions.assertEquals(LocalDate.from(LocalDateTime.parse(newDob)).toString(), response.getData().getDob());
+                    Assertions.assertEquals(newPhone, response.getData().getPhone());
+                    Assertions.assertEquals(newName.toLowerCase(), response.getData().getName());
+                    Assertions.assertEquals(newStatus, response.getData().getIsActive());
+                    Assertions.assertEquals(newRole, response.getData().getRole());
+
+                });
+
+    }
+
 }

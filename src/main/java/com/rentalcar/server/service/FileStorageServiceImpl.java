@@ -35,7 +35,7 @@ public class FileStorageServiceImpl implements FileStorageService {
         try {
             Files.createDirectories(fileStorageLocation.getParent());
             Files.copy(file.getInputStream(), fileStorageLocation, StandardCopyOption.REPLACE_EXISTING);
-            return "/"+ fileStorageLocation;
+            return fileStorageLocation.toString();
         }catch (Exception e) {
             e.printStackTrace();
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "error upload image");
