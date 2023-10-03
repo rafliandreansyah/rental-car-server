@@ -1840,4 +1840,485 @@ class UserControllerTest {
 
     }
 
+    @Test
+    void adminEditUserUserNotFoundErrorTest() throws Exception {
+        MockMultipartFile mockMultipartFile = new MockMultipartFile(
+                "image",
+                "rafli.jpg",
+                MediaType.IMAGE_JPEG_VALUE,
+                "my-images".getBytes()
+        );
+
+        User user = User.builder()
+                .name("User")
+                .email("user@yahoo.com")
+                .password("amaterasu")
+                .phoneNumber("+62892838399")
+                .dateOfBirth(Instant.now())
+                .role(UserRoleEnum.USER)
+                .build();
+        User userSave = userRepository.save(user);
+
+        String token = jwtService.generateToken(admin);
+
+        String newDob = "1996-12-20T00:00:00";
+        String newName = "User Edited";
+        String newPhone = "+628911111111";
+        boolean newStatus = false;
+        String newRole = "ADMIN";
+        System.out.println(newDob);
+
+        mockMvc.perform(
+                        MockMvcRequestBuilders.multipart("/api/v1/users/not-found")
+                                .file(mockMultipartFile)
+                                .with(request -> {
+                                    request.setMethod(HttpMethod.PATCH.name());
+                                    return request;
+                                })
+                                .param("name", newName)
+                                .param("phone", newPhone)
+                                .param("dob", newDob)
+                                .param("is_active", Boolean.toString(newStatus))
+                                .param("role", newRole)
+                                .header(AUTHORIZATION, "Bearer " + token)
+                                .contentType(MediaType.MULTIPART_FORM_DATA)
+                                .accept(MediaType.APPLICATION_JSON)
+                )
+                .andExpectAll(status().isNotFound())
+                .andExpectAll(result -> {
+                    WebResponse<UserEditResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<WebResponse<UserEditResponse>>() {
+                    });
+
+                    Assertions.assertNotNull(response.getError());
+                    Assertions.assertNull(response.getData());
+                    Assertions.assertNotNull(response.getStatus());
+
+                    Assertions.assertEquals(HttpStatus.NOT_FOUND.value(), response.getStatus());
+                    Assertions.assertEquals("user not found", response.getError());
+                });
+
+    }
+
+    @Test
+    void adminEditBadRequestFormatDateErrorTest() throws Exception {
+        MockMultipartFile mockMultipartFile = new MockMultipartFile(
+                "image",
+                "rafli.jpg",
+                MediaType.IMAGE_JPEG_VALUE,
+                "my-images".getBytes()
+        );
+
+        User user = User.builder()
+                .name("User")
+                .email("user@yahoo.com")
+                .password("amaterasu")
+                .phoneNumber("+62892838399")
+                .dateOfBirth(Instant.now())
+                .role(UserRoleEnum.USER)
+                .build();
+        User userSave = userRepository.save(user);
+
+        String token = jwtService.generateToken(admin);
+
+        String newDob = "1996/12/20T00:00:00";
+        String newName = "User Edited";
+        String newPhone = "+628911111111";
+        boolean newStatus = false;
+        String newRole = "ADMIN";
+        System.out.println(newDob);
+
+        mockMvc.perform(
+                        MockMvcRequestBuilders.multipart("/api/v1/users/{id}", userSave.getId())
+                                .file(mockMultipartFile)
+                                .with(request -> {
+                                    request.setMethod(HttpMethod.PATCH.name());
+                                    return request;
+                                })
+                                .param("name", newName)
+                                .param("phone", newPhone)
+                                .param("dob", newDob)
+                                .param("is_active", Boolean.toString(newStatus))
+                                .param("role", newRole)
+                                .header(AUTHORIZATION, "Bearer " + token)
+                                .contentType(MediaType.MULTIPART_FORM_DATA)
+                                .accept(MediaType.APPLICATION_JSON)
+                )
+                .andExpectAll(status().isBadRequest())
+                .andExpectAll(result -> {
+                    WebResponse<UserEditResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<WebResponse<UserEditResponse>>() {
+                    });
+
+                    Assertions.assertNotNull(response.getError());
+                    Assertions.assertNull(response.getData());
+                    Assertions.assertNotNull(response.getStatus());
+
+                    Assertions.assertEquals(HttpStatus.BAD_REQUEST.value(), response.getStatus());
+                    Assertions.assertEquals("invalid format date", response.getError());
+                });
+
+    }
+
+    @Test
+    void adminEditBadRequestFormatPhoneErrorTest() throws Exception {
+        MockMultipartFile mockMultipartFile = new MockMultipartFile(
+                "image",
+                "rafli.jpg",
+                MediaType.IMAGE_JPEG_VALUE,
+                "my-images".getBytes()
+        );
+
+        User user = User.builder()
+                .name("User")
+                .email("user@yahoo.com")
+                .password("amaterasu")
+                .phoneNumber("+62892838399")
+                .dateOfBirth(Instant.now())
+                .role(UserRoleEnum.USER)
+                .build();
+        User userSave = userRepository.save(user);
+
+        String token = jwtService.generateToken(admin);
+
+        String newDob = "1996-12-20T00:00:00";
+        String newName = "User Edited";
+        String newPhone = "08911111111";
+        boolean newStatus = false;
+        String newRole = "ADMIN";
+        System.out.println(newDob);
+
+        mockMvc.perform(
+                        MockMvcRequestBuilders.multipart("/api/v1/users/{id}", userSave.getId())
+                                .file(mockMultipartFile)
+                                .with(request -> {
+                                    request.setMethod(HttpMethod.PATCH.name());
+                                    return request;
+                                })
+                                .param("name", newName)
+                                .param("phone", newPhone)
+                                .param("dob", newDob)
+                                .param("is_active", Boolean.toString(newStatus))
+                                .param("role", newRole)
+                                .header(AUTHORIZATION, "Bearer " + token)
+                                .contentType(MediaType.MULTIPART_FORM_DATA)
+                                .accept(MediaType.APPLICATION_JSON)
+                )
+                .andExpectAll(status().isBadRequest())
+                .andExpectAll(result -> {
+                    WebResponse<UserEditResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<WebResponse<UserEditResponse>>() {
+                    });
+
+                    Assertions.assertNotNull(response.getError());
+                    Assertions.assertNull(response.getData());
+                    Assertions.assertNotNull(response.getStatus());
+
+                    Assertions.assertEquals(HttpStatus.BAD_REQUEST.value(), response.getStatus());
+                    Assertions.assertEquals("phone number is not valid", response.getError());
+                });
+
+    }
+
+    @Test
+    void adminEditBadRequestRoleNameErrorTest() throws Exception {
+        MockMultipartFile mockMultipartFile = new MockMultipartFile(
+                "image",
+                "rafli.jpg",
+                MediaType.IMAGE_JPEG_VALUE,
+                "my-images".getBytes()
+        );
+
+        User user = User.builder()
+                .name("User")
+                .email("user@yahoo.com")
+                .password("amaterasu")
+                .phoneNumber("+62892838399")
+                .dateOfBirth(Instant.now())
+                .role(UserRoleEnum.USER)
+                .build();
+        User userSave = userRepository.save(user);
+
+        String token = jwtService.generateToken(admin);
+
+        String newDob = "1996-12-20T00:00:00";
+        String newName = "User Edited";
+        String newPhone = "+628911111111";
+        boolean newStatus = false;
+        String newRole = "SUPER ADMIN";
+        System.out.println(newDob);
+
+        mockMvc.perform(
+                        MockMvcRequestBuilders.multipart("/api/v1/users/{id}", userSave.getId())
+                                .file(mockMultipartFile)
+                                .with(request -> {
+                                    request.setMethod(HttpMethod.PATCH.name());
+                                    return request;
+                                })
+                                .param("name", newName)
+                                .param("phone", newPhone)
+                                .param("dob", newDob)
+                                .param("is_active", Boolean.toString(newStatus))
+                                .param("role", newRole)
+                                .header(AUTHORIZATION, "Bearer " + token)
+                                .contentType(MediaType.MULTIPART_FORM_DATA)
+                                .accept(MediaType.APPLICATION_JSON)
+                )
+                .andExpectAll(status().isBadRequest())
+                .andExpectAll(result -> {
+                    WebResponse<UserEditResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<WebResponse<UserEditResponse>>() {
+                    });
+
+                    Assertions.assertNotNull(response.getError());
+                    Assertions.assertNull(response.getData());
+                    Assertions.assertNotNull(response.getStatus());
+
+                    Assertions.assertEquals(HttpStatus.BAD_REQUEST.value(), response.getStatus());
+                    Assertions.assertEquals("user role not found", response.getError());
+
+                });
+
+    }
+
+    @Test
+    void adminEditBadRequestDataTypeErrorTest() throws Exception {
+        MockMultipartFile mockMultipartFile = new MockMultipartFile(
+                "image",
+                "rafli.jpg",
+                MediaType.IMAGE_JPEG_VALUE,
+                "my-images".getBytes()
+        );
+
+        User user = User.builder()
+                .name("User")
+                .email("user@yahoo.com")
+                .password("amaterasu")
+                .phoneNumber("+62892838399")
+                .dateOfBirth(Instant.now())
+                .role(UserRoleEnum.USER)
+                .build();
+        User userSave = userRepository.save(user);
+
+        String token = jwtService.generateToken(admin);
+
+        String newDob = "1996-12-20T00:00:00";
+        String newName = "User Edited";
+        String newPhone = "+628911111111";
+        String newStatus = "test";
+        String newRole = "ADMIN";
+        System.out.println(newDob);
+
+        mockMvc.perform(
+                        MockMvcRequestBuilders.multipart("/api/v1/users/{id}", userSave.getId())
+                                .file(mockMultipartFile)
+                                .with(request -> {
+                                    request.setMethod(HttpMethod.PATCH.name());
+                                    return request;
+                                })
+                                .param("name", newName)
+                                .param("phone", newPhone)
+                                .param("dob", newDob)
+                                .param("is_active", newStatus)
+                                .param("role", newRole)
+                                .header(AUTHORIZATION, "Bearer " + token)
+                                .contentType(MediaType.MULTIPART_FORM_DATA)
+                                .accept(MediaType.APPLICATION_JSON)
+                )
+                .andExpectAll(status().isBadRequest())
+                .andExpectAll(result -> {
+                    WebResponse<UserEditResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<WebResponse<UserEditResponse>>() {
+                    });
+
+                    Assertions.assertNotNull(response.getError());
+                    Assertions.assertNull(response.getData());
+                    Assertions.assertNotNull(response.getStatus());
+
+                    Assertions.assertEquals(HttpStatus.BAD_REQUEST.value(), response.getStatus());
+
+                });
+
+    }
+
+    @Test
+    void adminEditForbiddenEditOtherUserErrorTest() throws Exception {
+        MockMultipartFile mockMultipartFile = new MockMultipartFile(
+                "image",
+                "rafli.jpg",
+                MediaType.IMAGE_JPEG_VALUE,
+                "my-images".getBytes()
+        );
+
+        User user = User.builder()
+                .name("User")
+                .email("user@yahoo.com")
+                .password("amaterasu")
+                .phoneNumber("+62892838399")
+                .dateOfBirth(Instant.now())
+                .role(UserRoleEnum.USER)
+                .build();
+        User userSave = userRepository.save(user);
+
+        User user2 = User.builder()
+                .name("User2")
+                .email("user2@yahoo.com")
+                .password("amaterasu")
+                .phoneNumber("+628932838399")
+                .dateOfBirth(Instant.now())
+                .role(UserRoleEnum.USER)
+                .build();
+        User userSave2 = userRepository.save(user2);
+
+        String token = jwtService.generateToken(userSave2);
+
+        String newDob = "1996-12-20T00:00:00";
+        String newName = "User Edited";
+        String newPhone = "+628911111111";
+        boolean newStatus = false;
+        String newRole = "ADMIN";
+        System.out.println(newDob);
+
+        mockMvc.perform(
+                        MockMvcRequestBuilders.multipart("/api/v1/users/{id}", userSave.getId())
+                                .file(mockMultipartFile)
+                                .with(request -> {
+                                    request.setMethod(HttpMethod.PATCH.name());
+                                    return request;
+                                })
+                                .param("name", newName)
+                                .param("phone", newPhone)
+                                .param("dob", newDob)
+                                .param("is_active", Boolean.toString(newStatus))
+                                .param("role", newRole)
+                                .header(AUTHORIZATION, "Bearer " + token)
+                                .contentType(MediaType.MULTIPART_FORM_DATA)
+                                .accept(MediaType.APPLICATION_JSON)
+                )
+                .andExpectAll(status().isForbidden())
+                .andExpectAll(result -> {
+                    WebResponse<UserEditResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<WebResponse<UserEditResponse>>() {
+                    });
+
+                    Assertions.assertNotNull(response.getError());
+                    Assertions.assertNull(response.getData());
+                    Assertions.assertNotNull(response.getStatus());
+
+                    Assertions.assertEquals(HttpStatus.FORBIDDEN.value(), response.getStatus());
+                    Assertions.assertEquals("don't have a access", response.getError());
+                });
+
+    }
+
+    @Test
+    void adminEditForbiddenEditRoleErrorTest() throws Exception {
+        MockMultipartFile mockMultipartFile = new MockMultipartFile(
+                "image",
+                "rafli.jpg",
+                MediaType.IMAGE_JPEG_VALUE,
+                "my-images".getBytes()
+        );
+
+        User user = User.builder()
+                .name("User")
+                .email("user@yahoo.com")
+                .password("amaterasu")
+                .phoneNumber("+62892838399")
+                .dateOfBirth(Instant.now())
+                .role(UserRoleEnum.USER)
+                .build();
+        User userSave = userRepository.save(user);
+
+        String token = jwtService.generateToken(userSave);
+
+        String newDob = "1996-12-20T00:00:00";
+        String newName = "User Edited";
+        String newPhone = "+628911111111";
+        boolean newStatus = false;
+        String newRole = "ADMIN";
+        System.out.println(newDob);
+
+        mockMvc.perform(
+                        MockMvcRequestBuilders.multipart("/api/v1/users/{id}", userSave.getId())
+                                .file(mockMultipartFile)
+                                .with(request -> {
+                                    request.setMethod(HttpMethod.PATCH.name());
+                                    return request;
+                                })
+                                .param("name", newName)
+                                .param("phone", newPhone)
+                                .param("dob", newDob)
+                                .param("is_active", Boolean.toString(newStatus))
+                                .param("role", newRole)
+                                .header(AUTHORIZATION, "Bearer " + token)
+                                .contentType(MediaType.MULTIPART_FORM_DATA)
+                                .accept(MediaType.APPLICATION_JSON)
+                )
+                .andExpectAll(status().isForbidden())
+                .andExpectAll(result -> {
+                    WebResponse<UserEditResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<WebResponse<UserEditResponse>>() {
+                    });
+
+                    Assertions.assertNotNull(response.getError());
+                    Assertions.assertNull(response.getData());
+                    Assertions.assertNotNull(response.getStatus());
+
+                    Assertions.assertEquals(HttpStatus.FORBIDDEN.value(), response.getStatus());
+                    Assertions.assertEquals("don't have a access edit role", response.getError());
+                });
+
+    }
+
+    @Test
+    void adminEditForbiddenEditIsActiveErrorTest() throws Exception {
+        MockMultipartFile mockMultipartFile = new MockMultipartFile(
+                "image",
+                "rafli.jpg",
+                MediaType.IMAGE_JPEG_VALUE,
+                "my-images".getBytes()
+        );
+
+        User user = User.builder()
+                .name("User")
+                .email("user@yahoo.com")
+                .password("amaterasu")
+                .phoneNumber("+62892838399")
+                .dateOfBirth(Instant.now())
+                .role(UserRoleEnum.USER)
+                .build();
+        User userSave = userRepository.save(user);
+
+        String token = jwtService.generateToken(userSave);
+
+        String newDob = "1996-12-20T00:00:00";
+        String newName = "User Edited";
+        String newPhone = "+628911111111";
+        boolean newStatus = false;
+        System.out.println(newDob);
+
+        mockMvc.perform(
+                        MockMvcRequestBuilders.multipart("/api/v1/users/{id}", userSave.getId())
+                                .file(mockMultipartFile)
+                                .with(request -> {
+                                    request.setMethod(HttpMethod.PATCH.name());
+                                    return request;
+                                })
+                                .param("name", newName)
+                                .param("phone", newPhone)
+                                .param("dob", newDob)
+                                .param("is_active", Boolean.toString(newStatus))
+                                .header(AUTHORIZATION, "Bearer " + token)
+                                .contentType(MediaType.MULTIPART_FORM_DATA)
+                                .accept(MediaType.APPLICATION_JSON)
+                )
+                .andExpectAll(status().isForbidden())
+                .andExpectAll(result -> {
+                    WebResponse<UserEditResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<WebResponse<UserEditResponse>>() {
+                    });
+
+                    Assertions.assertNotNull(response.getError());
+                    Assertions.assertNull(response.getData());
+                    Assertions.assertNotNull(response.getStatus());
+
+                    Assertions.assertEquals(HttpStatus.FORBIDDEN.value(), response.getStatus());
+                    Assertions.assertEquals("don't have a access edit status active", response.getError());
+                });
+
+    }
+
 }

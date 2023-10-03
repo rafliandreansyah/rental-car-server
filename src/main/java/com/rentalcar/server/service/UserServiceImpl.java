@@ -327,7 +327,7 @@ public class UserServiceImpl implements UserService {
             }
 
             if (Objects.nonNull(userEditRequest.getIsActive())) {
-                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "don't have a access edit role");
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "don't have a access edit status active");
             }
         }
         UUID id;
