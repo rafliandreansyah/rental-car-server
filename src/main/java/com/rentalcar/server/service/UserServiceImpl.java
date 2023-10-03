@@ -8,6 +8,7 @@ import com.rentalcar.server.repository.TransactionRepository;
 import com.rentalcar.server.repository.UserRepository;
 import com.rentalcar.server.util.DateTimeUtils;
 import com.rentalcar.server.util.EnumUtils;
+import com.rentalcar.server.util.UUIDUtils;
 import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -40,6 +41,7 @@ public class UserServiceImpl implements UserService {
     private final TransactionRepository transactionRepository;
     private final DateTimeUtils dateTimeUtils;
     private final EnumUtils enumUtils;
+    private final UUIDUtils uuidUtils;
 
     @Transactional
     @Override
@@ -96,12 +98,7 @@ public class UserServiceImpl implements UserService {
             }
         }
 
-        UUID idUser;
-        try {
-            idUser = UUID.fromString(userId);
-        } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "user not found");
-        }
+        UUID idUser = uuidUtils.uuidFromString(userId, "user not found");
 
         User userLoadedDB = userRepository.findById(idUser).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "user not found"));
 
@@ -124,12 +121,7 @@ public class UserServiceImpl implements UserService {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "don't have a access");
         }
 
-        UUID idUser;
-        try {
-            idUser = UUID.fromString(userId);
-        } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "user not found");
-        }
+        UUID idUser = uuidUtils.uuidFromString(userId, "user not found");
 
         userRepository.findById(idUser).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "user not found"));
 
@@ -330,12 +322,7 @@ public class UserServiceImpl implements UserService {
                 throw new ResponseStatusException(HttpStatus.FORBIDDEN, "don't have a access edit status active");
             }
         }
-        UUID id;
-        try {
-             id = UUID.fromString(userId);
-        } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "user not found");
-        }
+        UUID id = uuidUtils.uuidFromString(userId, "user not found");
 
         User userLoadDB = userRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "user not found"));
 
