@@ -98,7 +98,7 @@ class UserControllerTest {
                 "my-images".getBytes()
         );
 
-        CreateUserRequest request = CreateUserRequest.builder()
+        UserCreateRequest request = UserCreateRequest.builder()
                 .email("jono@gmail.com")
                 .password("secretpassword")
                 .name("Jono Joni")
@@ -124,7 +124,7 @@ class UserControllerTest {
                 )
                 .andExpectAll(status().isCreated())
                 .andExpectAll(result -> {
-                    WebResponse<CreateUserResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+                    WebResponse<UserCreateResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
                     });
                     Assertions.assertNull(response.getError());
                     Assertions.assertNotNull(response.getData());
@@ -141,7 +141,7 @@ class UserControllerTest {
     @Test
     void createUserSuccessWithOutImageTest() throws Exception {
 
-        CreateUserRequest request = CreateUserRequest.builder()
+        UserCreateRequest request = UserCreateRequest.builder()
                 .email("jono@gmail.com")
                 .password("secretpassword")
                 .name("Jono Joni")
@@ -167,7 +167,7 @@ class UserControllerTest {
                 )
                 .andExpectAll(status().isCreated())
                 .andExpectAll(result -> {
-                    WebResponse<CreateUserResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+                    WebResponse<UserCreateResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
                     });
                     Assertions.assertNull(response.getError());
                     Assertions.assertNotNull(response.getData());
@@ -184,7 +184,7 @@ class UserControllerTest {
     @Test
     void createUserErrorEmailIsBlankTest() throws Exception {
 
-        CreateUserRequest request = CreateUserRequest.builder()
+        UserCreateRequest request = UserCreateRequest.builder()
                 .password("secretpassword")
                 .name("Jono Joni")
                 .phone("+628999366363")
@@ -209,7 +209,7 @@ class UserControllerTest {
                 )
                 .andExpectAll(status().isBadRequest())
                 .andExpectAll(result -> {
-                    WebResponse<CreateUserResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+                    WebResponse<UserCreateResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
                     });
                     Assertions.assertNotNull(response.getError());
                     Assertions.assertNull(response.getData());
@@ -220,7 +220,7 @@ class UserControllerTest {
     @Test
     void createUserErrorFormatEmailNotValidTest() throws Exception {
 
-        CreateUserRequest request = CreateUserRequest.builder()
+        UserCreateRequest request = UserCreateRequest.builder()
                 .email("jono")
                 .password("secretpassword")
                 .name("Jono Joni")
@@ -247,7 +247,7 @@ class UserControllerTest {
                 .andExpectAll(status().isBadRequest())
                 .andExpectAll(result -> {
 
-                    WebResponse<CreateUserResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+                    WebResponse<UserCreateResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
                     });
                     Assertions.assertNotNull(response.getError());
                     Assertions.assertNull(response.getData());
@@ -259,7 +259,7 @@ class UserControllerTest {
     @Test
     void createUserErrorNameIsBlankTest() throws Exception {
 
-        CreateUserRequest request = CreateUserRequest.builder()
+        UserCreateRequest request = UserCreateRequest.builder()
                 .email("jono@gmail.com")
                 .password("secretpassword")
                 .phone("+628999366363")
@@ -284,7 +284,7 @@ class UserControllerTest {
                 )
                 .andExpectAll(status().isBadRequest())
                 .andExpectAll(result -> {
-                    WebResponse<CreateUserResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+                    WebResponse<UserCreateResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
                     });
                     Assertions.assertNotNull(response.getError());
                     Assertions.assertNull(response.getData());
@@ -296,7 +296,7 @@ class UserControllerTest {
     @Test
     void createUserErrorPasswordIsBlankTest() throws Exception {
 
-        CreateUserRequest request = CreateUserRequest.builder()
+        UserCreateRequest request = UserCreateRequest.builder()
                 .email("jono@gmail.com")
                 .name("Jono Joni")
                 .phone("+628999366363")
@@ -321,7 +321,7 @@ class UserControllerTest {
                 )
                 .andExpectAll(status().isBadRequest())
                 .andExpectAll(result -> {
-                    WebResponse<CreateUserResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+                    WebResponse<UserCreateResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
                     });
                     Assertions.assertNotNull(response.getError());
                     Assertions.assertNull(response.getData());
@@ -333,7 +333,7 @@ class UserControllerTest {
     @Test
     void createUserErrorPasswordIsShortTest() throws Exception {
 
-        CreateUserRequest request = CreateUserRequest.builder()
+        UserCreateRequest request = UserCreateRequest.builder()
                 .email("jono@gmail.com")
                 .password("secret")
                 .name("Jono Joni")
@@ -360,7 +360,7 @@ class UserControllerTest {
                 .andExpectAll(status().isBadRequest())
                 .andExpectAll(result -> {
 
-                    WebResponse<CreateUserResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+                    WebResponse<UserCreateResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
                     });
                     Assertions.assertNotNull(response.getError());
                     Assertions.assertNull(response.getData());
@@ -372,7 +372,7 @@ class UserControllerTest {
     @Test
     void createUserErrorPhoneNumberIsBlankTest() throws Exception {
 
-        CreateUserRequest request = CreateUserRequest.builder()
+        UserCreateRequest request = UserCreateRequest.builder()
                 .email("jono@gmail.com")
                 .password("secretpassword")
                 .name("Jono Joni")
@@ -398,7 +398,7 @@ class UserControllerTest {
                 .andExpectAll(status().isBadRequest())
                 .andExpectAll(result -> {
 
-                    WebResponse<CreateUserResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+                    WebResponse<UserCreateResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
                     });
                     Assertions.assertNotNull(response.getError());
                     Assertions.assertNull(response.getData());
@@ -411,7 +411,7 @@ class UserControllerTest {
     @Test
     void createUserErrorFormatPhoneNumberIsNotValidTest() throws Exception {
 
-        CreateUserRequest request = CreateUserRequest.builder()
+        UserCreateRequest request = UserCreateRequest.builder()
                 .email("jono@gmail.com")
                 .password("secretpassword")
                 .name("Jono Joni")
@@ -437,7 +437,7 @@ class UserControllerTest {
                 )
                 .andExpectAll(status().isBadRequest())
                 .andExpectAll(result -> {
-                    WebResponse<CreateUserResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+                    WebResponse<UserCreateResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
                     });
                     Assertions.assertNotNull(response.getError());
                     Assertions.assertNull(response.getData());
@@ -448,7 +448,7 @@ class UserControllerTest {
     @Test
     void createUserErrorUserRoleNotFoundTest() throws Exception {
 
-        CreateUserRequest request = CreateUserRequest.builder()
+        UserCreateRequest request = UserCreateRequest.builder()
                 .email("jono@gmail.com")
                 .password("secretpassword")
                 .name("Jono Joni")
@@ -474,7 +474,7 @@ class UserControllerTest {
                 )
                 .andExpectAll(status().isBadRequest())
                 .andExpectAll(result -> {
-                    WebResponse<CreateUserResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+                    WebResponse<UserCreateResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
                     });
                     Assertions.assertNotNull(response.getError());
                     Assertions.assertNull(response.getData());
@@ -486,7 +486,7 @@ class UserControllerTest {
     @Test
     void createUserErrorEmailAlreadyRegisterTest() throws Exception {
 
-        CreateUserRequest request = CreateUserRequest.builder()
+        UserCreateRequest request = UserCreateRequest.builder()
                 .email("admin@yahoo.com")
                 .password("secretpassword")
                 .name("Jono Joni")
@@ -513,7 +513,7 @@ class UserControllerTest {
                 .andExpectAll(status().isConflict())
                 .andExpectAll(result -> {
 
-                    WebResponse<CreateUserResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+                    WebResponse<UserCreateResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
                     });
                     Assertions.assertNotNull(response.getError());
                     Assertions.assertNull(response.getData());
@@ -525,7 +525,7 @@ class UserControllerTest {
     @Test
     void createUserErrorPhoneNumberAlreadyUseTest() throws Exception {
 
-        CreateUserRequest request = CreateUserRequest.builder()
+        UserCreateRequest request = UserCreateRequest.builder()
                 .email("jono@gmail.com")
                 .password("secretpassword")
                 .name("Jono Joni")
@@ -552,7 +552,7 @@ class UserControllerTest {
                 .andExpectAll(status().isConflict())
                 .andExpectAll(result -> {
 
-                    WebResponse<CreateUserResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+                    WebResponse<UserCreateResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
                     });
                     Assertions.assertNotNull(response.getError());
                     Assertions.assertNull(response.getData());
@@ -573,7 +573,7 @@ class UserControllerTest {
                 .build();
         User userSave = userRepository.save(user);
 
-        CreateUserRequest request = CreateUserRequest.builder()
+        UserCreateRequest request = UserCreateRequest.builder()
                 .email("jono@gmail.com")
                 .password("secretpassword")
                 .name("Jono Joni")
@@ -599,7 +599,7 @@ class UserControllerTest {
                 )
                 .andExpectAll(status().isForbidden())
                 .andExpectAll(result -> {
-                    WebResponse<CreateUserResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+                    WebResponse<UserCreateResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
                     });
                     Assertions.assertNotNull(response.getError());
                     Assertions.assertNull(response.getData());

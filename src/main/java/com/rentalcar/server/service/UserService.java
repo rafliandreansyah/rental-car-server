@@ -7,7 +7,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 public interface UserService {
 
-    CreateUserResponse createUser(CreateUserRequest request, MultipartFile file);
+    UserCreateResponse createUser(UserCreateRequest request, MultipartFile file);
 
     DetailUserResponse getDetailUser(User user, String userId);
 

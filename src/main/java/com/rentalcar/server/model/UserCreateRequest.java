@@ -15,7 +15,7 @@ import java.time.Instant;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class CreateUserRequest {
+public class UserCreateRequest {
 
     @NotBlank(message = "email must not be blank")
     @Email(message = "format email is not valid")

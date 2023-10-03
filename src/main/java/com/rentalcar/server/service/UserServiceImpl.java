@@ -43,7 +43,7 @@ public class UserServiceImpl implements UserService {
 
     @Transactional
     @Override
-    public CreateUserResponse createUser(CreateUserRequest request, MultipartFile file) {
+    public UserCreateResponse createUser(UserCreateRequest request, MultipartFile file) {
 
         Optional<User> userByEmail = userRepository.findByEmail(request.getEmail().trim());
         if (userByEmail.isPresent()) {
@@ -75,7 +75,7 @@ public class UserServiceImpl implements UserService {
 
         User saveUserData = userRepository.save(user);
 
-        return CreateUserResponse.builder()
+        return UserCreateResponse.builder()
                 .id(saveUserData.getId().toString())
                 .name(saveUserData.getName())
                 .email(saveUserData.getEmail())
