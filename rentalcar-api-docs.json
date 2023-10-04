@@ -543,7 +543,7 @@
           "200": {
             "description": "success get user authorization",
             "content": {
-              "application/json" : {
+              "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/GeneralResponseWithDataArrayObjectPaging"
                 },
@@ -1102,7 +1102,17 @@
                         "discount": null,
                         "description": "description of avanza",
                         "transmission": "automatic",
-                        "is_active": true
+                        "is_active": true,
+                        "has_authorization": [
+                          {
+                            "id": "0092HSH-0092HSH",
+                            "image_url": "https://user-profilerafli.com",
+                            "email": "rafli@gmail.com",
+                            "name": "rafli a",
+                            "phone": "+62039477755",
+                            "is_active": "true"
+                          }
+                        ]
                       }
                     }
                   }
@@ -1317,7 +1327,7 @@
         ],
         "requestBody": {
           "content": {
-            "application/json" : {
+            "application/json": {
               "schema": {
                 "properties": {
                   "user_id": {
