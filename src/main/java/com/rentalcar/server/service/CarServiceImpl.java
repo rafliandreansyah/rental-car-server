@@ -1,12 +1,11 @@
 package com.rentalcar.server.service;
 
 import com.rentalcar.server.entity.*;
-import com.rentalcar.server.model.CarCreateRequest;
-import com.rentalcar.server.model.CarCreateResponse;
-import com.rentalcar.server.model.CarDetailResponse;
-import com.rentalcar.server.model.ImageDetailItem;
+import com.rentalcar.server.model.*;
+import com.rentalcar.server.repository.CarAuthorizationRepository;
 import com.rentalcar.server.repository.CarImageDetailRepository;
 import com.rentalcar.server.repository.CarRepository;
+import com.rentalcar.server.repository.UserRepository;
 import com.rentalcar.server.util.EnumUtils;
 import com.rentalcar.server.util.UUIDUtils;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -32,6 +32,8 @@ public class CarServiceImpl implements CarService {
     private String carPathDetail;
     private final CarRepository carRepository;
     private final CarImageDetailRepository carImageDetailRepository;
+    private final CarAuthorizationRepository carAuthorizationRepository;
+    private final UserRepository userRepository;
     private final UUIDUtils uuidUtils;
     private final ValidationService validationService;
     private final FileStorageService fileStorageService;
@@ -148,5 +150,53 @@ public class CarServiceImpl implements CarService {
                 .brand(saveCar.getBrand().name())
                 .imageDetail(imageDetailItems.isEmpty() ? null : imageDetailItems)
                 .build();
+    }
+
+    @Transactional
+    @Override
+    public String createCarAuthorization(User user, CarCreateAuthorizationRequest carCreateAuthorizationRequest) {
+
+        validationService.validate(carCreateAuthorizationRequest);
+
+        if (user.getRole().equals(UserRoleEnum.USER)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "don't have a access");
+        }
+
+        carCreateAuthorizationRequest.getUserId().forEach(userId -> {
+            boolean isUserExist = userRepository.existsById(uuidUtils.uuidFromString(userId, "user not found"));
+            if (!isUserExist) {
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "user not found with id " + userId);
+            }
+        });
+
+        carCreateAuthorizationRequest.getCarId().forEach(carId -> {
+            boolean isCarExist = carRepository.existsById(uuidUtils.uuidFromString(carId, "car not found"));
+            if (!isCarExist) {
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "car not found with id " + carId);
+            }
+        });
+        List<UUID> userIds = carCreateAuthorizationRequest.getUserId().stream()
+                        .map(stringId -> uuidUtils.uuidFromString(stringId, "user not found")).toList();
+        List<UUID> carIds = carCreateAuthorizationRequest.getCarId().stream()
+                .map(stringId -> uuidUtils.uuidFromString(stringId, "car not found")).toList();
+
+        List<User> listUserData = userRepository.findAllById(userIds);
+        List<Car> listCarData = carRepository.findAllById(carIds);
+
+        List<CarAuthorization> carAuthorizations = new ArrayList<>();
+        listUserData.forEach(userData -> {
+            listCarData.forEach(carData -> {
+                carAuthorizations.add(
+                        CarAuthorization.builder()
+                                .user(userData)
+                                .car(carData)
+                                .build()
+                );
+            });
+        });
+
+        carAuthorizationRepository.saveAll(carAuthorizations.stream().toList());
+
+        return "success add car authorization";
     }
 }

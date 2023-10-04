@@ -1,6 +1,7 @@
 package com.rentalcar.server.restcontroller;
 
 import com.rentalcar.server.entity.User;
+import com.rentalcar.server.model.CarCreateAuthorizationRequest;
 import com.rentalcar.server.model.CarCreateRequest;
 import com.rentalcar.server.model.CarCreateResponse;
 import com.rentalcar.server.model.CarDetailResponse;
@@ -37,10 +38,18 @@ public class CarController {
     public ResponseEntity<WebResponse<CarCreateResponse>> createCar(
             User user,
             @ModelAttribute CarCreateRequest
-            carCreateRequest, @RequestParam(name = "image") MultipartFile image,
+                    carCreateRequest, @RequestParam(name = "image") MultipartFile image,
             @RequestParam(name = "image_detail", required = false) List<MultipartFile> imagesDetail) {
         CarCreateResponse carResponse = carService.createCar(user, carCreateRequest, image, imagesDetail);
         return ResponseEntity.status(HttpStatus.CREATED).body(WebResponse.<CarCreateResponse>builder().status(HttpStatus.CREATED.value()).data(carResponse).build());
+    }
+
+    @PostMapping(name = "/authorization", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<WebResponse<String>> createCarAuthorization(
+            User user,
+            @RequestBody CarCreateAuthorizationRequest carCreateAuthorizationRequest
+    ) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(WebResponse.<String>builder().status(HttpStatus.CREATED.value()).data(carService.createCarAuthorization(user, carCreateAuthorizationRequest)).build());
     }
 
 }
