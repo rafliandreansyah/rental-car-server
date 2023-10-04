@@ -27,7 +27,7 @@ public class UserController {
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    public ResponseEntity<WebResponse<UserCreateResponse>> createUser(@ModelAttribute @Valid UserCreateRequest request, @RequestParam(value = "image", required = false) MultipartFile file) {
+    public ResponseEntity<WebResponse<UserCreateResponse>> createUser(@ModelAttribute UserCreateRequest request, @RequestParam(value = "image", required = false) MultipartFile file) {
         UserCreateResponse response = userService.createUser(request, file);
         return ResponseEntity.status(HttpStatus.CREATED).body(WebResponse.<UserCreateResponse>builder().data(response).status(HttpStatus.OK.value()).build());
 

@@ -46,7 +46,7 @@ public class UserServiceImpl implements UserService {
     @Transactional
     @Override
     public UserCreateResponse createUser(UserCreateRequest request, MultipartFile file) {
-
+        validationService.validate(request);
         Optional<User> userByEmail = userRepository.findByEmail(request.getEmail().trim());
         if (userByEmail.isPresent()) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "email already register");
