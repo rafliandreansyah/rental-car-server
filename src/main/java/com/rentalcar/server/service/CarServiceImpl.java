@@ -46,7 +46,7 @@ public class CarServiceImpl implements CarService {
 
         Car carData = carRepository.findById(carId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "car not found"));
 
-        return CarDetailResponse.builder()
+        var carDetailResponse = CarDetailResponse.builder()
                 .id(carData.getId().toString())
                 .name(carData.getName())
                 .image(carData.getImageUrl())
@@ -61,6 +61,22 @@ public class CarServiceImpl implements CarService {
                 .transmission(carData.getTransmission().equals(CarTransmissionEnum.MT) ? "manual" : "automatic")
                 .isActive(carData.getIsActive())
                 .build();
+
+        if (!user.getRole().equals(UserRoleEnum.USER)) {
+            List<UserResponse> listUserHasCarAuthorization = carData.getCarAuthorizations().stream()
+                    .map(userAuthorization -> UserResponse.builder()
+                            .id(userAuthorization.getUser().getId().toString())
+                            .name(userAuthorization.getUser().getName())
+                            .phone(userAuthorization.getUser().getPhoneNumber())
+                            .email(userAuthorization.getUser().getEmail())
+                            .isActive(userAuthorization.getUser().getIsActive())
+                            .build()).toList();
+
+            carDetailResponse.setHasAuthorization(listUserHasCarAuthorization);
+
+        }
+        return carDetailResponse;
+
     }
 
     @Override
@@ -176,7 +192,7 @@ public class CarServiceImpl implements CarService {
             }
         });
         List<UUID> userIds = carCreateAuthorizationRequest.getUserId().stream()
-                        .map(stringId -> uuidUtils.uuidFromString(stringId, "user not found")).toList();
+                .map(stringId -> uuidUtils.uuidFromString(stringId, "user not found")).toList();
         List<UUID> carIds = carCreateAuthorizationRequest.getCarId().stream()
                 .map(stringId -> uuidUtils.uuidFromString(stringId, "car not found")).toList();
 
