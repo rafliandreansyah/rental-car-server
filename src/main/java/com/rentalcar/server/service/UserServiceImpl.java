@@ -131,6 +131,7 @@ public class UserServiceImpl implements UserService {
 
     }
 
+    @Override
     public Page<UserResponse> getListUser(User user, UserRequest getListUserRequest) {
 
         getListUserRequest.setPage(getListUserRequest.getPage() > 0 ? getListUserRequest.getPage() - 1 : getListUserRequest.getPage());
@@ -306,6 +307,7 @@ public class UserServiceImpl implements UserService {
         return new PageImpl<>(listUserWithCarAuthorization, pageable ,userWithAuthorizations.getTotalElements());
     }
 
+    @Transactional
     @Override
     public UserEditResponse editUser(User user, String userId, UserEditRequest userEditRequest, MultipartFile file) {
 
