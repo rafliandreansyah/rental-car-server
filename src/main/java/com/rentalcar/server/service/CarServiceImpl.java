@@ -20,16 +20,15 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class CarServiceImpl implements CarService {
 
     @Value("${image.car}")
-    private String carPath;
+    private String carImagePath;
     @Value("${image.car.detail}")
-    private String carPathDetail;
+    private String carImagesDetailPath;
     private final CarRepository carRepository;
     private final CarImageDetailRepository carImageDetailRepository;
     private final CarAuthorizationRepository carAuthorizationRepository;
@@ -102,7 +101,7 @@ public class CarServiceImpl implements CarService {
 
     @Transactional
     @Override
-    public CarCreateResponse createCar(User user, CarCreateRequest carCreateRequest, MultipartFile image, List<MultipartFile> imagesDetail) {
+    public CarCreateAndEditResponse createCar(User user, CarCreateRequest carCreateRequest, MultipartFile image, List<MultipartFile> imagesDetail) {
         if (user.getRole().equals(UserRoleEnum.USER)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "don't have a access");
         }
@@ -113,7 +112,7 @@ public class CarServiceImpl implements CarService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "image must not be blank");
         }
 
-        String imageCarPath = fileStorageService.storeFile(image, carPath);
+        String imageCarPath = fileStorageService.storeFile(image, carImagePath);
         CarBrandEnum carBrandEnum = enumUtils.getCarBrandEnumFromString(carCreateRequest.getBrand());
         CarTransmissionEnum carTransmissionEnum = enumUtils.getCarTransmissionEnumFromString(carCreateRequest.getTransmission());
         Car car = Car.builder()
@@ -135,22 +134,24 @@ public class CarServiceImpl implements CarService {
         Car saveCar = carRepository.save(car);
 
         List<ImageDetailItem> imageDetailItems = new ArrayList<>();
-        imagesDetail.forEach(multipartFile -> {
-            String path = fileStorageService.storeFile(multipartFile, carPathDetail);
-            CarImageDetail carImageDetail = CarImageDetail.builder()
-                    .car(saveCar)
-                    .imageUrl(path)
-                    .build();
-            CarImageDetail saveCarImageDetail = carImageDetailRepository.save(carImageDetail);
-            imageDetailItems.add(
-                    ImageDetailItem.builder()
-                            .id(saveCarImageDetail.getId().toString())
-                            .image(saveCar.getImageUrl())
-                            .build()
-            );
-        });
+        if (Objects.nonNull(imagesDetail) && !imagesDetail.isEmpty()) {
+            imagesDetail.forEach(multipartFile -> {
+                String path = fileStorageService.storeFile(multipartFile, carImagesDetailPath);
+                CarImageDetail carImageDetail = CarImageDetail.builder()
+                        .car(saveCar)
+                        .imageUrl(path)
+                        .build();
+                CarImageDetail saveCarImageDetail = carImageDetailRepository.save(carImageDetail);
+                imageDetailItems.add(
+                        ImageDetailItem.builder()
+                                .id(saveCarImageDetail.getId().toString())
+                                .image(saveCar.getImageUrl())
+                                .build()
+                );
+            });
+        }
 
-        return CarCreateResponse.builder()
+        return CarCreateAndEditResponse.builder()
                 .id(saveCar.getId().toString())
                 .name(saveCar.getName())
                 .cc(saveCar.getCc())
@@ -214,5 +215,124 @@ public class CarServiceImpl implements CarService {
         carAuthorizationRepository.saveAll(carAuthorizations.stream().toList());
 
         return "success add car authorization";
+    }
+
+    @Override
+    public CarCreateAndEditResponse editCar(User user, String carIdString, CarEditRequest carEditRequest, MultipartFile image, List<MultipartFile> imagesDetail) {
+
+        if (user.getRole().equals(UserRoleEnum.USER)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "don't have a access");
+        }
+
+        UUID carId = uuidUtils.uuidFromString(carIdString, "car not found");
+        Car car = carRepository.findById(carId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "car not found"));
+        String imgCarPath = null;
+        if (Objects.nonNull(carEditRequest.getName())) {
+            car.setName(carEditRequest.getName());
+        }
+
+        if (Objects.nonNull(carEditRequest.getBrand())) {
+            CarBrandEnum carBrandEnumFromString = enumUtils.getCarBrandEnumFromString(carEditRequest.getBrand());
+            car.setBrand(carBrandEnumFromString);
+        }
+
+        if (Objects.nonNull(carEditRequest.getYear())) {
+            car.setYear(carEditRequest.getYear());
+        }
+
+        if (Objects.nonNull(carEditRequest.getCapacity())) {
+            car.setCapacity(carEditRequest.getCapacity());
+        }
+
+        if (Objects.nonNull(carEditRequest.getCc())) {
+            car.setCc(carEditRequest.getCc());
+        }
+
+        if (Objects.nonNull(carEditRequest.getPrice())) {
+            car.setPricePerDay(carEditRequest.getPrice());
+        }
+
+        if (Objects.nonNull(carEditRequest.getDescription())) {
+            car.setDescription(carEditRequest.getDescription());
+        }
+
+        if (Objects.nonNull(carEditRequest.getTransmission())) {
+            CarTransmissionEnum carTransmissionEnumFromString = enumUtils.getCarTransmissionEnumFromString(carEditRequest.getTransmission());
+            car.setTransmission(carTransmissionEnumFromString);
+        }
+
+        if (Objects.nonNull(carEditRequest.getTax())) {
+            car.setTax(carEditRequest.getTax());
+        }
+
+        if (Objects.nonNull(carEditRequest.getDiscount())) {
+            car.setDiscount(carEditRequest.getDiscount());
+        }
+
+        if (Objects.nonNull(image) && !image.isEmpty()) {
+            imgCarPath = car.getImageUrl();
+            String pathProfileCar = fileStorageService.storeFile(image, carImagePath);
+            car.setImageUrl(pathProfileCar);
+        }
+
+
+        Car savedCar = carRepository.save(car);
+
+        // delete profile image car
+        if (imgCarPath != null) {
+            fileStorageService.deleteFile(imgCarPath);
+        }
+
+        List<ImageDetailItem> imageDetailItems = new ArrayList<>();
+        if (Objects.nonNull(imagesDetail) && !imagesDetail.isEmpty()) {
+            imagesDetail.forEach(multipartFile -> {
+                String path = fileStorageService.storeFile(multipartFile, carImagesDetailPath);
+                CarImageDetail carImageDetail = CarImageDetail.builder()
+                        .car(savedCar)
+                        .imageUrl(path)
+                        .build();
+                CarImageDetail saveCarImageDetail = carImageDetailRepository.save(carImageDetail);
+                imageDetailItems.add(
+                        ImageDetailItem.builder()
+                                .id(saveCarImageDetail.getId().toString())
+                                .image(savedCar.getImageUrl())
+                                .build()
+                );
+            });
+        }
+
+        if (Objects.nonNull(carEditRequest.getDeletedDetailImagesId()) && !carEditRequest.getDeletedDetailImagesId().isEmpty()) {
+            List<UUID> deleteDetailImagesId = new ArrayList<>();
+            carEditRequest.getDeletedDetailImagesId().forEach(imageDetailId -> {
+                deleteDetailImagesId.add(uuidUtils.uuidFromString(imageDetailId, "image not found"));
+            });
+
+            List<CarImageDetail> carImageDetails = carImageDetailRepository.findAllById(deleteDetailImagesId);
+
+            // Delete image file
+            carImageDetails.forEach(carImageDetail -> {
+                fileStorageService.deleteFile(carImageDetail.getImageUrl());
+            });
+
+            // Delete data image database
+            carImageDetailRepository.deleteAllById(deleteDetailImagesId.stream().toList());
+        }
+
+        return CarCreateAndEditResponse.builder()
+                .cc(savedCar.getCc())
+                .image(savedCar.getImageUrl())
+                .isActive(savedCar.getIsActive())
+                .year(savedCar.getYear())
+                .description(savedCar.getDescription())
+                .discount(savedCar.getDiscount())
+                .tax(savedCar.getTax())
+                .capacity(savedCar.getCapacity())
+                .transmission(savedCar.getTransmission().name())
+                .price(savedCar.getPricePerDay())
+                .name(savedCar.getName())
+                .id(savedCar.getId().toString())
+                .brand(savedCar.getBrand().name())
+                .imageDetail(imageDetailItems.isEmpty() ? null : imageDetailItems)
+                .build();
     }
 }

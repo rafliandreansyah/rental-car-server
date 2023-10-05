@@ -1222,18 +1222,24 @@
                       "status": 200,
                       "error": null,
                       "data": {
-                        "id": "00JS8-77SHS-88JJJ-UHH77-2DSSA",
-                        "name": "Avanza",
-                        "image": "https://avanza.com",
-                        "brand": "Toyota",
-                        "year": 2020,
-                        "capacity": 6,
-                        "cc": 1500,
-                        "price_per_day": 250000.00,
-                        "tax": null,
-                        "discount": null,
-                        "description": "description of avanza",
+                        "id": "0KDD2-HJSK9-KKS00-23KSS",
+                        "name": "Pajero",
+                        "image": "https://pajero.com",
+                        "image_detail": [
+                          {
+                            "id": "DD23S-KDSKJ-99DUS",
+                            "image": "https://pajero1.com"
+                          }
+                        ],
+                        "brand": "mitsubishi",
+                        "year": 2022,
+                        "capacity": 7,
+                        "cc": 2000,
+                        "price": 300000.00,
+                        "description": "this is description car",
                         "transmission": "automatic",
+                        "tax": 0,
+                        "discount": 0,
                         "is_active": true
                       }
                     }

@@ -24,6 +24,9 @@ import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.Instant;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -345,4 +348,13 @@ class CarControllerTest {
 
     }
 
+    @Test
+    void testImage() throws IOException {
+        boolean exists = Files.exists(Path.of("images/user/profile/1695719036091.jpg"));
+        System.out.println(exists);
+
+        boolean b = Files.deleteIfExists(Path.of("images/user/profile/1695719036091.jpg"));
+        System.out.println("is delete: " + b);
+
+    }
 }

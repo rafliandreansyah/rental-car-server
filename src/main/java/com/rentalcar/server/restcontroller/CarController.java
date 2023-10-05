@@ -1,10 +1,7 @@
 package com.rentalcar.server.restcontroller;
 
 import com.rentalcar.server.entity.User;
-import com.rentalcar.server.model.CarCreateAuthorizationRequest;
-import com.rentalcar.server.model.CarCreateRequest;
-import com.rentalcar.server.model.CarCreateResponse;
-import com.rentalcar.server.model.CarDetailResponse;
+import com.rentalcar.server.model.*;
 import com.rentalcar.server.model.base.WebResponse;
 import com.rentalcar.server.service.CarService;
 import lombok.RequiredArgsConstructor;
@@ -35,21 +32,33 @@ public class CarController {
     }
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<WebResponse<CarCreateResponse>> createCar(
+    public ResponseEntity<WebResponse<CarCreateAndEditResponse>> createCar(
             User user,
             @ModelAttribute CarCreateRequest
                     carCreateRequest, @RequestParam(name = "image") MultipartFile image,
             @RequestParam(name = "image_detail", required = false) List<MultipartFile> imagesDetail) {
-        CarCreateResponse carResponse = carService.createCar(user, carCreateRequest, image, imagesDetail);
-        return ResponseEntity.status(HttpStatus.CREATED).body(WebResponse.<CarCreateResponse>builder().status(HttpStatus.CREATED.value()).data(carResponse).build());
+        CarCreateAndEditResponse carResponse = carService.createCar(user, carCreateRequest, image, imagesDetail);
+        return ResponseEntity.status(HttpStatus.CREATED).body(WebResponse.<CarCreateAndEditResponse>builder().status(HttpStatus.CREATED.value()).data(carResponse).build());
     }
 
-    @PostMapping(name = "/authorization", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(value = "/authorization", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<WebResponse<String>> createCarAuthorization(
             User user,
             @RequestBody CarCreateAuthorizationRequest carCreateAuthorizationRequest
     ) {
         return ResponseEntity.status(HttpStatus.CREATED).body(WebResponse.<String>builder().status(HttpStatus.CREATED.value()).data(carService.createCarAuthorization(user, carCreateAuthorizationRequest)).build());
+    }
+
+    @PatchMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<WebResponse<CarCreateAndEditResponse>> editCar(
+            User user,
+            @ModelAttribute CarEditRequest carEditRequest,
+            @PathVariable("id") String id,
+            @RequestParam(name = "image", required = false) MultipartFile image,
+            @RequestParam(name = "image_detail", required = false) List<MultipartFile> imagesDetail
+    ) {
+        CarCreateAndEditResponse carCreateAndEditResponse = carService.editCar(user, id, carEditRequest, image, imagesDetail);
+        return ResponseEntity.ok(WebResponse.<CarCreateAndEditResponse>builder().status(HttpStatus.OK.value()).data(carCreateAndEditResponse).build());
     }
 
 }

@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -39,6 +40,17 @@ public class FileStorageServiceImpl implements FileStorageService {
         }catch (Exception e) {
             e.printStackTrace();
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "error upload image");
+        }
+    }
+
+    @Override
+    public void deleteFile(String path) {
+        Path pathImage = Path.of(path);
+        try {
+            boolean b = Files.deleteIfExists(pathImage);
+            System.out.println("Status delete => " + b);
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 }
