@@ -3,8 +3,10 @@ package com.rentalcar.server.restcontroller;
 import com.rentalcar.server.entity.User;
 import com.rentalcar.server.model.*;
 import com.rentalcar.server.model.base.WebResponse;
+import com.rentalcar.server.model.base.WebResponsePaging;
 import com.rentalcar.server.service.CarService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -59,6 +61,42 @@ public class CarController {
     ) {
         CarCreateAndEditResponse carCreateAndEditResponse = carService.editCar(user, id, carEditRequest, image, imagesDetail);
         return ResponseEntity.ok(WebResponse.<CarCreateAndEditResponse>builder().status(HttpStatus.OK.value()).data(carCreateAndEditResponse).build());
+    }
+
+    @GetMapping(
+            produces = MediaType.APPLICATION_JSON_VALUE
+    )
+    public ResponseEntity<WebResponsePaging<List<CarResponse>>> getCars(
+            User user,
+            @RequestParam(name = "name", required = false) String name,
+            @RequestParam(name = "transmission", required = false) String transmission,
+            @RequestParam(name = "start_date_rent", required = false) String startDateRent,
+            @RequestParam(name = "duration", required = false) Integer duration,
+            @RequestParam(name = "order_by_date_created", required = false) String order,
+            @RequestParam(name = "page", defaultValue = "0") Integer page,
+            @RequestParam(name = "size", defaultValue = "20") Integer size
+    ) {
+        CarRequest carRequest = CarRequest.builder()
+                .name(name)
+                .transmission(transmission)
+                .duration(duration)
+                .orderByDateCreated(order)
+                .startDateRent(startDateRent)
+                .page(page)
+                .size(size)
+                .build();
+
+        Page<CarResponse> listCar = carService.getListCar(user, carRequest);
+        return ResponseEntity.ok(
+                WebResponsePaging.<List<CarResponse>>builder()
+                        .totalItem(listCar.getTotalElements())
+                        .perPage(listCar.getSize())
+                        .currentPage(listCar.getNumber() + 1)
+                        .lastPage(listCar.getTotalPages())
+                        .status(HttpStatus.OK.value())
+                        .data(listCar.getContent())
+                        .build()
+        );
     }
 
 }

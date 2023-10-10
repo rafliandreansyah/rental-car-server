@@ -2,6 +2,7 @@ package com.rentalcar.server.service;
 
 import com.rentalcar.server.entity.User;
 import com.rentalcar.server.model.*;
+import org.springframework.data.domain.Page;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
@@ -17,5 +18,7 @@ public interface CarService {
     String createCarAuthorization(User user, CarCreateAuthorizationRequest carCreateAuthorizationRequest);
 
     CarCreateAndEditResponse editCar(User user, String carId, CarEditRequest carEditRequest, MultipartFile image, List<MultipartFile> imagesDetail);
+
+    Page<CarResponse> getListCar(User user, CarRequest carRequest);
 
 }

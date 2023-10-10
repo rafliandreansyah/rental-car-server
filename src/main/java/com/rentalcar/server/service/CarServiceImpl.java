@@ -6,16 +6,24 @@ import com.rentalcar.server.repository.CarAuthorizationRepository;
 import com.rentalcar.server.repository.CarImageDetailRepository;
 import com.rentalcar.server.repository.CarRepository;
 import com.rentalcar.server.repository.UserRepository;
+import com.rentalcar.server.util.DateTimeUtils;
 import com.rentalcar.server.util.EnumUtils;
 import com.rentalcar.server.util.UUIDUtils;
+import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.JoinType;
+import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.*;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -37,6 +45,7 @@ public class CarServiceImpl implements CarService {
     private final ValidationService validationService;
     private final FileStorageService fileStorageService;
     private final EnumUtils enumUtils;
+    private final DateTimeUtils dateTimeUtils;
 
     @Override
     public CarDetailResponse getDetailCar(User user, String id) {
@@ -334,5 +343,105 @@ public class CarServiceImpl implements CarService {
                 .brand(savedCar.getBrand().name())
                 .imageDetail(imageDetailItems.isEmpty() ? null : imageDetailItems)
                 .build();
+    }
+
+    @Override
+    public Page<CarResponse> getListCar(User user, CarRequest carRequest) {
+
+        carRequest.setPage(carRequest.getPage() > 0 ? carRequest.getPage() - 1 : carRequest.getPage());
+
+        Page<Car> carsData;
+        Pageable pageable;
+
+        if (user.getRole().equals(UserRoleEnum.USER)) {
+
+            if (carRequest.getStartDateRent() == null) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "start date must not be blank");
+            }
+
+            if (carRequest.getDuration() == null) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "duration must not be blank");
+            }
+
+            LocalDateTime startDateLocalDateTime = dateTimeUtils.localDateTimeFromString(carRequest.getStartDateRent());
+            LocalDateTime endDateLocalDateTime = startDateLocalDateTime.plusDays(1);
+
+            Instant startDate = dateTimeUtils.instantFromLocalDateTimeZoneJakarta(startDateLocalDateTime);
+            Instant endDate = dateTimeUtils.instantFromLocalDateTimeZoneJakarta(endDateLocalDateTime);
+
+            Specification<Car> specification = ((root, query, criteriaBuilder) -> {
+
+                List<Predicate> predicates = new ArrayList<>();
+
+                Join<Car, CarRented> carRentedJoin = root.join("car", JoinType.INNER);
+                predicates.add(
+                        criteriaBuilder.or(
+                                criteriaBuilder.lessThan(carRentedJoin.get("startDate"), startDate),
+                                criteriaBuilder.greaterThan(carRentedJoin.get("endDate"), endDate)
+                        )
+                );
+
+                return query.where(predicates.toArray(new Predicate[]{})).getRestriction();
+
+            });
+
+            pageable = PageRequest.of(carRequest.getPage(), carRequest.getSize());
+
+            carsData = carRepository.findAll(specification, pageable);
+        } else {
+            Specification<Car> specification = ((root, query, criteriaBuilder) -> {
+
+                List<Predicate> predicates = new ArrayList<>();
+
+                Join<Car, CarAuthorization> carAuthorizationJoin = root.join("car", JoinType.INNER);
+
+                predicates.add(
+                        criteriaBuilder.equal(carAuthorizationJoin.get("user"), user)
+                );
+
+                if (Objects.nonNull(carRequest.getName())) {
+                    predicates.add(
+                            criteriaBuilder.like(root.get("name"), "%" + carRequest.getName() + "%")
+                    );
+                }
+
+                if (Objects.nonNull(carRequest.getTransmission())) {
+                    predicates.add(
+                            criteriaBuilder.equal(root.get("transmission"), enumUtils.getCarTransmissionEnumFromString(carRequest.getTransmission()))
+                    );
+                }
+
+                return query.where(predicates.toArray(new Predicate[]{})).getRestriction();
+
+            });
+
+            Sort.Order sort;
+            if (carRequest.getOrderByDateCreated() != null) {
+                if (carRequest.getOrderByDateCreated().equalsIgnoreCase("asc")) {
+                    sort = Sort.Order.asc("createdAt");
+                } else {
+                    sort = Sort.Order.desc("createdAt");
+                }
+            } else {
+                sort = Sort.Order.desc("createdAt");
+            }
+
+            pageable = PageRequest.of(carRequest.getPage(), carRequest.getSize(), Sort.by(sort));
+
+            carsData = carRepository.findAll(specification, pageable);
+        }
+
+        List<CarResponse> cars = carsData.stream()
+                .map(car -> CarResponse.builder()
+                        .id(car.getId().toString())
+                        .name(car.getName())
+                        .year(car.getYear())
+                        .transmission(car.getTransmission().name())
+                        .imageUrl(car.getImageUrl())
+                        .price(car.getPricePerDay())
+                        .build())
+                .toList();
+
+        return new PageImpl<>(cars, pageable, carsData.getTotalElements());
     }
 }
