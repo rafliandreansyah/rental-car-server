@@ -3,9 +3,12 @@ package com.rentalcar.server.restcontroller;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rentalcar.server.entity.*;
+import com.rentalcar.server.model.CarCreateAndEditResponse;
+import com.rentalcar.server.model.CarCreateRequest;
 import com.rentalcar.server.model.CarDetailResponse;
 import com.rentalcar.server.model.base.WebResponse;
 import com.rentalcar.server.repository.CarAuthorizationRepository;
+import com.rentalcar.server.repository.CarImageDetailRepository;
 import com.rentalcar.server.repository.CarRepository;
 import com.rentalcar.server.repository.UserRepository;
 import com.rentalcar.server.security.JwtService;
@@ -18,7 +21,9 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -28,6 +33,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -43,6 +50,9 @@ class CarControllerTest {
 
     @Autowired
     UserRepository userRepository;
+
+    @Autowired
+    CarImageDetailRepository carImageDetailRepository;
 
     @Autowired
     CarAuthorizationRepository carAuthorizationRepository;
@@ -62,7 +72,9 @@ class CarControllerTest {
 
     @BeforeEach
     void setUp() {
+        carImageDetailRepository.deleteAll();
         userRepository.deleteAll();
+        carRepository.deleteAll();
         admin = authService.createAdmin(
                 User.builder()
                         .name("Admin")
@@ -349,6 +361,649 @@ class CarControllerTest {
     }
 
     @Test
+    void createCarNoImageDetailSuccessTest() throws Exception {
+        MockMultipartFile multipartFile = new MockMultipartFile(
+                "image",
+                "car.jpg",
+                MediaType.IMAGE_JPEG_VALUE,
+                "my-images".getBytes()
+        );
+
+        CarCreateRequest carCreateRequest = CarCreateRequest.builder()
+                .name("avanza")
+                .price(200000.00)
+                .brand("toyota")
+                .year(2020)
+                .capacity(6)
+                .cc(2000)
+                .description("this is a avanza car new version")
+                .transmission("at")
+                .discount(0)
+                .tax(0)
+                .build();
+
+        String token = jwtService.generateToken(admin);
+
+        mockMvc.perform(
+                MockMvcRequestBuilders.multipart("/api/v1/cars")
+                        .file(multipartFile)
+                        .param("name", carCreateRequest.getName())
+                        .param("price", carCreateRequest.getPrice().toString())
+                        .param("brand", carCreateRequest.getBrand())
+                        .param("year", carCreateRequest.getYear().toString())
+                        .param("capacity", carCreateRequest.getCapacity().toString())
+                        .param("cc", carCreateRequest.getCc().toString())
+                        .param("description", carCreateRequest.getDescription())
+                        .param("transmission", carCreateRequest.getTransmission())
+                        .param("discount", carCreateRequest.getDiscount().toString())
+                        .param("tax", carCreateRequest.getTax().toString())
+                        .header(AUTHORIZATION, "Bearer " + token)
+                        .contentType(MediaType.MULTIPART_FORM_DATA)
+                        .accept(MediaType.APPLICATION_JSON)
+        ).andExpectAll(status().isCreated())
+                .andExpectAll(result -> {
+                    WebResponse<CarCreateAndEditResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+                    });
+                    Assertions.assertNotNull(response.getStatus());
+                    Assertions.assertNull(response.getError());
+                    Assertions.assertNotNull(response.getData());
+
+                    var data = response.getData();
+                    Assertions.assertEquals(HttpStatus.CREATED.value(), response.getStatus());
+                    Assertions.assertNotNull(data.getImage());
+                    Assertions.assertEquals(carCreateRequest.getName(), data.getName());
+                    Assertions.assertEquals(carCreateRequest.getPrice(), data.getPrice());
+                    Assertions.assertEquals(carCreateRequest.getCc(), data.getCc());
+                    Assertions.assertEquals(carCreateRequest.getCapacity(), data.getCapacity());
+                    Assertions.assertEquals(carCreateRequest.getBrand().toUpperCase(), data.getBrand());
+                    Assertions.assertEquals(carCreateRequest.getYear(), data.getYear());
+                    Assertions.assertEquals(carCreateRequest.getDescription(), data.getDescription());
+                    Assertions.assertEquals(carCreateRequest.getTransmission().toUpperCase(), data.getTransmission());
+                    Assertions.assertEquals(carCreateRequest.getTax(), data.getTax());
+                    Assertions.assertEquals(carCreateRequest.getDiscount(), data.getDiscount());
+                });
+    }
+
+    @Test
+    void createCarWithImageDetailSuccessTest() throws Exception {
+        MockMultipartFile multipartFile = new MockMultipartFile(
+                "image",
+                "car.jpg",
+                MediaType.IMAGE_JPEG_VALUE,
+                "my-images".getBytes()
+        );
+
+        List<MockMultipartFile> multipartFiles = new ArrayList<>();
+        for (int i = 0; i < 5; i++) {
+            MockMultipartFile multipartImageDetail = new MockMultipartFile(
+                    "image_detail",
+                    "car" + i +".jpg",
+                    MediaType.IMAGE_JPEG_VALUE,
+                    ("my-images"  + i).getBytes()
+            );
+            multipartFiles.add(multipartImageDetail);
+        }
+
+        CarCreateRequest carCreateRequest = CarCreateRequest.builder()
+                .name("avanza")
+                .price(200000.00)
+                .brand("toyota")
+                .year(2020)
+                .capacity(6)
+                .cc(2000)
+                .description("this is a avanza car new version")
+                .transmission("at")
+                .discount(0)
+                .tax(0)
+                .build();
+
+        String token = jwtService.generateToken(admin);
+
+        mockMvc.perform(
+                        MockMvcRequestBuilders.multipart("/api/v1/cars")
+                                .file(multipartFile)
+                                .file(multipartFiles.get(0))
+                                .file(multipartFiles.get(1))
+                                .file(multipartFiles.get(2))
+                                .file(multipartFiles.get(3))
+                                .file(multipartFiles.get(4))
+                                .param("name", carCreateRequest.getName())
+                                .param("price", carCreateRequest.getPrice().toString())
+                                .param("brand", carCreateRequest.getBrand())
+                                .param("year", carCreateRequest.getYear().toString())
+                                .param("capacity", carCreateRequest.getCapacity().toString())
+                                .param("cc", carCreateRequest.getCc().toString())
+                                .param("description", carCreateRequest.getDescription())
+                                .param("transmission", carCreateRequest.getTransmission())
+                                .param("discount", carCreateRequest.getDiscount().toString())
+                                .param("tax", carCreateRequest.getTax().toString())
+                                .header(AUTHORIZATION, "Bearer " + token)
+                                .contentType(MediaType.MULTIPART_FORM_DATA)
+                                .accept(MediaType.APPLICATION_JSON)
+                ).andExpectAll(status().isCreated())
+                .andExpectAll(result -> {
+                    WebResponse<CarCreateAndEditResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+                    });
+                    Assertions.assertNotNull(response.getStatus());
+                    Assertions.assertNull(response.getError());
+                    Assertions.assertNotNull(response.getData());
+
+                    var data = response.getData();
+                    Assertions.assertEquals(HttpStatus.CREATED.value(), response.getStatus());
+                    Assertions.assertNotNull(data.getImage());
+                    Assertions.assertEquals(carCreateRequest.getName(), data.getName());
+                    Assertions.assertEquals(carCreateRequest.getPrice(), data.getPrice());
+                    Assertions.assertEquals(carCreateRequest.getCc(), data.getCc());
+                    Assertions.assertEquals(carCreateRequest.getCapacity(), data.getCapacity());
+                    Assertions.assertEquals(carCreateRequest.getBrand().toUpperCase(), data.getBrand());
+                    Assertions.assertEquals(carCreateRequest.getYear(), data.getYear());
+                    Assertions.assertEquals(carCreateRequest.getDescription(), data.getDescription());
+                    Assertions.assertEquals(carCreateRequest.getTransmission().toUpperCase(), data.getTransmission());
+                    Assertions.assertEquals(carCreateRequest.getTax(), data.getTax());
+                    Assertions.assertEquals(carCreateRequest.getDiscount(), data.getDiscount());
+                    Assertions.assertEquals(5, data.getImageDetail().size());
+
+                    System.out.println(data.getImageDetail().toString());
+                });
+    }
+
+    @Test
+    void createCarForbiddenErrorTest() throws Exception {
+        MockMultipartFile multipartFile = new MockMultipartFile(
+                "image",
+                "car.jpg",
+                MediaType.IMAGE_JPEG_VALUE,
+                "my-images".getBytes()
+        );
+
+        CarCreateRequest carCreateRequest = CarCreateRequest.builder()
+                .name("avanza")
+                .price(200000.00)
+                .brand("toyota")
+                .year(2020)
+                .capacity(6)
+                .cc(2000)
+                .description("this is a avanza car new version")
+                .transmission("at")
+                .discount(0)
+                .tax(0)
+                .build();
+
+        String token = jwtService.generateToken(user);
+
+        mockMvc.perform(
+                        MockMvcRequestBuilders.multipart("/api/v1/cars")
+                                .file(multipartFile)
+                                .param("name", carCreateRequest.getName())
+                                .param("price", carCreateRequest.getPrice().toString())
+                                .param("brand", carCreateRequest.getBrand())
+                                .param("year", carCreateRequest.getYear().toString())
+                                .param("capacity", carCreateRequest.getCapacity().toString())
+                                .param("cc", carCreateRequest.getCc().toString())
+                                .param("description", carCreateRequest.getDescription())
+                                .param("transmission", carCreateRequest.getTransmission())
+                                .param("discount", carCreateRequest.getDiscount().toString())
+                                .param("tax", carCreateRequest.getTax().toString())
+                                .header(AUTHORIZATION, "Bearer " + token)
+                                .contentType(MediaType.MULTIPART_FORM_DATA)
+                                .accept(MediaType.APPLICATION_JSON)
+                ).andExpectAll(status().isForbidden())
+                .andExpectAll(result -> {
+                    WebResponse<CarCreateAndEditResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+                    });
+                    Assertions.assertNotNull(response.getStatus());
+                    Assertions.assertNotNull(response.getError());
+                    Assertions.assertNull(response.getData());
+                    Assertions.assertEquals(HttpStatus.FORBIDDEN.value(), response.getStatus());
+                    Assertions.assertEquals("don't have a access", response.getError());
+                });
+    }
+
+    @Test
+    void createCarNoImageErrorTest() throws Exception {
+        CarCreateRequest carCreateRequest = CarCreateRequest.builder()
+                .name("avanza")
+                .price(200000.00)
+                .brand("toyota")
+                .year(2020)
+                .capacity(6)
+                .cc(2000)
+                .description("this is a avanza car new version")
+                .transmission("at")
+                .discount(0)
+                .tax(0)
+                .build();
+
+        String token = jwtService.generateToken(admin);
+
+        mockMvc.perform(
+                        MockMvcRequestBuilders.multipart("/api/v1/cars")
+                                .param("name", carCreateRequest.getName())
+                                .param("price", carCreateRequest.getPrice().toString())
+                                .param("brand", carCreateRequest.getBrand())
+                                .param("year", carCreateRequest.getYear().toString())
+                                .param("capacity", carCreateRequest.getCapacity().toString())
+                                .param("cc", carCreateRequest.getCc().toString())
+                                .param("description", carCreateRequest.getDescription())
+                                .param("transmission", carCreateRequest.getTransmission())
+                                .param("discount", carCreateRequest.getDiscount().toString())
+                                .param("tax", carCreateRequest.getTax().toString())
+                                .header(AUTHORIZATION, "Bearer " + token)
+                                .contentType(MediaType.MULTIPART_FORM_DATA)
+                                .accept(MediaType.APPLICATION_JSON)
+                ).andExpectAll(status().isBadRequest())
+                .andExpectAll(result -> {
+                    WebResponse<CarCreateAndEditResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+                    });
+                    Assertions.assertNotNull(response.getStatus());
+                    Assertions.assertNotNull(response.getError());
+                    Assertions.assertNull(response.getData());
+                    Assertions.assertEquals(HttpStatus.BAD_REQUEST.value(), response.getStatus());
+                    Assertions.assertEquals("image must not be blank", response.getError());
+                });
+    }
+
+    @Test
+    void createCarNoNameErrorTest() throws Exception {
+        MockMultipartFile multipartFile = new MockMultipartFile(
+                "image",
+                "car.jpg",
+                MediaType.IMAGE_JPEG_VALUE,
+                "my-images".getBytes()
+        );
+        CarCreateRequest carCreateRequest = CarCreateRequest.builder()
+                .name("avanza")
+                .price(200000.00)
+                .brand("toyota")
+                .year(2020)
+                .capacity(6)
+                .cc(2000)
+                .description("this is a avanza car new version")
+                .transmission("at")
+                .discount(0)
+                .tax(0)
+                .build();
+
+        String token = jwtService.generateToken(admin);
+
+        mockMvc.perform(
+                        MockMvcRequestBuilders.multipart("/api/v1/cars")
+                                .file(multipartFile)
+                                .param("price", carCreateRequest.getPrice().toString())
+                                .param("brand", carCreateRequest.getBrand())
+                                .param("year", carCreateRequest.getYear().toString())
+                                .param("capacity", carCreateRequest.getCapacity().toString())
+                                .param("cc", carCreateRequest.getCc().toString())
+                                .param("description", carCreateRequest.getDescription())
+                                .param("transmission", carCreateRequest.getTransmission())
+                                .param("discount", carCreateRequest.getDiscount().toString())
+                                .param("tax", carCreateRequest.getTax().toString())
+                                .header(AUTHORIZATION, "Bearer " + token)
+                                .contentType(MediaType.MULTIPART_FORM_DATA)
+                                .accept(MediaType.APPLICATION_JSON)
+                ).andExpectAll(status().isBadRequest())
+                .andExpectAll(result -> {
+                    WebResponse<CarCreateAndEditResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+                    });
+                    Assertions.assertNotNull(response.getStatus());
+                    Assertions.assertNotNull(response.getError());
+                    Assertions.assertNull(response.getData());
+                    Assertions.assertEquals(HttpStatus.BAD_REQUEST.value(), response.getStatus());
+                    Assertions.assertEquals("name must not be blank", response.getError());
+                });
+    }
+
+    @Test
+    void createCarNoPriceErrorTest() throws Exception {
+        MockMultipartFile multipartFile = new MockMultipartFile(
+                "image",
+                "car.jpg",
+                MediaType.IMAGE_JPEG_VALUE,
+                "my-images".getBytes()
+        );
+        CarCreateRequest carCreateRequest = CarCreateRequest.builder()
+                .name("avanza")
+                .price(200000.00)
+                .brand("toyota")
+                .year(2020)
+                .capacity(6)
+                .cc(2000)
+                .description("this is a avanza car new version")
+                .transmission("at")
+                .discount(0)
+                .tax(0)
+                .build();
+
+        String token = jwtService.generateToken(admin);
+
+        mockMvc.perform(
+                        MockMvcRequestBuilders.multipart("/api/v1/cars")
+                                .file(multipartFile)
+                                .param("name", carCreateRequest.getName())
+                                .param("brand", carCreateRequest.getBrand())
+                                .param("year", carCreateRequest.getYear().toString())
+                                .param("capacity", carCreateRequest.getCapacity().toString())
+                                .param("cc", carCreateRequest.getCc().toString())
+                                .param("description", carCreateRequest.getDescription())
+                                .param("transmission", carCreateRequest.getTransmission())
+                                .param("discount", carCreateRequest.getDiscount().toString())
+                                .param("tax", carCreateRequest.getTax().toString())
+                                .header(AUTHORIZATION, "Bearer " + token)
+                                .contentType(MediaType.MULTIPART_FORM_DATA)
+                                .accept(MediaType.APPLICATION_JSON)
+                ).andExpectAll(status().isBadRequest())
+                .andExpectAll(result -> {
+                    WebResponse<CarCreateAndEditResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+                    });
+                    Assertions.assertNotNull(response.getStatus());
+                    Assertions.assertNotNull(response.getError());
+                    Assertions.assertNull(response.getData());
+                    Assertions.assertEquals(HttpStatus.BAD_REQUEST.value(), response.getStatus());
+                    Assertions.assertEquals("price must not be blank", response.getError());
+                });
+    }
+
+    @Test
+    void createCarNoBrandErrorTest() throws Exception {
+        MockMultipartFile multipartFile = new MockMultipartFile(
+                "image",
+                "car.jpg",
+                MediaType.IMAGE_JPEG_VALUE,
+                "my-images".getBytes()
+        );
+        CarCreateRequest carCreateRequest = CarCreateRequest.builder()
+                .name("avanza")
+                .price(200000.00)
+                .brand("toyota")
+                .year(2020)
+                .capacity(6)
+                .cc(2000)
+                .description("this is a avanza car new version")
+                .transmission("at")
+                .discount(0)
+                .tax(0)
+                .build();
+
+        String token = jwtService.generateToken(admin);
+
+        mockMvc.perform(
+                        MockMvcRequestBuilders.multipart("/api/v1/cars")
+                                .file(multipartFile)
+                                .param("name", carCreateRequest.getName())
+                                .param("price", carCreateRequest.getPrice().toString())
+                                .param("year", carCreateRequest.getYear().toString())
+                                .param("capacity", carCreateRequest.getCapacity().toString())
+                                .param("cc", carCreateRequest.getCc().toString())
+                                .param("description", carCreateRequest.getDescription())
+                                .param("transmission", carCreateRequest.getTransmission())
+                                .param("discount", carCreateRequest.getDiscount().toString())
+                                .param("tax", carCreateRequest.getTax().toString())
+                                .header(AUTHORIZATION, "Bearer " + token)
+                                .contentType(MediaType.MULTIPART_FORM_DATA)
+                                .accept(MediaType.APPLICATION_JSON)
+                ).andExpectAll(status().isBadRequest())
+                .andExpectAll(result -> {
+                    WebResponse<CarCreateAndEditResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+                    });
+                    Assertions.assertNotNull(response.getStatus());
+                    Assertions.assertNotNull(response.getError());
+                    Assertions.assertNull(response.getData());
+                    Assertions.assertEquals(HttpStatus.BAD_REQUEST.value(), response.getStatus());
+                    Assertions.assertEquals("brand must not be blank", response.getError());
+                });
+    }
+
+    @Test
+    void createCarNoYearErrorTest() throws Exception {
+        MockMultipartFile multipartFile = new MockMultipartFile(
+                "image",
+                "car.jpg",
+                MediaType.IMAGE_JPEG_VALUE,
+                "my-images".getBytes()
+        );
+        CarCreateRequest carCreateRequest = CarCreateRequest.builder()
+                .name("avanza")
+                .price(200000.00)
+                .brand("toyota")
+                .year(2020)
+                .capacity(6)
+                .cc(2000)
+                .description("this is a avanza car new version")
+                .transmission("at")
+                .discount(0)
+                .tax(0)
+                .build();
+
+        String token = jwtService.generateToken(admin);
+
+        mockMvc.perform(
+                        MockMvcRequestBuilders.multipart("/api/v1/cars")
+                                .file(multipartFile)
+                                .param("name", carCreateRequest.getName())
+                                .param("price", carCreateRequest.getPrice().toString())
+                                .param("brand", carCreateRequest.getBrand())
+                                .param("capacity", carCreateRequest.getCapacity().toString())
+                                .param("cc", carCreateRequest.getCc().toString())
+                                .param("description", carCreateRequest.getDescription())
+                                .param("transmission", carCreateRequest.getTransmission())
+                                .param("discount", carCreateRequest.getDiscount().toString())
+                                .param("tax", carCreateRequest.getTax().toString())
+                                .header(AUTHORIZATION, "Bearer " + token)
+                                .contentType(MediaType.MULTIPART_FORM_DATA)
+                                .accept(MediaType.APPLICATION_JSON)
+                ).andExpectAll(status().isBadRequest())
+                .andExpectAll(result -> {
+                    WebResponse<CarCreateAndEditResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+                    });
+                    Assertions.assertNotNull(response.getStatus());
+                    Assertions.assertNotNull(response.getError());
+                    Assertions.assertNull(response.getData());
+                    Assertions.assertEquals(HttpStatus.BAD_REQUEST.value(), response.getStatus());
+                    Assertions.assertEquals("year must not be blank", response.getError());
+                });
+    }
+
+    @Test
+    void createCarNoCapacityErrorTest() throws Exception {
+        MockMultipartFile multipartFile = new MockMultipartFile(
+                "image",
+                "car.jpg",
+                MediaType.IMAGE_JPEG_VALUE,
+                "my-images".getBytes()
+        );
+        CarCreateRequest carCreateRequest = CarCreateRequest.builder()
+                .name("avanza")
+                .price(200000.00)
+                .brand("toyota")
+                .year(2020)
+                .capacity(6)
+                .cc(2000)
+                .description("this is a avanza car new version")
+                .transmission("at")
+                .discount(0)
+                .tax(0)
+                .build();
+
+        String token = jwtService.generateToken(admin);
+
+        mockMvc.perform(
+                        MockMvcRequestBuilders.multipart("/api/v1/cars")
+                                .file(multipartFile)
+                                .param("name", carCreateRequest.getName())
+                                .param("price", carCreateRequest.getPrice().toString())
+                                .param("brand", carCreateRequest.getBrand())
+                                .param("year", carCreateRequest.getYear().toString())
+                                .param("cc", carCreateRequest.getCc().toString())
+                                .param("description", carCreateRequest.getDescription())
+                                .param("transmission", carCreateRequest.getTransmission())
+                                .param("discount", carCreateRequest.getDiscount().toString())
+                                .param("tax", carCreateRequest.getTax().toString())
+                                .header(AUTHORIZATION, "Bearer " + token)
+                                .contentType(MediaType.MULTIPART_FORM_DATA)
+                                .accept(MediaType.APPLICATION_JSON)
+                ).andExpectAll(status().isBadRequest())
+                .andExpectAll(result -> {
+                    WebResponse<CarCreateAndEditResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+                    });
+                    Assertions.assertNotNull(response.getStatus());
+                    Assertions.assertNotNull(response.getError());
+                    Assertions.assertNull(response.getData());
+                    Assertions.assertEquals(HttpStatus.BAD_REQUEST.value(), response.getStatus());
+                    Assertions.assertEquals("capacity must not be blank", response.getError());
+                });
+    }
+
+    @Test
+    void createCarNoCcErrorTest() throws Exception {
+        MockMultipartFile multipartFile = new MockMultipartFile(
+                "image",
+                "car.jpg",
+                MediaType.IMAGE_JPEG_VALUE,
+                "my-images".getBytes()
+        );
+        CarCreateRequest carCreateRequest = CarCreateRequest.builder()
+                .name("avanza")
+                .price(200000.00)
+                .brand("toyota")
+                .year(2020)
+                .capacity(6)
+                .cc(2000)
+                .description("this is a avanza car new version")
+                .transmission("at")
+                .discount(0)
+                .tax(0)
+                .build();
+
+        String token = jwtService.generateToken(admin);
+
+        mockMvc.perform(
+                        MockMvcRequestBuilders.multipart("/api/v1/cars")
+                                .file(multipartFile)
+                                .param("name", carCreateRequest.getName())
+                                .param("price", carCreateRequest.getPrice().toString())
+                                .param("brand", carCreateRequest.getBrand())
+                                .param("year", carCreateRequest.getYear().toString())
+                                .param("capacity", carCreateRequest.getCapacity().toString())
+                                .param("description", carCreateRequest.getDescription())
+                                .param("transmission", carCreateRequest.getTransmission())
+                                .param("discount", carCreateRequest.getDiscount().toString())
+                                .param("tax", carCreateRequest.getTax().toString())
+                                .header(AUTHORIZATION, "Bearer " + token)
+                                .contentType(MediaType.MULTIPART_FORM_DATA)
+                                .accept(MediaType.APPLICATION_JSON)
+                ).andExpectAll(status().isBadRequest())
+                .andExpectAll(result -> {
+                    WebResponse<CarCreateAndEditResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+                    });
+                    Assertions.assertNotNull(response.getStatus());
+                    Assertions.assertNotNull(response.getError());
+                    Assertions.assertNull(response.getData());
+                    Assertions.assertEquals(HttpStatus.BAD_REQUEST.value(), response.getStatus());
+                    Assertions.assertEquals("cc must not be blank", response.getError());
+                });
+    }
+
+    @Test
+    void createCarNoDescriptionErrorTest() throws Exception {
+        MockMultipartFile multipartFile = new MockMultipartFile(
+                "image",
+                "car.jpg",
+                MediaType.IMAGE_JPEG_VALUE,
+                "my-images".getBytes()
+        );
+        CarCreateRequest carCreateRequest = CarCreateRequest.builder()
+                .name("avanza")
+                .price(200000.00)
+                .brand("toyota")
+                .year(2020)
+                .capacity(6)
+                .cc(2000)
+                .description("this is a avanza car new version")
+                .transmission("at")
+                .discount(0)
+                .tax(0)
+                .build();
+
+        String token = jwtService.generateToken(admin);
+
+        mockMvc.perform(
+                        MockMvcRequestBuilders.multipart("/api/v1/cars")
+                                .file(multipartFile)
+                                .param("name", carCreateRequest.getName())
+                                .param("price", carCreateRequest.getPrice().toString())
+                                .param("brand", carCreateRequest.getBrand())
+                                .param("year", carCreateRequest.getYear().toString())
+                                .param("capacity", carCreateRequest.getCapacity().toString())
+                                .param("cc", carCreateRequest.getCc().toString())
+                                .param("transmission", carCreateRequest.getTransmission())
+                                .param("discount", carCreateRequest.getDiscount().toString())
+                                .param("tax", carCreateRequest.getTax().toString())
+                                .header(AUTHORIZATION, "Bearer " + token)
+                                .contentType(MediaType.MULTIPART_FORM_DATA)
+                                .accept(MediaType.APPLICATION_JSON)
+                ).andExpectAll(status().isBadRequest())
+                .andExpectAll(result -> {
+                    WebResponse<CarCreateAndEditResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+                    });
+                    Assertions.assertNotNull(response.getStatus());
+                    Assertions.assertNotNull(response.getError());
+                    Assertions.assertNull(response.getData());
+                    Assertions.assertEquals(HttpStatus.BAD_REQUEST.value(), response.getStatus());
+                    Assertions.assertEquals("description must not be blank", response.getError());
+                });
+    }
+
+    @Test
+    void createCarNoTransmissionErrorTest() throws Exception {
+        MockMultipartFile multipartFile = new MockMultipartFile(
+                "image",
+                "car.jpg",
+                MediaType.IMAGE_JPEG_VALUE,
+                "my-images".getBytes()
+        );
+        CarCreateRequest carCreateRequest = CarCreateRequest.builder()
+                .name("avanza")
+                .price(200000.00)
+                .brand("toyota")
+                .year(2020)
+                .capacity(6)
+                .cc(2000)
+                .description("this is a avanza car new version")
+                .transmission("at")
+                .discount(0)
+                .tax(0)
+                .build();
+
+        String token = jwtService.generateToken(admin);
+
+        mockMvc.perform(
+                        MockMvcRequestBuilders.multipart("/api/v1/cars")
+                                .file(multipartFile)
+                                .param("name", carCreateRequest.getName())
+                                .param("price", carCreateRequest.getPrice().toString())
+                                .param("brand", carCreateRequest.getBrand())
+                                .param("year", carCreateRequest.getYear().toString())
+                                .param("capacity", carCreateRequest.getCapacity().toString())
+                                .param("cc", carCreateRequest.getCc().toString())
+                                .param("description", carCreateRequest.getDescription())
+                                .param("discount", carCreateRequest.getDiscount().toString())
+                                .param("tax", carCreateRequest.getTax().toString())
+                                .header(AUTHORIZATION, "Bearer " + token)
+                                .contentType(MediaType.MULTIPART_FORM_DATA)
+                                .accept(MediaType.APPLICATION_JSON)
+                ).andExpectAll(status().isBadRequest())
+                .andExpectAll(result -> {
+                    WebResponse<CarCreateAndEditResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+                    });
+                    Assertions.assertNotNull(response.getStatus());
+                    Assertions.assertNotNull(response.getError());
+                    Assertions.assertNull(response.getData());
+                    Assertions.assertEquals(HttpStatus.BAD_REQUEST.value(), response.getStatus());
+                    Assertions.assertEquals("transmission must not be blank", response.getError());
+                });
+    }
+
+    /*@Test
     void testImage() throws IOException {
         boolean exists = Files.exists(Path.of("images/user/profile/1695719036091.jpg"));
         System.out.println(exists);
@@ -356,5 +1011,5 @@ class CarControllerTest {
         boolean b = Files.deleteIfExists(Path.of("images/user/profile/1695719036091.jpg"));
         System.out.println("is delete: " + b);
 
-    }
+    }*/
 }

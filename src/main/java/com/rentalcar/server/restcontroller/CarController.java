@@ -37,7 +37,7 @@ public class CarController {
     public ResponseEntity<WebResponse<CarCreateAndEditResponse>> createCar(
             User user,
             @ModelAttribute CarCreateRequest
-                    carCreateRequest, @RequestParam(name = "image") MultipartFile image,
+                    carCreateRequest, @RequestParam(name = "image", required = false) MultipartFile image,
             @RequestParam(name = "image_detail", required = false) List<MultipartFile> imagesDetail) {
         CarCreateAndEditResponse carResponse = carService.createCar(user, carCreateRequest, image, imagesDetail);
         return ResponseEntity.status(HttpStatus.CREATED).body(WebResponse.<CarCreateAndEditResponse>builder().status(HttpStatus.CREATED.value()).data(carResponse).build());
