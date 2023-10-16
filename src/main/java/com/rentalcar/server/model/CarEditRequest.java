@@ -34,6 +34,5 @@ public class CarEditRequest {
 
     private Integer discount;
 
-    @JsonProperty("deleted_detail_images_id")
     private List<String> deletedDetailImagesId;
 }

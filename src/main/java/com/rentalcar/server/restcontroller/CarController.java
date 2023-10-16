@@ -56,9 +56,13 @@ public class CarController {
             User user,
             @ModelAttribute CarEditRequest carEditRequest,
             @PathVariable("id") String id,
+            @RequestParam(name = "deleted_detail_images_id", required = false) List<String> imagesDetailId,
             @RequestParam(name = "image", required = false) MultipartFile image,
             @RequestParam(name = "image_detail", required = false) List<MultipartFile> imagesDetail
     ) {
+        if (imagesDetailId != null && !imagesDetailId.isEmpty()) {
+            carEditRequest.setDeletedDetailImagesId(imagesDetailId);
+        }
         CarCreateAndEditResponse carCreateAndEditResponse = carService.editCar(user, id, carEditRequest, image, imagesDetail);
         return ResponseEntity.ok(WebResponse.<CarCreateAndEditResponse>builder().status(HttpStatus.OK.value()).data(carCreateAndEditResponse).build());
     }
