@@ -68,6 +68,7 @@ public class TransactionServiceImpl implements TransactionService {
         var noInvoice = "INV/" + startDate.getYear() + "-" + startDate.getMonth() + "-" + startDate.getDayOfMonth()
                 + "/" + transactionCreateRequest.getDuration() + "/" + formattedRandomNumber;
 
+        // Save transaction
         var carTransactionSave = transactionRepository.save(Transaction.builder()
                 .noInvoice(noInvoice)
                 .car(carData)
@@ -84,6 +85,7 @@ public class TransactionServiceImpl implements TransactionService {
                 .totalPrice(carData.getPricePerDay() * transactionCreateRequest.getDuration())
                 .build());
 
+        // Save on table car rented
         carRentedRepository.save(CarRented.builder()
                 .car(carData)
                 .startDate(dateTimeUtils.instantFromLocalDateTimeZoneJakarta(startDate))
