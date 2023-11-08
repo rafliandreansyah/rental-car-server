@@ -4,7 +4,6 @@ import com.rentalcar.server.entity.CarBrandEnum;
 import com.rentalcar.server.entity.CarTransmissionEnum;
 import com.rentalcar.server.entity.UserRoleEnum;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -45,7 +44,7 @@ public class EnumUtils {
         } else if (brand.equalsIgnoreCase(CarBrandEnum.HONDA.name())) {
             carBrandEnum = CarBrandEnum.HONDA;
         } else if (brand.equalsIgnoreCase(CarBrandEnum.DAIHATSU.name())) {
-            carBrandEnum =CarBrandEnum.DAIHATSU;
+            carBrandEnum = CarBrandEnum.DAIHATSU;
         } else if (brand.equalsIgnoreCase(CarBrandEnum.WULING.name())) {
             carBrandEnum = CarBrandEnum.WULING;
         } else if (brand.equalsIgnoreCase(CarBrandEnum.SUZUKI.name())) {

@@ -17,11 +17,14 @@ import com.rentalcar.server.entity.User;
 import com.rentalcar.server.entity.UserRoleEnum;
 import com.rentalcar.server.model.TransactionCreateRequest;
 import com.rentalcar.server.model.TransactionCreateResponse;
+import com.rentalcar.server.model.TransactionDetailResponse;
+import com.rentalcar.server.model.TransactionDetailUserDataResponse;
 import com.rentalcar.server.repository.CarRentedRepository;
 import com.rentalcar.server.repository.CarRepository;
 import com.rentalcar.server.repository.TransactionRepository;
 import com.rentalcar.server.repository.UserRepository;
 import com.rentalcar.server.util.DateTimeUtils;
+import com.rentalcar.server.util.EnumUtils;
 import com.rentalcar.server.util.UUIDUtils;
 
 import jakarta.transaction.Transactional;
@@ -37,6 +40,7 @@ public class TransactionServiceImpl implements TransactionService {
         private final CarRentedRepository carRentedRepository;
         private final UUIDUtils uuidUtils;
         private final DateTimeUtils dateTimeUtils;
+        private final EnumUtils enumUtils;
 
         @Transactional
         @Override
@@ -152,6 +156,61 @@ public class TransactionServiceImpl implements TransactionService {
                 }
 
                 return "success delete transaction";
+        }
+
+        @Override
+        public TransactionDetailResponse getDetailTransaction(User user, String transactionId) {
+
+                var trId = uuidUtils.uuidFromString(transactionId, "transaction not found");
+
+                var transaction = transactionRepository.findById(trId)
+                                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                                                "transaction not found"));
+                if (user.getRole().equals(UserRoleEnum.USER)) {
+                        var userTrId = transaction.getUser().getId();
+                        if (userTrId != user.getId()) {
+                                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "don't have a access");
+                        }
+
+                }
+
+                return TransactionDetailResponse.builder()
+                                .id(transaction.getId().toString())
+                                .noInvoice(transaction.getNoInvoice())
+                                .startDate(dateTimeUtils.localDateFromInstantZoneJakarta(transaction.getStartDate())
+                                                .toString())
+                                .endDate(dateTimeUtils.localDateTimeFromInstantZoneJakarta(transaction.getEndDate())
+                                                .toString())
+                                .duration(transaction.getDurationDay())
+                                .carName(transaction.getCarName())
+                                .carImageUrl(transaction.getCarImageUrl())
+                                .brand(transaction.getCarBrand().name())
+                                .year(transaction.getCarYear())
+                                .capacity(transaction.getCarCapacity())
+                                .cc(transaction.getCarCc())
+                                .price(transaction.getCarPrice())
+                                .tax(transaction.getCarTax())
+                                .discount(transaction.getCarDiscount())
+                                .price(transaction.getCarPrice())
+                                .totalPrice(transaction.getTotalPrice())
+                                .status(transaction.getStatus().name())
+                                .userId(transaction.getUser().getId().toString())
+                                .user(TransactionDetailUserDataResponse.builder()
+                                                .id(transaction.getUser().getId().toString())
+                                                .name(transaction.getUser().getName())
+                                                .email(transaction.getUser().getEmail())
+                                                .imageUrl(transaction.getUser().getImageUrl())
+                                                .dob(dateTimeUtils
+                                                                .localDateFromInstantZoneJakarta(
+                                                                                transaction.getUser().getDateOfBirth())
+                                                                .toString())
+                                                .phone(transaction.getUser().getPhoneNumber())
+                                                .isActive(transaction.getUser().getIsActive())
+                                                .role(transaction.getUser().getRole().name())
+                                                .dateCreated(dateTimeUtils.localDateTimeFromInstantZoneJakarta(
+                                                                transaction.getUser().getCreatedAt()).toString())
+                                                .build())
+                                .build();
         }
 
 }
