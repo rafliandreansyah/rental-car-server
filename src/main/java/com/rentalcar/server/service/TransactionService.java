@@ -11,4 +11,6 @@ public interface TransactionService {
 
     public TransactionCreateResponse createTransaction(User user, TransactionCreateRequest transactionCreateRequest);
 
+    public String deleteTransactionById(User user, String transactionId);
+
 }
