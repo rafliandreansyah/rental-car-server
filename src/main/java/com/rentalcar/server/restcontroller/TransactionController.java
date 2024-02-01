@@ -1,34 +1,30 @@
 package com.rentalcar.server.restcontroller;
 
+import com.rentalcar.server.model.*;
+import com.rentalcar.server.model.base.WebResponsePaging;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.rentalcar.server.entity.User;
-import com.rentalcar.server.model.TransactionCreateRequest;
-import com.rentalcar.server.model.TransactionCreateResponse;
-import com.rentalcar.server.model.TransactionDetailResponse;
 import com.rentalcar.server.model.base.WebResponse;
 import com.rentalcar.server.service.TransactionService;
 
 import lombok.RequiredArgsConstructor;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/transactions")
 @RequiredArgsConstructor
 public class TransactionController {
 
-    private TransactionService transactionService;
+    private final TransactionService transactionService;
 
     @PostMapping
     public ResponseEntity<WebResponse<TransactionCreateResponse>> createTransaction(User user,
-            @RequestBody TransactionCreateRequest transactionCreateRequest) {
+                                                                                    @RequestBody TransactionCreateRequest transactionCreateRequest) {
         var transactionResponse = transactionService.createTransaction(user, transactionCreateRequest);
         return ResponseEntity.status(HttpStatus.CREATED).body(WebResponse.<TransactionCreateResponse>builder()
                 .status(HttpStatus.CREATED.value())
@@ -47,12 +43,41 @@ public class TransactionController {
 
     @GetMapping("/{id}")
     public ResponseEntity<WebResponse<TransactionDetailResponse>> getDetailTransaction(User user,
-            @PathVariable("id") String id) {
+                                                                                       @PathVariable("id") String id) {
         var detailTransactionResponse = transactionService.getDetailTransaction(user, id);
         return ResponseEntity.ok().body(WebResponse.<TransactionDetailResponse>builder()
                 .status(HttpStatus.OK.value())
                 .data(detailTransactionResponse)
                 .build());
+    }
+
+    @GetMapping
+    public ResponseEntity<WebResponsePaging<List<TransactionResponse>>> getListTransaction(
+            User user,
+            @RequestParam(name = "page", defaultValue = "0") Integer page,
+            @RequestParam(name = "size", defaultValue = "10") Integer size,
+            @RequestParam(name = "start_date", required = false) String startDate,
+            @RequestParam(name = "end_date", required = false) String endDate,
+            @RequestParam(name = "order_by_date_created", required = false) String order
+    ) {
+
+        TransactionsRequest transactionsRequest = TransactionsRequest.builder()
+                .page(page)
+                .size(size)
+                .startDate(startDate)
+                .endDate(endDate)
+                .sort(order)
+                .build();
+        Page<TransactionResponse> listTransaction = transactionService.getListTransaction(user, transactionsRequest);
+        return ResponseEntity.ok().body(WebResponsePaging.<List<TransactionResponse>>builder()
+                .totalItem(listTransaction.getTotalElements())
+                .perPage(listTransaction.getSize())
+                .currentPage(listTransaction.getNumber() + 1)
+                .lastPage(listTransaction.getTotalPages())
+                .status(HttpStatus.OK.value())
+                .data(listTransaction.getContent())
+                .build()
+        );
     }
 
 }

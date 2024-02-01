@@ -2,9 +2,16 @@ package com.rentalcar.server.service;
 
 import java.security.SecureRandom;
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
+import com.rentalcar.server.model.*;
+import jakarta.persistence.criteria.Predicate;
+import org.springframework.data.domain.*;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -15,10 +22,6 @@ import com.rentalcar.server.entity.Transaction;
 import com.rentalcar.server.entity.TransactionStatusEnum;
 import com.rentalcar.server.entity.User;
 import com.rentalcar.server.entity.UserRoleEnum;
-import com.rentalcar.server.model.TransactionCreateRequest;
-import com.rentalcar.server.model.TransactionCreateResponse;
-import com.rentalcar.server.model.TransactionDetailResponse;
-import com.rentalcar.server.model.TransactionDetailUserDataResponse;
 import com.rentalcar.server.repository.CarRentedRepository;
 import com.rentalcar.server.repository.CarRepository;
 import com.rentalcar.server.repository.TransactionRepository;
@@ -211,6 +214,77 @@ public class TransactionServiceImpl implements TransactionService {
                                                                 transaction.getUser().getCreatedAt()).toString())
                                                 .build())
                                 .build();
+        }
+
+        @Override
+        public Page<TransactionResponse> getListTransaction(User user, TransactionsRequest transactionsRequest) {
+                transactionsRequest.setPage(transactionsRequest.getPage() > 0 ? transactionsRequest.getPage() -1 : transactionsRequest.getPage());
+
+
+
+                if (!user.getRole().equals(UserRoleEnum.ADMIN)) {
+                        throw new ResponseStatusException(HttpStatus.FORBIDDEN, "don't have access");
+                }
+
+
+                if (transactionsRequest.getStartDate() != null || transactionsRequest.getEndDate() != null) {
+                        if (transactionsRequest.getEndDate() == null) {
+                                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "end date required for filter by date");
+                        }
+
+                        if (transactionsRequest.getStartDate() == null) {
+                                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "start date required for filter by date");
+                        }
+
+                }
+
+                Specification<Transaction> specification = ((root, query, criteriaBuilder) -> {
+                        List<Predicate> predicates = new ArrayList<>();
+
+                        if (Objects.nonNull(transactionsRequest.getStartDate()) && Objects.nonNull(transactionsRequest.getEndDate())) {
+                                LocalDateTime startDateLocalDateTime = dateTimeUtils.localDateTimeFromString(transactionsRequest.getStartDate());
+                                LocalDateTime endDateLocalDateTime = dateTimeUtils.localDateTimeFromString(transactionsRequest.getEndDate());
+
+                                Instant startDate = dateTimeUtils.instantFromLocalDateTimeZoneJakarta(startDateLocalDateTime);
+                                Instant endDate = dateTimeUtils.instantFromLocalDateTimeZoneJakarta(endDateLocalDateTime);
+
+                                predicates.add(
+                                        criteriaBuilder.between(root.get("createdAt"), startDate, endDate)
+                                );
+                        }
+
+                        return  query.where(predicates.toArray(new Predicate[]{})).getRestriction();
+                });
+
+                Sort.Order sort;
+                if (transactionsRequest.getSort() != null) {
+                        if (transactionsRequest.getSort().equalsIgnoreCase("asc")) {
+                                sort = Sort.Order.asc("createdAt");
+                        } else {
+                                sort = Sort.Order.desc("createdAt");
+                        }
+                } else {
+                        sort = Sort.Order.desc("createdAt");
+                }
+
+                Pageable pageable = PageRequest.of(transactionsRequest.getPage(), transactionsRequest.getSize(), Sort.by(sort));
+                Page<Transaction> transactionsData = transactionRepository.findAll(specification, pageable);
+
+                List<TransactionResponse> transactions = transactionsData.stream()
+                        .map(transaction -> TransactionResponse.builder()
+                                .id(transaction.getId().toString())
+                                .noInvoice(transaction.getNoInvoice())
+                                .startDate(dateTimeUtils.localDateFromInstantZoneJakarta(transaction.getStartDate()).toString())
+                                .endDate(dateTimeUtils.localDateFromInstantZoneJakarta(transaction.getEndDate()).toString())
+                                .duration(transaction.getDurationDay())
+                                .carName(transaction.getCarName())
+                                .brand(transaction.getCarBrand().toString())
+                                .totalPrice(transaction.getTotalPrice())
+                                .status(transaction.getStatus().toString())
+                                .build()
+                        ).toList();
+
+                return new PageImpl<>(transactions, pageable, transactionsData.getTotalElements());
         }
 
 }
