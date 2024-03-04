@@ -16,7 +16,7 @@ import java.util.UUID;
 public interface CarRepository extends JpaRepository<Car, UUID>, JpaSpecificationExecutor<Car> {
 
     @Query(value = "SELECT c FROM Car c WHERE c.id IN " +
-            "(SELECT cr.id FROM CarRented cr WHERE " +
+            "(SELECT cr.car FROM CarRented cr WHERE " +
             "(cr.endDate >= :startDate AND cr.startDate <= :endDate) " +
             "OR (cr.startDate <= :endDate AND cr.endDate >= :startDate))")
     List<Car> findCarsInDateRange(@Param("startDate") Instant startDate, @Param("endDate") Instant endDate);

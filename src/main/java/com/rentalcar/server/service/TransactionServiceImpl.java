@@ -55,11 +55,14 @@ public class TransactionServiceImpl implements TransactionService {
     public TransactionCreateResponse createTransaction(User user,
                                                        TransactionCreateRequest transactionCreateRequest) {
 
-        var userId = uuidUtils.uuidFromString(transactionCreateRequest.getUserId(), "User not found");
+        var userId = uuidUtils.uuidFromString(transactionCreateRequest.getUserId(), "user not found");
         var carId = uuidUtils.uuidFromString(transactionCreateRequest.getCarId(), "car not found");
-        if (!Objects.equals(user.getId().toString(), userId.toString())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    "cannot create transaction to other user");
+
+        if (!user.getRole().equals(UserRoleEnum.ADMIN)) {
+            if (!Objects.equals(user.getId().toString(), userId.toString())) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                        "cannot create transaction to other user");
+            }
         }
 
         var userData = userRepository.findById(userId)
@@ -70,10 +73,10 @@ public class TransactionServiceImpl implements TransactionService {
         // Format date and time -> yyyy-MM-ddTHH:mm:ss
         var startDate = dateTimeUtils.localDateTimeFromString(transactionCreateRequest.getDateAndTime());
         var endDate = startDate.plusDays(1);
-        var isCarAvailble = carIsAvailableToRent(dateTimeUtils.instantFromLocalDateTimeZoneJakarta(startDate),
+        var isCarAvailable = carIsAvailableToRent(dateTimeUtils.instantFromLocalDateTimeZoneJakarta(startDate),
                 dateTimeUtils.instantFromLocalDateTimeZoneJakarta(endDate), carData.getId());
 
-        if (!isCarAvailble) {
+        if (!isCarAvailable) {
             throw new ResponseStatusException(HttpStatus.CONFLICT,
                     "car is not available, please select another date");
         }
