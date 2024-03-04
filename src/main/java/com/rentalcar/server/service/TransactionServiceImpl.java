@@ -208,23 +208,25 @@ public class TransactionServiceImpl implements TransactionService {
                 .discount(transaction.getCarDiscount())
                 .price(transaction.getCarPrice())
                 .totalPrice(transaction.getTotalPrice())
-                .status(transaction.getStatus().name())
+                .status(transaction.getStatus() != null ? transaction.getStatus().name(): null)
                 .userId(transaction.getUser().getId().toString())
                 .user(TransactionDetailUserDataResponse.builder()
                         .id(transaction.getUser().getId().toString())
                         .name(transaction.getUser().getName())
                         .email(transaction.getUser().getEmail())
                         .imageUrl(transaction.getUser().getImageUrl())
-                        .dob(dateTimeUtils
+                        .dob(transaction.getUser().getDateOfBirth() != null ? dateTimeUtils
                                 .localDateFromInstantZoneJakarta(
                                         transaction.getUser().getDateOfBirth())
-                                .toString())
+                                .toString() :  null)
                         .phone(transaction.getUser().getPhoneNumber())
                         .isActive(transaction.getUser().getIsActive())
                         .role(transaction.getUser().getRole().name())
                         .dateCreated(dateTimeUtils.localDateTimeFromInstantZoneJakarta(
                                 transaction.getUser().getCreatedAt()).toString())
                         .build())
+                .carId(transaction.getCar().getId().toString())
+                .createdAt(transaction.getCreatedAt().toString())
                 .build();
     }
 

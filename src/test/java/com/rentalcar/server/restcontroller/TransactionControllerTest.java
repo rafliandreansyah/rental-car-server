@@ -9,6 +9,7 @@ import com.rentalcar.server.entity.CarTransmissionEnum;
 import com.rentalcar.server.entity.User;
 import com.rentalcar.server.model.TransactionCreateRequest;
 import com.rentalcar.server.model.TransactionCreateResponse;
+import com.rentalcar.server.model.TransactionDetailResponse;
 import com.rentalcar.server.model.base.WebResponse;
 import com.rentalcar.server.repository.CarRentedRepository;
 import com.rentalcar.server.repository.CarRepository;
@@ -18,6 +19,7 @@ import com.rentalcar.server.security.JwtService;
 import com.rentalcar.server.service.AuthService;
 import com.rentalcar.server.service.CarService;
 import com.rentalcar.server.service.TransactionService;
+import com.rentalcar.server.util.UUIDUtils;
 import org.apache.tomcat.util.http.parser.Authorization;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -67,6 +69,9 @@ class TransactionControllerTest {
 
     @Autowired
     ObjectMapper objectMapper;
+
+    @Autowired
+    UUIDUtils uuidUtils;
 
     private User admin;
     private User user;
@@ -141,7 +146,6 @@ class TransactionControllerTest {
 
     @Test
     void createSuccessAdminCreateTransactionToOtherUserTest() throws Exception {
-
 
 
         TransactionCreateRequest createTransactionRequestToOtherUser = TransactionCreateRequest.builder()
@@ -334,4 +338,109 @@ class TransactionControllerTest {
                     Assertions.assertEquals(HttpStatus.UNAUTHORIZED.value(), response.getStatus());
                 });
     }
+
+    @Test
+    void getDetailTransactionSuccessTest() throws Exception {
+        TransactionCreateRequest createTransactionRequest = TransactionCreateRequest.builder()
+                .carId(car.getId().toString())
+                .userId(user.getId().toString())
+                .duration(1)
+                .dateAndTime("2024-03-04T12:00:00")
+                .build();
+
+        TransactionCreateResponse transactionCreated = transactionService.createTransaction(user, createTransactionRequest);
+
+        mockMvc.perform(
+                        MockMvcRequestBuilders.get("/api/v1/transactions/" + transactionCreated.getId())
+                                .header(AUTHORIZATION, "Bearer " + userToken)
+                                .accept(MediaType.APPLICATION_JSON)
+
+                )
+                .andExpectAll(status().isOk())
+                .andExpectAll(result -> {
+                   WebResponse<TransactionDetailResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+                   });
+
+                   Assertions.assertNotNull(response.getStatus());
+                   Assertions.assertNull(response.getError());
+                   Assertions.assertNotNull(response.getData());
+
+                   Assertions.assertEquals(HttpStatus.OK.value(), response.getStatus());
+                   Assertions.assertEquals(transactionCreated.getId(), response.getData().getId());
+                    System.out.println(response.getData().toString());
+                });
+    }
+
+    @Test
+    void getDetailTransactionErrorTransactionNotFoundTest() throws Exception {
+        TransactionCreateRequest createTransactionRequest = TransactionCreateRequest.builder()
+                .carId(car.getId().toString())
+                .userId(user.getId().toString())
+                .duration(1)
+                .dateAndTime("2024-03-04T12:00:00")
+                .build();
+
+        TransactionCreateResponse transactionCreated = transactionService.createTransaction(user, createTransactionRequest);
+
+        mockMvc.perform(
+                        MockMvcRequestBuilders.get("/api/v1/transactions/" + transactionCreated.getId() + "not-found" )
+                                .header(AUTHORIZATION, "Bearer " + userToken)
+                                .accept(MediaType.APPLICATION_JSON)
+
+                )
+                .andExpectAll(status().isNotFound())
+                .andExpectAll(result -> {
+                    WebResponse<TransactionDetailResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+                    });
+
+                    Assertions.assertNotNull(response.getStatus());
+                    Assertions.assertNotNull(response.getError());
+                    Assertions.assertNull(response.getData());
+
+                    Assertions.assertEquals(HttpStatus.NOT_FOUND.value(), response.getStatus());
+                    Assertions.assertEquals("transaction not found", response.getError());
+                });
+    }
+
+    @Test
+    void getDetailTransactionErrorAccessForbiddenGetOtherUserTransactionTest() throws Exception {
+
+        // create user data
+        User userData = authService.createUser(User.builder()
+                .name("User2")
+                .email("user2@yahoo.com")
+                .password("amaterasu")
+                .phoneNumber("+628928381145")
+                .build()
+        );
+
+        TransactionCreateRequest createTransactionRequest = TransactionCreateRequest.builder()
+                .carId(car.getId().toString())
+                .userId(userData.getId().toString())
+                .duration(1)
+                .dateAndTime("2024-03-04T12:00:00")
+                .build();
+
+        TransactionCreateResponse transactionCreated = transactionService.createTransaction(userData, createTransactionRequest);
+
+        mockMvc.perform(
+                        MockMvcRequestBuilders.get("/api/v1/transactions/" + transactionCreated.getId())
+                                .header(AUTHORIZATION, "Bearer " + userToken)
+                                .accept(MediaType.APPLICATION_JSON)
+
+                )
+                .andExpectAll(status().isForbidden())
+                .andExpectAll(result -> {
+                    WebResponse<TransactionDetailResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+                    });
+
+                    Assertions.assertNotNull(response.getStatus());
+                    Assertions.assertNotNull(response.getError());
+                    Assertions.assertNull(response.getData());
+
+                    Assertions.assertEquals(HttpStatus.FORBIDDEN.value(), response.getStatus());
+                    Assertions.assertEquals("don't have a access", response.getError());
+                });
+    }
+
 }
