@@ -444,4 +444,25 @@ public class CarServiceImpl implements CarService {
 
         return new PageImpl<>(cars, pageable, carsData.getTotalElements());
     }
+
+    @Override
+    public Car createDummyCar() {
+        // Create car dummy data
+        Car car = Car.builder()
+                .name("Dummy Car")
+                .imageUrl("testing_image")
+                .brand(CarBrandEnum.TOYOTA)
+                .year(2022)
+                .capacity(6)
+                .cc(2000)
+                .pricePerDay(200_000D)
+                .tax(0)
+                .discount(0)
+                .description("dummy car data")
+                .transmission(CarTransmissionEnum.AT)
+                .tax(0)
+                .discount(0)
+                .build();
+        return carRepository.save(car);
+    }
 }

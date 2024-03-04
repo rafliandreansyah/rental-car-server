@@ -2,6 +2,7 @@ package com.rentalcar.server.util;
 
 import com.rentalcar.server.entity.CarBrandEnum;
 import com.rentalcar.server.entity.CarTransmissionEnum;
+import com.rentalcar.server.entity.TransactionStatusEnum;
 import com.rentalcar.server.entity.UserRoleEnum;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -92,5 +93,65 @@ public class EnumUtils {
         }
 
         return carBrandEnum;
+    }
+
+    public TransactionStatusEnum getTransactionEnumFromInteger(Integer status) {
+        /*
+         * Status On transaction
+         * null -> waiting payment
+         * 0 -> waiting approve
+         * 1 -> approved
+         * 2 -> rejected
+         * 3 -> on going
+         * 4 -> finish
+         * */
+
+        TransactionStatusEnum transactionStatusEnum;
+
+        if (status.equals(0)) {
+            transactionStatusEnum = TransactionStatusEnum.WAITING_APPROVE;
+        } else if (status.equals(1)) {
+            transactionStatusEnum = TransactionStatusEnum.APPROVED;
+        } else if (status.equals(2)) {
+            transactionStatusEnum = TransactionStatusEnum.REJECTED;
+        } else if (status.equals(3)) {
+            transactionStatusEnum = TransactionStatusEnum.ON_GOING;
+        } else if(status.equals(4)) {
+            transactionStatusEnum = TransactionStatusEnum.FINISH;
+        } else {
+            transactionStatusEnum = TransactionStatusEnum.WAITING_PAYMENT;
+        }
+
+        return transactionStatusEnum;
+    }
+
+    public Integer getStatusFromTransactionEnum(TransactionStatusEnum transactionStatusEnum) {
+        /*
+         * Status On transaction
+         * null -> waiting payment
+         * 0 -> waiting approve
+         * 1 -> approved
+         * 2 -> rejected
+         * 3 -> on going
+         * 4 -> finish
+         * */
+
+        Integer status;
+
+        if (transactionStatusEnum.equals(TransactionStatusEnum.WAITING_APPROVE)) {
+            status = 0;
+        } else if (transactionStatusEnum.equals(TransactionStatusEnum.APPROVED)){
+            status = 1;
+        } else if (transactionStatusEnum.equals(TransactionStatusEnum.REJECTED)) {
+            status = 2;
+        } else if (transactionStatusEnum.equals(TransactionStatusEnum.ON_GOING)) {
+            status = 3;
+        } else if (transactionStatusEnum.equals(TransactionStatusEnum.FINISH)) {
+            status = 4;
+        } else {
+            status = null;
+        }
+
+        return status;
     }
 }

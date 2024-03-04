@@ -4,6 +4,7 @@ import com.rentalcar.server.model.*;
 import com.rentalcar.server.model.base.WebResponsePaging;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -12,6 +13,7 @@ import com.rentalcar.server.model.base.WebResponse;
 import com.rentalcar.server.service.TransactionService;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -22,7 +24,10 @@ public class TransactionController {
 
     private final TransactionService transactionService;
 
-    @PostMapping
+    @PostMapping(
+            consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE
+    )
     public ResponseEntity<WebResponse<TransactionCreateResponse>> createTransaction(User user,
                                                                                     @RequestBody TransactionCreateRequest transactionCreateRequest) {
         var transactionResponse = transactionService.createTransaction(user, transactionCreateRequest);
@@ -78,6 +83,26 @@ public class TransactionController {
                 .data(listTransaction.getContent())
                 .build()
         );
+    }
+
+    @PatchMapping(
+            value = "/{id}",
+            produces = MediaType.MULTIPART_FORM_DATA_VALUE,
+            consumes = MediaType.APPLICATION_JSON_VALUE
+    )
+    public ResponseEntity<WebResponse<TransactionEditResponse>> editTransaction(
+            User user,
+            @PathVariable("id") String trxId,
+            @RequestParam("status") Integer status,
+            @RequestParam(value = "payment_image", required = false) MultipartFile paymentImage
+    ) {
+        TransactionEditResponse transactionEditResponse = transactionService.editTransaction(user, trxId, status, paymentImage);
+
+        return ResponseEntity.ok().body(WebResponse.<TransactionEditResponse>builder()
+                .data(transactionEditResponse)
+                .build()
+        );
+
     }
 
 }

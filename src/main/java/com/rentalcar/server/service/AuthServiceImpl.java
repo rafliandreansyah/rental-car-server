@@ -71,6 +71,18 @@ public class AuthServiceImpl implements AuthService{
     }
 
     @Override
+    public User createUser(User user) {
+        var userData = User.builder()
+                .email(user.getEmail())
+                .password(passwordEncoder.encode(user.getPassword()))
+                .phoneNumber(user.getPhoneNumber())
+                .name(user.getName())
+                .role(UserRoleEnum.USER)
+                .build();
+        return userRepository.save(userData);
+    }
+
+    @Override
     public AuthenticateResponse authenticate(AuthenticateRequest authenticateRequest) {
         validationService.validate(authenticateRequest);
 

@@ -11,6 +11,8 @@ public interface AuthService {
 
     User createAdmin(User user);
 
+    User createUser(User user);
+
     AuthenticateResponse authenticate(AuthenticateRequest authenticateRequest);
 
 }
