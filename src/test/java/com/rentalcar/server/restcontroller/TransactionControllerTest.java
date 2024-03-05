@@ -690,4 +690,168 @@ class TransactionControllerTest {
                 });
 
     }
+
+    @Test
+    void deleteTransactionUserByIdSuccess() throws Exception {
+        TransactionCreateRequest createTransactionRequest = TransactionCreateRequest.builder()
+                .carId(car.getId().toString())
+                .userId(user.getId().toString())
+                .duration(1)
+                .dateAndTime("2024-03-04T12:00:00")
+                .build();
+
+        TransactionCreateResponse transactionCreated = transactionService.createTransaction(user, createTransactionRequest);
+
+        mockMvc.perform(
+                        MockMvcRequestBuilders.delete("/api/v1/transactions/{id}", transactionCreated.getId())
+                        .header(AUTHORIZATION, "Bearer " + userToken)
+                        .accept(MediaType.APPLICATION_JSON)
+        ).andExpectAll(status().isOk())
+                .andExpectAll(result -> {
+                    WebResponse<String> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+                    });
+
+                    Assertions.assertNotNull(response.getStatus());
+                    Assertions.assertNull(response.getError());
+                    Assertions.assertNotNull(response.getData());
+
+                    Assertions.assertEquals(HttpStatus.OK.value(), response.getStatus());
+                    Assertions.assertEquals("success delete transaction", response.getData());
+
+                });
+
+    }
+
+    @Test
+    void deleteTransactionAdminByIdSuccess() throws Exception{
+        TransactionCreateRequest createTransactionRequest = TransactionCreateRequest.builder()
+                .carId(car.getId().toString())
+                .userId(user.getId().toString())
+                .duration(1)
+                .dateAndTime("2024-03-04T12:00:00")
+                .build();
+
+        TransactionCreateResponse transactionCreated = transactionService.createTransaction(user, createTransactionRequest);
+
+        mockMvc.perform(
+                        MockMvcRequestBuilders.delete("/api/v1/transactions/" + transactionCreated.getId())
+                                .header(AUTHORIZATION, "Bearer " + adminToken)
+                                .accept(MediaType.APPLICATION_JSON)
+                ).andExpectAll(status().isOk())
+                .andExpectAll(result -> {
+                    WebResponse<String> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+                    });
+
+                    Assertions.assertNotNull(response.getStatus());
+                    Assertions.assertNull(response.getError());
+                    Assertions.assertNotNull(response.getData());
+
+                    Assertions.assertEquals(HttpStatus.OK.value(), response.getStatus());
+                    Assertions.assertEquals("success delete transaction", response.getData());
+
+                });
+    }
+
+    @Test
+    void deleteTransactionNotFoundError() throws Exception{
+        TransactionCreateRequest createTransactionRequest = TransactionCreateRequest.builder()
+                .carId(car.getId().toString())
+                .userId(user.getId().toString())
+                .duration(1)
+                .dateAndTime("2024-03-04T12:00:00")
+                .build();
+
+        TransactionCreateResponse transactionCreated = transactionService.createTransaction(user, createTransactionRequest);
+
+        mockMvc.perform(
+                        MockMvcRequestBuilders.delete("/api/v1/transactions/" + transactionCreated.getId() + "not-found")
+                                .header(AUTHORIZATION, "Bearer " + userToken)
+                                .accept(MediaType.APPLICATION_JSON)
+                ).andExpectAll(status().isNotFound())
+                .andExpectAll(result -> {
+                    WebResponse<String> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+                    });
+
+                    Assertions.assertNotNull(response.getStatus());
+                    Assertions.assertNotNull(response.getError());
+                    Assertions.assertNull(response.getData());
+
+                    Assertions.assertEquals(HttpStatus.NOT_FOUND.value(), response.getStatus());
+                    Assertions.assertEquals("transaction not found", response.getError());
+
+                });
+    }
+
+    @Test
+    void deleteTransactionAccessForbiddenError() throws Exception{
+        // create user data
+        User userData = authService.createUser(User.builder()
+                .name("User2")
+                .email("user2@yahoo.com")
+                .password("amaterasu")
+                .phoneNumber("+628928381145")
+                .build()
+        );
+
+        TransactionCreateRequest createTransactionRequest = TransactionCreateRequest.builder()
+                .carId(car.getId().toString())
+                .userId(userData.getId().toString())
+                .duration(1)
+                .dateAndTime("2024-03-04T12:00:00")
+                .build();
+
+        TransactionCreateResponse transactionCreated = transactionService.createTransaction(userData, createTransactionRequest);
+
+        mockMvc.perform(
+                        MockMvcRequestBuilders.delete("/api/v1/transactions/" + transactionCreated.getId())
+                                .header(AUTHORIZATION, "Bearer " + userToken)
+                                .accept(MediaType.APPLICATION_JSON)
+                ).andExpectAll(status().isForbidden())
+                .andExpectAll(result -> {
+                    WebResponse<String> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+                    });
+
+                    Assertions.assertNotNull(response.getStatus());
+                    Assertions.assertNotNull(response.getError());
+                    Assertions.assertNull(response.getData());
+
+                    Assertions.assertEquals(HttpStatus.FORBIDDEN.value(), response.getStatus());
+                    Assertions.assertEquals("don't have a access", response.getError());
+
+                });
+    }
+
+    @Test
+    void deleteTransactionAccessForbiddenStatusPaymentError() throws Exception {
+        TransactionCreateRequest createTransactionRequest = TransactionCreateRequest.builder()
+                .carId(car.getId().toString())
+                .userId(user.getId().toString())
+                .duration(1)
+                .dateAndTime("2024-03-04T12:00:00")
+                .build();
+
+        TransactionCreateResponse transactionCreated = transactionService.createTransaction(user, createTransactionRequest);
+
+        //Edit transaction
+        //transactionService.editTransaction(admin, transactionCreated.getId(), 0, null);
+
+        mockMvc.perform(
+                        MockMvcRequestBuilders.delete("/api/v1/transactions/" + transactionCreated.getId())
+                                .header(AUTHORIZATION, "Bearer " + userToken)
+                                .accept(MediaType.APPLICATION_JSON)
+                )
+                .andExpectAll(status().isForbidden())
+                .andExpectAll(result -> {
+                    WebResponse<String> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+                    });
+
+                    Assertions.assertNotNull(response.getStatus());
+                    Assertions.assertNotNull(response.getError());
+                    Assertions.assertNull(response.getData());
+
+                    Assertions.assertEquals(HttpStatus.FORBIDDEN.value(), response.getStatus());
+                    Assertions.assertEquals("cannot delete transaction because payment has already been made", response.getError());
+
+                });
+    }
 }

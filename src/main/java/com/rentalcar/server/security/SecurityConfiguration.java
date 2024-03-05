@@ -43,8 +43,7 @@ public class SecurityConfiguration {
                                 new AntPathRequestMatcher("/api/v1/cars", HttpMethod.POST.name()),
                                 new AntPathRequestMatcher("/api/v1/cars/**", HttpMethod.DELETE.name()),
                                 new AntPathRequestMatcher("/api/v1/cars/**", HttpMethod.PATCH.name()),
-                                new AntPathRequestMatcher("/api/v1/transactions", HttpMethod.GET.name()),
-                                new AntPathRequestMatcher("/api/v1/transactions/**", HttpMethod.DELETE.name())
+                                new AntPathRequestMatcher("/api/v1/transactions", HttpMethod.GET.name())
                         ).hasAnyAuthority(UserRoleEnum.ADMIN.name())
                         .requestMatchers(
                                 new AntPathRequestMatcher("/api/v1/auth/**"),

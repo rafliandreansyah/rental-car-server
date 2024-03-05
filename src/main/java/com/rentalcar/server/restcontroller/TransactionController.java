@@ -37,7 +37,7 @@ public class TransactionController {
                 .build());
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<WebResponse<String>> deleteTransaction(User user, @PathVariable("id") String id) {
         var deleteTransactionResponse = transactionService.deleteTransactionById(user, id);
         return ResponseEntity.ok().body(WebResponse.<String>builder()
