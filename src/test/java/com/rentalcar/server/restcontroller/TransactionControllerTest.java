@@ -10,7 +10,9 @@ import com.rentalcar.server.entity.User;
 import com.rentalcar.server.model.TransactionCreateRequest;
 import com.rentalcar.server.model.TransactionCreateResponse;
 import com.rentalcar.server.model.TransactionDetailResponse;
+import com.rentalcar.server.model.TransactionResponse;
 import com.rentalcar.server.model.base.WebResponse;
+import com.rentalcar.server.model.base.WebResponsePaging;
 import com.rentalcar.server.repository.CarRentedRepository;
 import com.rentalcar.server.repository.CarRepository;
 import com.rentalcar.server.repository.TransactionRepository;
@@ -31,6 +33,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
@@ -358,15 +362,15 @@ class TransactionControllerTest {
                 )
                 .andExpectAll(status().isOk())
                 .andExpectAll(result -> {
-                   WebResponse<TransactionDetailResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
-                   });
+                    WebResponse<TransactionDetailResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+                    });
 
-                   Assertions.assertNotNull(response.getStatus());
-                   Assertions.assertNull(response.getError());
-                   Assertions.assertNotNull(response.getData());
+                    Assertions.assertNotNull(response.getStatus());
+                    Assertions.assertNull(response.getError());
+                    Assertions.assertNotNull(response.getData());
 
-                   Assertions.assertEquals(HttpStatus.OK.value(), response.getStatus());
-                   Assertions.assertEquals(transactionCreated.getId(), response.getData().getId());
+                    Assertions.assertEquals(HttpStatus.OK.value(), response.getStatus());
+                    Assertions.assertEquals(transactionCreated.getId(), response.getData().getId());
                     System.out.println(response.getData().toString());
                 });
     }
@@ -383,7 +387,7 @@ class TransactionControllerTest {
         TransactionCreateResponse transactionCreated = transactionService.createTransaction(user, createTransactionRequest);
 
         mockMvc.perform(
-                        MockMvcRequestBuilders.get("/api/v1/transactions/" + transactionCreated.getId() + "not-found" )
+                        MockMvcRequestBuilders.get("/api/v1/transactions/" + transactionCreated.getId() + "not-found")
                                 .header(AUTHORIZATION, "Bearer " + userToken)
                                 .accept(MediaType.APPLICATION_JSON)
 
@@ -443,4 +447,247 @@ class TransactionControllerTest {
                 });
     }
 
+    @Test
+    void getListTransactionByAdminSuccess() throws Exception {
+
+        for (int i = 0; i < 10; i++) {
+            String date;
+            int dateIncrement = (i + 1) + i + 1;
+            if (dateIncrement < 10) {
+                date = "0" + dateIncrement;
+            } else {
+                date = dateIncrement + "";
+            }
+
+
+            TransactionCreateRequest createTransactionRequest = TransactionCreateRequest.builder()
+                    .carId(car.getId().toString())
+                    .userId(user.getId().toString())
+                    .duration(1)
+                    .dateAndTime("2024-03-" + date + "T12:00:00")
+                    .build();
+
+            transactionService.createTransaction(user, createTransactionRequest);
+        }
+
+        mockMvc.perform(
+                        MockMvcRequestBuilders.get("/api/v1/transactions")
+                                .header(AUTHORIZATION, "Bearer " + adminToken)
+                                .accept(MediaType.APPLICATION_JSON)
+
+                )
+                .andExpectAll(status().isOk())
+                .andExpectAll(result -> {
+                    WebResponsePaging<List<TransactionResponse>> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+                    });
+
+                    Assertions.assertNotNull(response.getStatus());
+                    Assertions.assertNull(response.getError());
+                    Assertions.assertNotNull(response.getData());
+                    Assertions.assertNotNull(response.getPerPage());
+                    Assertions.assertNotNull(response.getTotalItem());
+                    Assertions.assertNotNull(response.getCurrentPage());
+                    Assertions.assertNotNull(response.getLastPage());
+
+                    Assertions.assertEquals(HttpStatus.OK.value(), response.getStatus());
+                    Assertions.assertEquals(10, response.getData().size());
+                    Assertions.assertEquals(10, response.getPerPage());
+                    Assertions.assertEquals(10, response.getTotalItem());
+                    Assertions.assertEquals(1, response.getCurrentPage());
+                    Assertions.assertEquals(1, response.getLastPage());
+                });
+
+    }
+
+    @Test
+    void getListTransactionByAdminWithPagingSuccess() throws Exception {
+
+        for (int i = 0; i < 10; i++) {
+            String date;
+            int dateIncrement = (i + 1) + i + 1;
+            if (dateIncrement < 10) {
+                date = "0" + dateIncrement;
+            } else {
+                date = dateIncrement + "";
+            }
+
+
+            TransactionCreateRequest createTransactionRequest = TransactionCreateRequest.builder()
+                    .carId(car.getId().toString())
+                    .userId(user.getId().toString())
+                    .duration(1)
+                    .dateAndTime("2024-03-" + date + "T12:00:00")
+                    .build();
+
+            transactionService.createTransaction(user, createTransactionRequest);
+        }
+
+        mockMvc.perform(
+                        MockMvcRequestBuilders.get("/api/v1/transactions")
+                                .header(AUTHORIZATION, "Bearer " + adminToken)
+                                .accept(MediaType.APPLICATION_JSON)
+                                .param("page", "1")
+                                .param("size", "5")
+
+                )
+                .andExpectAll(status().isOk())
+                .andExpectAll(result -> {
+                    WebResponsePaging<List<TransactionResponse>> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+                    });
+
+                    Assertions.assertNotNull(response.getStatus());
+                    Assertions.assertNull(response.getError());
+                    Assertions.assertNotNull(response.getData());
+                    Assertions.assertNotNull(response.getPerPage());
+                    Assertions.assertNotNull(response.getTotalItem());
+                    Assertions.assertNotNull(response.getCurrentPage());
+                    Assertions.assertNotNull(response.getLastPage());
+
+                    Assertions.assertEquals(HttpStatus.OK.value(), response.getStatus());
+                    Assertions.assertEquals(5, response.getData().size());
+                    Assertions.assertEquals(5, response.getPerPage());
+                    Assertions.assertEquals(10, response.getTotalItem());
+                    Assertions.assertEquals(1, response.getCurrentPage());
+                    Assertions.assertEquals(2, response.getLastPage());
+                });
+
+    }
+
+    @Test
+    void getListTransactionByAdminFilterByDateSuccess() throws Exception {
+
+        for (int i = 0; i < 10; i++) {
+            String date;
+            int dateIncrement = (i + 1) + i + 1;
+            if (dateIncrement < 10) {
+                date = "0" + dateIncrement;
+            } else {
+                date = dateIncrement + "";
+            }
+
+
+            TransactionCreateRequest createTransactionRequest = TransactionCreateRequest.builder()
+                    .carId(car.getId().toString())
+                    .userId(user.getId().toString())
+                    .duration(1)
+                    .dateAndTime("2024-03-" + date + "T12:00:00")
+                    .build();
+
+            transactionService.createTransaction(user, createTransactionRequest);
+        }
+
+        mockMvc.perform(
+                        MockMvcRequestBuilders.get("/api/v1/transactions")
+                                .header(AUTHORIZATION, "Bearer " + adminToken)
+                                .accept(MediaType.APPLICATION_JSON)
+                                .param("start_date", "2024-03-01")
+                                .param("end_date", "2024-03-10")
+                )
+                .andExpectAll(status().isOk())
+                .andExpectAll(result -> {
+                    WebResponsePaging<List<TransactionResponse>> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+                    });
+
+                    Assertions.assertNotNull(response.getStatus());
+                    Assertions.assertNull(response.getError());
+                    Assertions.assertNotNull(response.getData());
+                    Assertions.assertNotNull(response.getPerPage());
+                    Assertions.assertNotNull(response.getTotalItem());
+                    Assertions.assertNotNull(response.getCurrentPage());
+                    Assertions.assertNotNull(response.getLastPage());
+
+                    Assertions.assertEquals(HttpStatus.OK.value(), response.getStatus());
+                    Assertions.assertEquals(10, response.getData().size());
+                    Assertions.assertEquals(10, response.getPerPage());
+                    Assertions.assertEquals(10, response.getTotalItem());
+                    Assertions.assertEquals(1, response.getCurrentPage());
+                    Assertions.assertEquals(1, response.getLastPage());
+                });
+
+    }
+
+    @Test
+    void getListTransactionByAdminFilterByDateError() throws Exception {
+
+        for (int i = 0; i < 10; i++) {
+            String date;
+            int dateIncrement = (i + 1) + i + 1;
+            if (dateIncrement < 10) {
+                date = "0" + dateIncrement;
+            } else {
+                date = dateIncrement + "";
+            }
+
+
+            TransactionCreateRequest createTransactionRequest = TransactionCreateRequest.builder()
+                    .carId(car.getId().toString())
+                    .userId(user.getId().toString())
+                    .duration(1)
+                    .dateAndTime("2024-03-" + date + "T12:00:00")
+                    .build();
+
+            transactionService.createTransaction(user, createTransactionRequest);
+        }
+
+        mockMvc.perform(
+                        MockMvcRequestBuilders.get("/api/v1/transactions")
+                                .header(AUTHORIZATION, "Bearer " + adminToken)
+                                .accept(MediaType.APPLICATION_JSON)
+                                .param("start_date", "2024-03-01")
+                )
+                .andExpectAll(status().isBadRequest())
+                .andExpectAll(result -> {
+                    WebResponsePaging<List<TransactionResponse>> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+                    });
+
+                    Assertions.assertNotNull(response.getStatus());
+                    Assertions.assertNotNull(response.getError());
+                    Assertions.assertNull(response.getData());
+
+                    Assertions.assertEquals(HttpStatus.BAD_REQUEST.value(), response.getStatus());
+                });
+
+    }
+
+    @Test
+    void getListTransactionByUserForbiddenAccessError() throws Exception {
+
+        for (int i = 0; i < 10; i++) {
+            String date;
+            int dateIncrement = (i + 1) + i + 1;
+            if (dateIncrement < 10) {
+                date = "0" + dateIncrement;
+            } else {
+                date = dateIncrement + "";
+            }
+
+
+            TransactionCreateRequest createTransactionRequest = TransactionCreateRequest.builder()
+                    .carId(car.getId().toString())
+                    .userId(user.getId().toString())
+                    .duration(1)
+                    .dateAndTime("2024-03-" + date + "T12:00:00")
+                    .build();
+
+            transactionService.createTransaction(user, createTransactionRequest);
+        }
+
+        mockMvc.perform(
+                        MockMvcRequestBuilders.get("/api/v1/transactions")
+                                .header(AUTHORIZATION, "Bearer " + userToken)
+                                .accept(MediaType.APPLICATION_JSON)
+                )
+                .andExpectAll(status().isForbidden())
+                .andExpectAll(result -> {
+                    WebResponsePaging<List<TransactionResponse>> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+                    });
+
+                    Assertions.assertNotNull(response.getStatus());
+                    Assertions.assertNotNull(response.getError());
+                    Assertions.assertNull(response.getData());
+
+                    Assertions.assertEquals(HttpStatus.FORBIDDEN.value(), response.getStatus());
+                });
+
+    }
 }

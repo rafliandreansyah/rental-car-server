@@ -56,7 +56,7 @@ public class TransactionController {
                 .build());
     }
 
-    @GetMapping
+    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<WebResponsePaging<List<TransactionResponse>>> getListTransaction(
             User user,
             @RequestParam(name = "page", defaultValue = "0") Integer page,

@@ -255,8 +255,10 @@ public class TransactionServiceImpl implements TransactionService {
             List<Predicate> predicates = new ArrayList<>();
 
             if (Objects.nonNull(transactionsRequest.getStartDate()) && Objects.nonNull(transactionsRequest.getEndDate())) {
-                LocalDateTime startDateLocalDateTime = dateTimeUtils.localDateTimeFromString(transactionsRequest.getStartDate());
-                LocalDateTime endDateLocalDateTime = dateTimeUtils.localDateTimeFromString(transactionsRequest.getEndDate());
+                int startTDateIndex = transactionsRequest.getStartDate().indexOf("T");
+                int endTDateIndex = transactionsRequest.getEndDate().indexOf("T");
+                LocalDateTime startDateLocalDateTime = dateTimeUtils.localDateTimeFromString(startTDateIndex != -1 ? transactionsRequest.getStartDate().substring(0, startTDateIndex) + "T00:00:00" : transactionsRequest.getStartDate() + "T00:00:00");
+                LocalDateTime endDateLocalDateTime = dateTimeUtils.localDateTimeFromString(endTDateIndex != -1 ?  transactionsRequest.getEndDate().substring(0, endTDateIndex) + "T23:59:59": transactionsRequest.getEndDate() + "T23:59:59");
 
                 Instant startDate = dateTimeUtils.instantFromLocalDateTimeZoneJakarta(startDateLocalDateTime);
                 Instant endDate = dateTimeUtils.instantFromLocalDateTimeZoneJakarta(endDateLocalDateTime);
@@ -293,7 +295,7 @@ public class TransactionServiceImpl implements TransactionService {
                         .carName(transaction.getCarName())
                         .brand(transaction.getCarBrand().toString())
                         .totalPrice(transaction.getTotalPrice())
-                        .status(transaction.getStatus().toString())
+                        .status(transaction.getStatus() != null ? transaction.getStatus().toString() : null)
                         .build()
                 ).toList();
 
