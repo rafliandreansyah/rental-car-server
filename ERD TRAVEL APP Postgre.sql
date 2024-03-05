@@ -106,6 +106,16 @@ CREATE TABLE "car_rented"
 --     "updated_at" timestamp
 -- );
 
+CREATE TABLE "reset_token"
+(
+    "id"           uuid UNIQUE PRIMARY KEY NOT NULL,
+    "user_id"      uuid,
+    "token"        varchar(255)            NOT NULL,
+    "expired_date" timestamp               NOT NULL,
+    "created_at"   timestamp DEFAULT (now()),
+    "updated_at"   timestamp
+);
+
 CREATE INDEX ON "users" ("name");
 
 CREATE INDEX ON "users" ("email");
@@ -115,6 +125,9 @@ CREATE INDEX ON "cars" ("name");
 CREATE INDEX ON "cars" ("brand");
 
 CREATE INDEX ON "cars" ("year");
+
+ALTER TABLE "reset_token"
+    ADD FOREIGN KEY ("user_id") REFERENCES "users" ("id");
 
 ALTER TABLE "cars_authorization"
     ADD FOREIGN KEY ("user_id") REFERENCES "users" ("id");

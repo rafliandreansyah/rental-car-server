@@ -57,6 +57,9 @@ public class User implements UserDetails {
     @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE)
     private List<CarAuthorization> carAuthorizations;
 
+    @OneToOne(mappedBy = "user")
+    private ResetToken resetToken;
+
     @CreatedDate
     @Column(name = "created_at")
     private Instant createdAt;
