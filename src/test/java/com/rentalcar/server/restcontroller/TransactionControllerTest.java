@@ -833,7 +833,7 @@ class TransactionControllerTest {
         TransactionCreateResponse transactionCreated = transactionService.createTransaction(user, createTransactionRequest);
 
         //Edit transaction
-        //transactionService.editTransaction(admin, transactionCreated.getId(), 0, null);
+        transactionService.editTransaction(admin, transactionCreated.getId(), 0, null);
 
         mockMvc.perform(
                         MockMvcRequestBuilders.delete("/api/v1/transactions/" + transactionCreated.getId())

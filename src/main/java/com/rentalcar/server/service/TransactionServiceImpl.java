@@ -159,12 +159,12 @@ public class TransactionServiceImpl implements TransactionService {
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
                             "transaction not found"));
 
-            /*if (transaction.getUser().getId() != user.getId()) {
+            if (!Objects.equals(transaction.getUser().getId().toString(), user.getId().toString())) {
                 throw new ResponseStatusException(HttpStatus.FORBIDDEN,
                         "don't have a access");
-            }*/
+            }
 
-            if (transaction.getStatus() != TransactionStatusEnum.WAITING_PAYMENT) {
+            if (transaction.getStatus() != null) {
                 throw new ResponseStatusException(HttpStatus.FORBIDDEN,
                         "cannot delete transaction because payment has already been made");
             }
