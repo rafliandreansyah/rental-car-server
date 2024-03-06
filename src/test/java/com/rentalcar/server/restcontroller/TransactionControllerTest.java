@@ -7,10 +7,7 @@ import com.rentalcar.server.entity.Car;
 import com.rentalcar.server.entity.CarBrandEnum;
 import com.rentalcar.server.entity.CarTransmissionEnum;
 import com.rentalcar.server.entity.User;
-import com.rentalcar.server.model.TransactionCreateRequest;
-import com.rentalcar.server.model.TransactionCreateResponse;
-import com.rentalcar.server.model.TransactionDetailResponse;
-import com.rentalcar.server.model.TransactionResponse;
+import com.rentalcar.server.model.*;
 import com.rentalcar.server.model.base.WebResponse;
 import com.rentalcar.server.model.base.WebResponsePaging;
 import com.rentalcar.server.repository.CarRentedRepository;
@@ -29,8 +26,10 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
@@ -704,9 +703,9 @@ class TransactionControllerTest {
 
         mockMvc.perform(
                         MockMvcRequestBuilders.delete("/api/v1/transactions/{id}", transactionCreated.getId())
-                        .header(AUTHORIZATION, "Bearer " + userToken)
-                        .accept(MediaType.APPLICATION_JSON)
-        ).andExpectAll(status().isOk())
+                                .header(AUTHORIZATION, "Bearer " + userToken)
+                                .accept(MediaType.APPLICATION_JSON)
+                ).andExpectAll(status().isOk())
                 .andExpectAll(result -> {
                     WebResponse<String> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
                     });
@@ -723,7 +722,7 @@ class TransactionControllerTest {
     }
 
     @Test
-    void deleteTransactionAdminByIdSuccess() throws Exception{
+    void deleteTransactionAdminByIdSuccess() throws Exception {
         TransactionCreateRequest createTransactionRequest = TransactionCreateRequest.builder()
                 .carId(car.getId().toString())
                 .userId(user.getId().toString())
@@ -753,7 +752,7 @@ class TransactionControllerTest {
     }
 
     @Test
-    void deleteTransactionNotFoundError() throws Exception{
+    void deleteTransactionNotFoundError() throws Exception {
         TransactionCreateRequest createTransactionRequest = TransactionCreateRequest.builder()
                 .carId(car.getId().toString())
                 .userId(user.getId().toString())
@@ -783,7 +782,7 @@ class TransactionControllerTest {
     }
 
     @Test
-    void deleteTransactionAccessForbiddenError() throws Exception{
+    void deleteTransactionAccessForbiddenError() throws Exception {
         // create user data
         User userData = authService.createUser(User.builder()
                 .name("User2")
@@ -854,4 +853,178 @@ class TransactionControllerTest {
 
                 });
     }
+
+    @Test
+    void editTransactionUserSuccessTest() throws Exception {
+        TransactionCreateRequest createTransactionRequest = TransactionCreateRequest.builder()
+                .carId(car.getId().toString())
+                .userId(user.getId().toString())
+                .duration(1)
+                .dateAndTime("2024-03-04T12:00:00")
+                .build();
+
+        TransactionCreateResponse transactionCreated = transactionService.createTransaction(user, createTransactionRequest);
+
+        MockMultipartFile mockMultipartFile = new MockMultipartFile(
+                "payment_image",
+                "rafli.jpg",
+                MediaType.IMAGE_JPEG_VALUE,
+                "my-images".getBytes()
+        );
+
+        mockMvc.perform(
+                        MockMvcRequestBuilders.multipart("/api/v1/transactions/{id}", transactionCreated.getId())
+                                .file(mockMultipartFile)
+                                .with(request -> {
+                                    request.setMethod(HttpMethod.PATCH.name());
+                                    return request;
+                                })
+                                .param("status", "0")
+                                .header(AUTHORIZATION, "Bearer " + userToken)
+                                .contentType(MediaType.MULTIPART_FORM_DATA)
+                                .accept(MediaType.APPLICATION_JSON)
+
+                )
+                .andExpectAll(status().isOk())
+                .andExpectAll(result -> {
+                    WebResponse<TransactionEditResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+                    });
+
+                    Assertions.assertNotNull(response.getStatus());
+                    Assertions.assertNull(response.getError());
+                    Assertions.assertNotNull(response.getData());
+
+                    Assertions.assertEquals(HttpStatus.OK.value(), response.getStatus());
+                    Assertions.assertEquals(0, response.getData().getStatus());
+                });
+    }
+
+    @Test
+    void editTransactionAdminSuccessTest() throws Exception{
+        TransactionCreateRequest createTransactionRequest = TransactionCreateRequest.builder()
+                .carId(car.getId().toString())
+                .userId(user.getId().toString())
+                .duration(1)
+                .dateAndTime("2024-03-04T12:00:00")
+                .build();
+
+        TransactionCreateResponse transactionCreated = transactionService.createTransaction(user, createTransactionRequest);
+
+        mockMvc.perform(
+                        MockMvcRequestBuilders.multipart("/api/v1/transactions/{id}", transactionCreated.getId())
+                                .with(request -> {
+                                    request.setMethod(HttpMethod.PATCH.name());
+                                    return request;
+                                })
+                                .param("status", "1")
+                                .header(AUTHORIZATION, "Bearer " + adminToken)
+                                .contentType(MediaType.MULTIPART_FORM_DATA)
+                                .accept(MediaType.APPLICATION_JSON)
+
+                )
+                .andExpectAll(status().isOk())
+                .andExpectAll(result -> {
+                    WebResponse<TransactionEditResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+                    });
+
+                    Assertions.assertNotNull(response.getStatus());
+                    Assertions.assertNull(response.getError());
+                    Assertions.assertNotNull(response.getData());
+
+                    Assertions.assertEquals(HttpStatus.OK.value(), response.getStatus());
+                    Assertions.assertEquals(1, response.getData().getStatus());
+                });
+    }
+
+
+    @Test
+    void editTransactionUserNotFoundErrorTest() throws Exception {
+        TransactionCreateRequest createTransactionRequest = TransactionCreateRequest.builder()
+                .carId(car.getId().toString())
+                .userId(user.getId().toString())
+                .duration(1)
+                .dateAndTime("2024-03-04T12:00:00")
+                .build();
+
+        TransactionCreateResponse transactionCreated = transactionService.createTransaction(user, createTransactionRequest);
+
+        MockMultipartFile mockMultipartFile = new MockMultipartFile(
+                "payment_image",
+                "rafli.jpg",
+                MediaType.IMAGE_JPEG_VALUE,
+                "my-images".getBytes()
+        );
+
+        mockMvc.perform(
+                        MockMvcRequestBuilders.multipart("/api/v1/transactions/{id}", transactionCreated.getId() + "not-found")
+                                .file(mockMultipartFile)
+                                .with(request -> {
+                                    request.setMethod(HttpMethod.PATCH.name());
+                                    return request;
+                                })
+                                .param("status", "0")
+                                .header(AUTHORIZATION, "Bearer " + userToken)
+                                .contentType(MediaType.MULTIPART_FORM_DATA)
+                                .accept(MediaType.APPLICATION_JSON)
+
+                )
+                .andExpectAll(status().isNotFound())
+                .andExpectAll(result -> {
+                    WebResponse<TransactionEditResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+                    });
+
+                    Assertions.assertNotNull(response.getStatus());
+                    Assertions.assertNotNull(response.getError());
+                    Assertions.assertNull(response.getData());
+
+                    Assertions.assertEquals(HttpStatus.NOT_FOUND.value(), response.getStatus());
+                    Assertions.assertEquals("transaction not found", response.getError());
+                });
+    }
+
+    @Test
+    void editTransactionUserStatusNotFoundErrorTest() throws Exception {
+        TransactionCreateRequest createTransactionRequest = TransactionCreateRequest.builder()
+                .carId(car.getId().toString())
+                .userId(user.getId().toString())
+                .duration(1)
+                .dateAndTime("2024-03-04T12:00:00")
+                .build();
+
+        TransactionCreateResponse transactionCreated = transactionService.createTransaction(user, createTransactionRequest);
+
+        MockMultipartFile mockMultipartFile = new MockMultipartFile(
+                "payment_image",
+                "rafli.jpg",
+                MediaType.IMAGE_JPEG_VALUE,
+                "my-images".getBytes()
+        );
+
+        mockMvc.perform(
+                        MockMvcRequestBuilders.multipart("/api/v1/transactions/{id}", transactionCreated.getId())
+                                .file(mockMultipartFile)
+                                .with(request -> {
+                                    request.setMethod(HttpMethod.PATCH.name());
+                                    return request;
+                                })
+                                .param("status", "10")
+                                .header(AUTHORIZATION, "Bearer " + userToken)
+                                .contentType(MediaType.MULTIPART_FORM_DATA)
+                                .accept(MediaType.APPLICATION_JSON)
+
+                )
+                .andExpectAll(status().isBadRequest())
+                .andExpectAll(result -> {
+                    WebResponse<TransactionEditResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+                    });
+
+                    Assertions.assertNotNull(response.getStatus());
+                    Assertions.assertNotNull(response.getError());
+                    Assertions.assertNull(response.getData());
+
+                    Assertions.assertEquals(HttpStatus.BAD_REQUEST.value(), response.getStatus());
+                    Assertions.assertEquals("status not found", response.getError());
+                });
+    }
+
 }

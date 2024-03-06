@@ -87,8 +87,8 @@ public class TransactionController {
 
     @PatchMapping(
             value = "/{id}",
-            produces = MediaType.MULTIPART_FORM_DATA_VALUE,
-            consumes = MediaType.APPLICATION_JSON_VALUE
+            produces = MediaType.APPLICATION_JSON_VALUE,
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
     )
     public ResponseEntity<WebResponse<TransactionEditResponse>> editTransaction(
             User user,
@@ -99,6 +99,7 @@ public class TransactionController {
         TransactionEditResponse transactionEditResponse = transactionService.editTransaction(user, trxId, status, paymentImage);
 
         return ResponseEntity.ok().body(WebResponse.<TransactionEditResponse>builder()
+                .status(HttpStatus.OK.value())
                 .data(transactionEditResponse)
                 .build()
         );
