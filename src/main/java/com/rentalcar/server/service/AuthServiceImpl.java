@@ -155,6 +155,25 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
+    public ResetToken requestResetPassword(ResetPasswordRequest resetPasswordRequest) {
+        User user = userRepository.findByEmail(resetPasswordRequest.getEmail()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "user not found"));
+
+        Optional<ResetToken> resetTokenData = resetTokenRepository.findByUserId(user.getId());
+        resetTokenData.ifPresent(resetToken -> resetTokenRepository.deleteById(resetToken.getId()));
+
+        // Generate token
+        String token = tokenGenerator.generateToken();
+        LocalDateTime localDateTime = LocalDateTime.now().plusHours(1);
+
+        // Save data to reset token
+        return resetTokenRepository.save(ResetToken.builder()
+                .token(token)
+                .user(user)
+                .expiredDate(dateTimeUtils.instantFromLocalDateTimeZoneJakarta(localDateTime))
+                .build());
+    }
+
+    @Override
     public ResetPasswordResponse getResetTokenByToken(String token) {
         ResetToken resetTokenData = resetTokenRepository.findByToken(token).orElseThrow(() -> new ResponseStatusException(HttpStatus.GONE, "link reset password is expired"));
 
@@ -175,7 +194,7 @@ public class AuthServiceImpl implements AuthService {
 
         UUID id = uuidUtils.uuidFromString(resetNewPasswordRequest.getUserId(), "user not found");
 
-        ResetToken resetTokenData = resetTokenRepository.findByUserIdAndToken(id, resetNewPasswordRequest.getToken()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "reset password is expired"));
+        ResetToken resetTokenData = resetTokenRepository.findByUserIdAndToken(id, resetNewPasswordRequest.getToken()).orElseThrow(() -> new ResponseStatusException(HttpStatus.GONE, "reset password is expired"));
 
         User userData = userRepository.findById(resetTokenData.getUser().getId()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "user not found"));
         userData.setPassword(passwordEncoder.encode(resetNewPasswordRequest.getNewPassword()));

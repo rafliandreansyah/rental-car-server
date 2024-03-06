@@ -17,6 +17,8 @@ public interface AuthService {
 
     String requestResetPassword(ResetPasswordRequest resetPasswordRequest, HttpServletRequest request);
 
+    ResetToken requestResetPassword(ResetPasswordRequest resetPasswordRequest);
+
     ResetPasswordResponse getResetTokenByToken(String token);
 
     String resetNewPassword(ResetNewPasswordRequest resetNewPasswordRequest);

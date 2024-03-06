@@ -76,7 +76,7 @@ class AuthControllerTest {
 
     @Test
     void registerSuccessTest() throws Exception {
-
+        repository.deleteById(userData.getId());
         var request = RegisterRequest
                 .builder()
                 .email("rafli@gmail.com")
@@ -288,14 +288,6 @@ class AuthControllerTest {
 
     @Test
     void authenticateSuccessTest() throws Exception {
-        var user = User.builder()
-                .email("rafli@gmail.com")
-                .phoneNumber("+6281232720821")
-                .password(passwordEncoder.encode("secretpassword"))
-                .name("rafli andreansyah")
-                .role(UserRoleEnum.ADMIN)
-                .build();
-        repository.save(user);
 
         var authRequest = AuthenticateRequest
                 .builder()
@@ -399,14 +391,6 @@ class AuthControllerTest {
 
     @Test
     void authenticateWrongEmailTest() throws Exception {
-        var user = User.builder()
-                .email("rafli@gmail.com")
-                .phoneNumber("+6281232720821")
-                .password(passwordEncoder.encode("secretpassword"))
-                .name("rafli andreansyah")
-                .role(UserRoleEnum.ADMIN)
-                .build();
-        repository.save(user);
 
         var authRequest = AuthenticateRequest
                 .builder()
@@ -433,14 +417,6 @@ class AuthControllerTest {
 
     @Test
     void authenticateWrongPasswordTest() throws Exception {
-        var user = User.builder()
-                .email("rafli@gmail.com")
-                .phoneNumber("+6281232720821")
-                .password(passwordEncoder.encode("secretpassword"))
-                .name("rafli andreansyah")
-                .role(UserRoleEnum.ADMIN)
-                .build();
-        repository.save(user);
 
         var authRequest = AuthenticateRequest
                 .builder()
@@ -625,5 +601,113 @@ class AuthControllerTest {
                     Assertions.assertEquals(HttpStatus.GONE.value(), response.getStatus());
                     Assertions.assertEquals("link reset password is expired", response.getError());
                 });
+    }
+
+    @Test
+    void resetNewPasswordSuccessTest() throws Exception {
+
+        ResetPasswordRequest resetPasswordRequest = ResetPasswordRequest.builder()
+                .email(userData.getEmail())
+                .build();
+
+        ResetToken resetToken = authService.requestResetPassword(resetPasswordRequest);
+
+        ResetNewPasswordRequest resetNewPasswordRequest = ResetNewPasswordRequest.builder()
+                .newPassword("testing")
+                .token(resetToken.getToken())
+                .userId(resetToken.getUser().getId().toString())
+                .build();
+
+        mockMvc.perform(
+                MockMvcRequestBuilders.post("/api/v1/auth/reset-new-password")
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(resetNewPasswordRequest))
+        )
+                .andExpectAll(status().isOk())
+                .andExpectAll(result -> {
+                   WebResponse<String> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<WebResponse<String>>() {
+                   });
+
+                    Assertions.assertNotNull(response.getStatus());
+                    Assertions.assertNull(response.getError());
+                    Assertions.assertNotNull(response.getData());
+
+                    Assertions.assertEquals(HttpStatus.OK.value(), response.getStatus());
+                    Assertions.assertEquals("success reset new password", response.getData());
+                });
+
+    }
+
+    @Test
+    void resetNewPasswordExpiredWrongTokenErrorTest() throws Exception {
+
+        ResetPasswordRequest resetPasswordRequest = ResetPasswordRequest.builder()
+                .email(userData.getEmail())
+                .build();
+
+        ResetToken resetToken = authService.requestResetPassword(resetPasswordRequest);
+
+        ResetNewPasswordRequest resetNewPasswordRequest = ResetNewPasswordRequest.builder()
+                .newPassword("testing")
+                .token(resetToken.getToken() + "test")
+                .userId(resetToken.getUser().getId().toString())
+                .build();
+
+        mockMvc.perform(
+                        MockMvcRequestBuilders.post("/api/v1/auth/reset-new-password")
+                                .accept(MediaType.APPLICATION_JSON)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(resetNewPasswordRequest))
+                )
+                .andExpectAll(status().isGone())
+                .andExpectAll(result -> {
+                    WebResponse<String> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<WebResponse<String>>() {
+                    });
+
+                    Assertions.assertNotNull(response.getStatus());
+                    Assertions.assertNotNull(response.getError());
+                    Assertions.assertNull(response.getData());
+
+                    Assertions.assertEquals(HttpStatus.GONE.value(), response.getStatus());
+                    Assertions.assertEquals("reset password is expired", response.getError());
+                });
+
+    }
+
+    @Test
+    void resetNewPasswordExpiredWrongUserIDErrorTest() throws Exception {
+
+        ResetPasswordRequest resetPasswordRequest = ResetPasswordRequest.builder()
+                .email(userData.getEmail())
+                .build();
+
+        ResetToken resetToken = authService.requestResetPassword(resetPasswordRequest);
+
+        ResetNewPasswordRequest resetNewPasswordRequest = ResetNewPasswordRequest.builder()
+                .newPassword("testing")
+                .token(resetToken.getToken())
+                .userId("a80d02d6-56da-4264-a5fb-2ad1ef03f77d")
+                .build();
+
+        mockMvc.perform(
+                        MockMvcRequestBuilders.post("/api/v1/auth/reset-new-password")
+                                .accept(MediaType.APPLICATION_JSON)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(resetNewPasswordRequest))
+                )
+                .andExpectAll(status().isGone())
+                .andExpectAll(result -> {
+                    WebResponse<String> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<WebResponse<String>>() {
+                    });
+
+                    Assertions.assertNotNull(response.getStatus());
+                    Assertions.assertNotNull(response.getError());
+                    Assertions.assertNull(response.getData());
+
+                    Assertions.assertEquals(HttpStatus.GONE.value(), response.getStatus());
+                    Assertions.assertEquals("reset password is expired", response.getError());
+                });
+
     }
 }
