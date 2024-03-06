@@ -1,10 +1,9 @@
 package com.rentalcar.server.service;
 
+import com.rentalcar.server.entity.ResetToken;
 import com.rentalcar.server.entity.User;
-import com.rentalcar.server.model.AuthenticateRequest;
-import com.rentalcar.server.model.AuthenticateResponse;
-import com.rentalcar.server.model.RegisterRequest;
-import com.rentalcar.server.model.ResetPasswordRequest;
+import com.rentalcar.server.model.*;
+import jakarta.servlet.http.HttpServletRequest;
 
 public interface AuthService {
 
@@ -16,6 +15,10 @@ public interface AuthService {
 
     AuthenticateResponse authenticate(AuthenticateRequest authenticateRequest);
 
-    String requestResetPassword(ResetPasswordRequest request);
+    String requestResetPassword(ResetPasswordRequest resetPasswordRequest, HttpServletRequest request);
+
+    ResetPasswordResponse getResetTokenByToken(String token);
+
+    String resetNewPassword(ResetNewPasswordRequest resetNewPasswordRequest);
 
 }
