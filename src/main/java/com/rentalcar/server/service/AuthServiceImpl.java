@@ -5,6 +5,7 @@ import com.rentalcar.server.entity.UserRoleEnum;
 import com.rentalcar.server.model.AuthenticateRequest;
 import com.rentalcar.server.model.AuthenticateResponse;
 import com.rentalcar.server.model.RegisterRequest;
+import com.rentalcar.server.model.ResetPasswordRequest;
 import com.rentalcar.server.repository.UserRepository;
 import com.rentalcar.server.security.JwtService;
 import lombok.RequiredArgsConstructor;
@@ -102,5 +103,10 @@ public class AuthServiceImpl implements AuthService{
         return AuthenticateResponse.builder()
                 .token(jwtService.generateToken(user))
                 .build();
+    }
+
+    @Override
+    public String requestResetPassword(ResetPasswordRequest request) {
+        return null;
     }
 }

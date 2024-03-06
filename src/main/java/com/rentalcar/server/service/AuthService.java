@@ -4,6 +4,7 @@ import com.rentalcar.server.entity.User;
 import com.rentalcar.server.model.AuthenticateRequest;
 import com.rentalcar.server.model.AuthenticateResponse;
 import com.rentalcar.server.model.RegisterRequest;
+import com.rentalcar.server.model.ResetPasswordRequest;
 
 public interface AuthService {
 
@@ -14,5 +15,7 @@ public interface AuthService {
     User createUser(User user);
 
     AuthenticateResponse authenticate(AuthenticateRequest authenticateRequest);
+
+    String requestResetPassword(ResetPasswordRequest request);
 
 }
