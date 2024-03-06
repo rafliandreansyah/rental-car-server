@@ -51,13 +51,13 @@ public class User implements UserDetails {
     @Column(name = "is_active")
     private Boolean isActive;
 
-    @OneToMany(mappedBy = "user")
+    @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE)
     private List<Transaction> transactions;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE)
     private List<CarAuthorization> carAuthorizations;
 
-    @OneToOne(mappedBy = "user")
+    @OneToOne(mappedBy = "user", cascade = CascadeType.REMOVE)
     private ResetToken resetToken;
 
     @CreatedDate

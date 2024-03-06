@@ -2,22 +2,30 @@ package com.rentalcar.server.restcontroller;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.rentalcar.server.component.TokenGenerator;
+import com.rentalcar.server.entity.ResetToken;
 import com.rentalcar.server.entity.User;
 import com.rentalcar.server.entity.UserRoleEnum;
-import com.rentalcar.server.model.AuthenticateRequest;
-import com.rentalcar.server.model.AuthenticateResponse;
-import com.rentalcar.server.model.RegisterRequest;
+import com.rentalcar.server.model.*;
 import com.rentalcar.server.model.base.WebResponse;
+import com.rentalcar.server.repository.ResetTokenRepository;
 import com.rentalcar.server.repository.UserRepository;
+import com.rentalcar.server.service.AuthService;
+import com.rentalcar.server.util.DateTimeUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+
+import java.time.LocalDateTime;
+import java.util.Optional;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -38,10 +46,32 @@ class AuthControllerTest {
     @Autowired
     PasswordEncoder passwordEncoder;
 
+    @Autowired
+    AuthService authService;
+
+    @Autowired
+    ResetTokenRepository resetTokenRepository;
+
+    @Autowired
+    TokenGenerator tokenGenerator;
+
+    @Autowired
+    DateTimeUtils dateTimeUtils;
+
+    private User userData;
 
     @BeforeEach
     void setUp() {
         repository.deleteAll();
+
+        var user = User.builder()
+                .email("rafli@gmail.com")
+                .phoneNumber("+6281232720821")
+                .password(passwordEncoder.encode("secretpassword"))
+                .name("rafli andreansyah")
+                .role(UserRoleEnum.USER)
+                .build();
+        userData = repository.save(user);
     }
 
     @Test
@@ -435,4 +465,165 @@ class AuthControllerTest {
 
     }
 
+    @Test
+    void requestResetPasswordUserSuccessTest() throws Exception {
+
+        ResetPasswordRequest resetPasswordRequest = ResetPasswordRequest.builder().email(userData.getEmail()).build();
+
+        mockMvc.perform(
+                        MockMvcRequestBuilders.post("/api/v1/auth/reset-password")
+                                .accept(MediaType.APPLICATION_JSON)
+                                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                                .content(objectMapper.writeValueAsBytes(resetPasswordRequest))
+
+                )
+                .andExpectAll(status().isOk())
+                .andExpectAll(result -> {
+                    WebResponse<String> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<WebResponse<String>>() {
+                    });
+
+                    Assertions.assertNotNull(response.getStatus());
+                    Assertions.assertNull(response.getError());
+                    Assertions.assertNotNull(response.getData());
+
+                    Assertions.assertEquals(HttpStatus.OK.value(), response.getStatus());
+                    Assertions.assertEquals("success send link reset password to email", response.getData());
+
+                });
+    }
+
+    @Test
+    void requestResetPasswordUserNotFoundErrorTest() throws Exception {
+
+        ResetPasswordRequest resetPasswordRequest = ResetPasswordRequest.builder().email("testing@gmail.com").build();
+
+        mockMvc.perform(
+                        MockMvcRequestBuilders.post("/api/v1/auth/reset-password")
+                                .accept(MediaType.APPLICATION_JSON)
+                                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                                .content(objectMapper.writeValueAsBytes(resetPasswordRequest))
+
+                )
+                .andExpectAll(status().isNotFound())
+                .andExpectAll(result -> {
+                    WebResponse<String> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<WebResponse<String>>() {
+                    });
+
+                    Assertions.assertNotNull(response.getStatus());
+                    Assertions.assertNotNull(response.getError());
+                    Assertions.assertNull(response.getData());
+
+                    Assertions.assertEquals(HttpStatus.NOT_FOUND.value(), response.getStatus());
+                    Assertions.assertEquals("user not found", response.getError());
+
+                });
+    }
+
+    @Test
+    void getResetPasswordUserSuccessTest() throws Exception {
+        Optional<ResetToken> resetTokenData = resetTokenRepository.findByUserId(userData.getId());
+        resetTokenData.ifPresent(resetToken -> resetTokenRepository.deleteById(resetToken.getId()));
+
+        // Generate token
+        String token = tokenGenerator.generateToken();
+        LocalDateTime localDateTime = LocalDateTime.now().plusHours(1);
+
+        // Save data to reset token
+        ResetToken resetTokenSaved = resetTokenRepository.save(ResetToken.builder()
+                .token(token)
+                .user(userData)
+                .expiredDate(dateTimeUtils.instantFromLocalDateTimeZoneJakarta(localDateTime))
+                .build());
+
+
+        mockMvc.perform(
+                        MockMvcRequestBuilders.get("/api/v1/auth/reset-password")
+                                .param("token", resetTokenSaved.getToken())
+                                .accept(MediaType.APPLICATION_JSON_VALUE)
+                )
+                .andExpectAll(status().isOk())
+                .andExpectAll(result -> {
+                    WebResponse<ResetPasswordResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+                    });
+
+                    Assertions.assertNotNull(response.getStatus());
+                    Assertions.assertNull(response.getError());
+                    Assertions.assertNotNull(response.getData());
+
+                    Assertions.assertEquals(HttpStatus.OK.value(), response.getStatus());
+                    Assertions.assertEquals(userData.getId().toString(), response.getData().getUserId());
+                });
+    }
+
+    @Test
+    void getResetPasswordTokenExpiredErrorTest() throws Exception {
+        Optional<ResetToken> resetTokenData = resetTokenRepository.findByUserId(userData.getId());
+        resetTokenData.ifPresent(resetToken -> resetTokenRepository.deleteById(resetToken.getId()));
+
+        // Generate token
+        String token = tokenGenerator.generateToken();
+        LocalDateTime localDateTime = LocalDateTime.now().plusHours(1);
+
+        // Save data to reset token
+        ResetToken resetTokenSaved = resetTokenRepository.save(ResetToken.builder()
+                .token(token)
+                .user(userData)
+                .expiredDate(dateTimeUtils.instantFromLocalDateTimeZoneJakarta(localDateTime))
+                .build());
+
+
+        mockMvc.perform(
+                        MockMvcRequestBuilders.get("/api/v1/auth/reset-password")
+                                .param("token", resetTokenSaved.getToken() + "dawd")
+                                .accept(MediaType.APPLICATION_JSON_VALUE)
+                )
+                .andExpectAll(status().isGone())
+                .andExpectAll(result -> {
+                    WebResponse<ResetPasswordResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+                    });
+
+                    Assertions.assertNotNull(response.getStatus());
+                    Assertions.assertNotNull(response.getError());
+                    Assertions.assertNull(response.getData());
+
+                    Assertions.assertEquals(HttpStatus.GONE.value(), response.getStatus());
+                    Assertions.assertEquals("link reset password is expired", response.getError());
+                });
+    }
+
+    @Test
+    void getResetPasswordTokenExpiredInvalidTokenErrorTest() throws Exception {
+        Optional<ResetToken> resetTokenData = resetTokenRepository.findByUserId(userData.getId());
+        resetTokenData.ifPresent(resetToken -> resetTokenRepository.deleteById(resetToken.getId()));
+
+        // Generate token
+        String token = tokenGenerator.generateToken();
+        LocalDateTime localDateTime = LocalDateTime.now().minusMinutes(1);
+
+        // Save data to reset token
+        ResetToken resetTokenSaved = resetTokenRepository.save(ResetToken.builder()
+                .token(token)
+                .user(userData)
+                .expiredDate(dateTimeUtils.instantFromLocalDateTimeZoneJakarta(localDateTime))
+                .build());
+
+
+        mockMvc.perform(
+                        MockMvcRequestBuilders.get("/api/v1/auth/reset-password")
+                                .param("token", resetTokenSaved.getToken())
+                                .accept(MediaType.APPLICATION_JSON_VALUE)
+                )
+                .andExpectAll(status().isGone())
+                .andExpectAll(result -> {
+                    WebResponse<ResetPasswordResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+                    });
+
+                    Assertions.assertNotNull(response.getStatus());
+                    Assertions.assertNotNull(response.getError());
+                    Assertions.assertNull(response.getData());
+
+                    Assertions.assertEquals(HttpStatus.GONE.value(), response.getStatus());
+                    Assertions.assertEquals("link reset password is expired", response.getError());
+                });
+    }
 }
