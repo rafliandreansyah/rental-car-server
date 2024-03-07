@@ -2,6 +2,7 @@ package com.rentalcar.server.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -15,11 +16,11 @@ import java.util.List;
 @Builder
 public class CarCreateAuthorizationRequest {
 
-    @NotBlank(message = "user id must not be blank")
+    @NotEmpty(message = "user id must not be blank")
     @JsonProperty("user_id")
     private List<String> userId;
 
-    @NotBlank(message = "car id must not be blank")
+    @NotEmpty(message = "car id must not be blank")
     @JsonProperty("car_id")
     private List<String> carId;
 

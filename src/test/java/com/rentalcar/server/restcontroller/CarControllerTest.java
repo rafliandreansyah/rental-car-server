@@ -1300,7 +1300,7 @@ class CarControllerTest {
                     .tax(0)
                     .discount(0)
                     .description("dummy car data")
-                    .transmission( i % 2 == 0 ? CarTransmissionEnum.AT : CarTransmissionEnum.MT)
+                    .transmission(i % 2 == 0 ? CarTransmissionEnum.AT : CarTransmissionEnum.MT)
                     .tax(0)
                     .discount(0)
                     .build();
@@ -1360,7 +1360,7 @@ class CarControllerTest {
                     .tax(0)
                     .discount(0)
                     .description("dummy car data")
-                    .transmission( i % 2 == 0 ? CarTransmissionEnum.AT : CarTransmissionEnum.MT)
+                    .transmission(i % 2 == 0 ? CarTransmissionEnum.AT : CarTransmissionEnum.MT)
                     .tax(0)
                     .discount(0)
                     .build();
@@ -1418,7 +1418,7 @@ class CarControllerTest {
                     .tax(0)
                     .discount(0)
                     .description("dummy car data")
-                    .transmission( i % 2 == 0 ? CarTransmissionEnum.AT : CarTransmissionEnum.MT)
+                    .transmission(i % 2 == 0 ? CarTransmissionEnum.AT : CarTransmissionEnum.MT)
                     .tax(0)
                     .discount(0)
                     .build();
@@ -1474,7 +1474,7 @@ class CarControllerTest {
                     .tax(0)
                     .discount(0)
                     .description("dummy car data")
-                    .transmission( i % 2 == 0 ? CarTransmissionEnum.AT : CarTransmissionEnum.MT)
+                    .transmission(i % 2 == 0 ? CarTransmissionEnum.AT : CarTransmissionEnum.MT)
                     .tax(0)
                     .discount(0)
                     .build();
@@ -1525,13 +1525,13 @@ class CarControllerTest {
                     .tax(0)
                     .discount(0)
                     .description("dummy car data")
-                    .transmission( i % 2 == 0 ? CarTransmissionEnum.AT : CarTransmissionEnum.MT)
+                    .transmission(i % 2 == 0 ? CarTransmissionEnum.AT : CarTransmissionEnum.MT)
                     .tax(0)
                     .discount(0)
                     .build();
             Car savedCar = carRepository.save(carData);
 
-            if (i % 2 ==0) {
+            if (i % 2 == 0) {
                 TransactionCreateRequest request = TransactionCreateRequest.builder()
                         .dateAndTime("2024-04-20T10:00:00")
                         .duration(1)
@@ -1619,6 +1619,114 @@ class CarControllerTest {
 
                     Assertions.assertEquals(HttpStatus.BAD_REQUEST.value(), response.getStatus());
                     Assertions.assertEquals("duration must not be blank", response.getError());
+                });
+    }
+
+    @Test
+    void createCarAuthorizationSuccessTest() throws Exception {
+
+        List<String> listCarId = new ArrayList<>();
+
+        for (int i = 0; i < 30; i++) {
+            // Create car dummy data
+            Car carData = Car.builder()
+                    .name("Dummy Car " + i)
+                    .imageUrl("testing_image")
+                    .brand(CarBrandEnum.TOYOTA)
+                    .year(2022)
+                    .capacity(6)
+                    .cc(2000)
+                    .pricePerDay(200_000D)
+                    .tax(0)
+                    .discount(0)
+                    .description("dummy car data")
+                    .transmission(i % 2 == 0 ? CarTransmissionEnum.AT : CarTransmissionEnum.MT)
+                    .tax(0)
+                    .discount(0)
+                    .build();
+            Car savedCar = carRepository.save(carData);
+            listCarId.add(savedCar.getId().toString());
+        }
+
+        CarCreateAuthorizationRequest carCreateAuthorizationRequest = CarCreateAuthorizationRequest.builder()
+                .carId(listCarId)
+                .userId(List.of(admin.getId().toString()))
+                .build();
+
+        String token = jwtService.generateToken(admin);
+
+        mockMvc.perform(
+                        MockMvcRequestBuilders.post("/api/v1/cars/authorization")
+                                .header(AUTHORIZATION, "Bearer " + token)
+                                .accept(MediaType.APPLICATION_JSON)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(carCreateAuthorizationRequest))
+                )
+                .andExpectAll(status().isCreated())
+                .andExpectAll(result -> {
+                    WebResponse<String> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<WebResponse<String>>() {
+                    });
+
+                    Assertions.assertNotNull(response.getStatus());
+                    Assertions.assertNull(response.getError());
+                    Assertions.assertNotNull(response.getData());
+
+                    Assertions.assertEquals(HttpStatus.CREATED.value(), response.getStatus());
+                    Assertions.assertEquals("success add car authorization", response.getData());
+                });
+    }
+
+    @Test
+    void createCarAuthorizationUserAccessForbiddenErrorTest() throws Exception {
+
+        List<String> listCarId = new ArrayList<>();
+
+        for (int i = 0; i < 30; i++) {
+            // Create car dummy data
+            Car carData = Car.builder()
+                    .name("Dummy Car " + i)
+                    .imageUrl("testing_image")
+                    .brand(CarBrandEnum.TOYOTA)
+                    .year(2022)
+                    .capacity(6)
+                    .cc(2000)
+                    .pricePerDay(200_000D)
+                    .tax(0)
+                    .discount(0)
+                    .description("dummy car data")
+                    .transmission(i % 2 == 0 ? CarTransmissionEnum.AT : CarTransmissionEnum.MT)
+                    .tax(0)
+                    .discount(0)
+                    .build();
+            Car savedCar = carRepository.save(carData);
+            listCarId.add(savedCar.getId().toString());
+        }
+
+        CarCreateAuthorizationRequest carCreateAuthorizationRequest = CarCreateAuthorizationRequest.builder()
+                .carId(listCarId)
+                .userId(List.of(admin.getId().toString()))
+                .build();
+
+        String token = jwtService.generateToken(user);
+
+        mockMvc.perform(
+                        MockMvcRequestBuilders.post("/api/v1/cars/authorization")
+                                .header(AUTHORIZATION, "Bearer " + token)
+                                .accept(MediaType.APPLICATION_JSON)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(carCreateAuthorizationRequest))
+                )
+                .andExpectAll(status().isForbidden())
+                .andExpectAll(result -> {
+                    WebResponse<String> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<WebResponse<String>>() {
+                    });
+
+                    Assertions.assertNotNull(response.getStatus());
+                    Assertions.assertNotNull(response.getError());
+                    Assertions.assertNull(response.getData());
+
+                    Assertions.assertEquals(HttpStatus.FORBIDDEN.value(), response.getStatus());
+                    Assertions.assertEquals("don't have a access", response.getError());
                 });
     }
 
