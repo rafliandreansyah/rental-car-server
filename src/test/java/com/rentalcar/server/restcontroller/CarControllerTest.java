@@ -6,6 +6,7 @@ import com.rentalcar.server.entity.*;
 import com.rentalcar.server.model.CarCreateAndEditResponse;
 import com.rentalcar.server.model.CarCreateRequest;
 import com.rentalcar.server.model.CarDetailResponse;
+import com.rentalcar.server.model.CarEditRequest;
 import com.rentalcar.server.model.base.WebResponse;
 import com.rentalcar.server.repository.CarAuthorizationRepository;
 import com.rentalcar.server.repository.CarImageDetailRepository;
@@ -19,6 +20,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
@@ -66,9 +68,11 @@ class CarControllerTest {
     @Autowired
     ObjectMapper objectMapper;
 
-    User admin;
+    private User admin;
 
-    User user;
+    private User user;
+
+    private Car car;
 
     @BeforeEach
     void setUp() {
@@ -92,6 +96,24 @@ class CarControllerTest {
                 .role(UserRoleEnum.USER)
                 .build();
         userRepository.save(user);
+
+        // Create car dummy data
+        car = Car.builder()
+                .name("Dummy Car")
+                .imageUrl("testing_image")
+                .brand(CarBrandEnum.TOYOTA)
+                .year(2022)
+                .capacity(6)
+                .cc(2000)
+                .pricePerDay(200_000D)
+                .tax(0)
+                .discount(0)
+                .description("dummy car data")
+                .transmission(CarTransmissionEnum.AT)
+                .tax(0)
+                .discount(0)
+                .build();
+        carRepository.save(car);
     }
 
     @Test
@@ -1003,6 +1025,211 @@ class CarControllerTest {
                 });
     }
 
+    @Test
+    void editCarWithOutImageSuccessTest() throws Exception {
+
+        CarEditRequest carEditRequest = CarEditRequest
+                .builder()
+                .name("Edited Car")
+                .brand(CarBrandEnum.TOYOTA.name())
+                .year(2024)
+                .capacity(4)
+                .cc(3000)
+                .price(400_000D)
+                .tax(1)
+                .discount(10)
+                .description("edited car data")
+                .transmission(CarTransmissionEnum.MT.name())
+                .build();
+
+        String token = jwtService.generateToken(admin);
+
+        mockMvc.perform(
+                MockMvcRequestBuilders.multipart("/api/v1/cars/{id}", car.getId())
+                        .with(request -> {
+                            request.setMethod(HttpMethod.PATCH.name());
+                            return request;
+                        })
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.MULTIPART_FORM_DATA)
+                        .param("name", carEditRequest.getName())
+                        .param("brand", carEditRequest.getBrand())
+                        .param("year", carEditRequest.getYear().toString())
+                        .param("capacity", carEditRequest.getCapacity().toString())
+                        .param("cc", carEditRequest.getCc().toString())
+                        .param("price", carEditRequest.getPrice().toString())
+                        .param("description", carEditRequest.getDescription())
+                        .param("transmission", carEditRequest.getTransmission())
+                        .param("tax", carEditRequest.getTax().toString())
+                        .param("discount", carEditRequest.getDiscount().toString())
+                        .header(AUTHORIZATION, "Bearer " + token)
+        )
+                .andExpectAll(status().isOk())
+                .andExpectAll(result -> {
+                    WebResponse<CarCreateAndEditResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+                    });
+
+                    Assertions.assertNotNull(response.getStatus());
+                    Assertions.assertNull(response.getError());
+                    Assertions.assertNotNull(response.getData());
+
+                    Assertions.assertEquals(HttpStatus.OK.value(), response.getStatus());
+                    Assertions.assertEquals(carEditRequest.getName(), response.getData().getName());
+                    Assertions.assertEquals(carEditRequest.getBrand(), response.getData().getBrand());
+                    Assertions.assertEquals(carEditRequest.getYear(), response.getData().getYear());
+                    Assertions.assertEquals(carEditRequest.getCapacity(), response.getData().getCapacity());
+                    Assertions.assertEquals(carEditRequest.getCc(), response.getData().getCc());
+                    Assertions.assertEquals(carEditRequest.getDescription(), response.getData().getDescription());
+                    Assertions.assertEquals(carEditRequest.getTransmission(), response.getData().getTransmission());
+                    Assertions.assertEquals(carEditRequest.getTax(), response.getData().getTax());
+                    Assertions.assertEquals(carEditRequest.getDiscount(), response.getData().getDiscount());
+                    Assertions.assertEquals(carEditRequest.getPrice(), response.getData().getPrice());
+                });
+    }
+
+    @Test
+    void editCarWithImageSuccessTest() throws Exception {
+
+        MockMultipartFile multipartFile = new MockMultipartFile(
+                "image",
+                "car.jpg",
+                MediaType.IMAGE_JPEG_VALUE,
+                "my-images".getBytes()
+        );
+
+        List<MockMultipartFile> multipartFiles = new ArrayList<>();
+        for (int i = 0; i < 5; i++) {
+            MockMultipartFile multipartImageDetail = new MockMultipartFile(
+                    "image_detail",
+                    "car" + i +".jpg",
+                    MediaType.IMAGE_JPEG_VALUE,
+                    ("my-images"  + i).getBytes()
+            );
+            multipartFiles.add(multipartImageDetail);
+        }
+
+        CarEditRequest carEditRequest = CarEditRequest
+                .builder()
+                .name("Edited Car")
+                .brand(CarBrandEnum.TOYOTA.name())
+                .year(2024)
+                .capacity(4)
+                .cc(3000)
+                .price(400_000D)
+                .tax(1)
+                .discount(10)
+                .description("edited car data")
+                .transmission(CarTransmissionEnum.MT.name())
+                .build();
+
+        String token = jwtService.generateToken(admin);
+
+        mockMvc.perform(
+                        MockMvcRequestBuilders.multipart("/api/v1/cars/{id}", car.getId())
+                                .file(multipartFile)
+                                .file(multipartFiles.get(0))
+                                .file(multipartFiles.get(1))
+                                .file(multipartFiles.get(2))
+                                .file(multipartFiles.get(3))
+                                .file(multipartFiles.get(4))
+                                .with(request -> {
+                                    request.setMethod(HttpMethod.PATCH.name());
+                                    return request;
+                                })
+                                .accept(MediaType.APPLICATION_JSON)
+                                .contentType(MediaType.MULTIPART_FORM_DATA)
+                                .param("name", carEditRequest.getName())
+                                .param("brand", carEditRequest.getBrand())
+                                .param("year", carEditRequest.getYear().toString())
+                                .param("capacity", carEditRequest.getCapacity().toString())
+                                .param("cc", carEditRequest.getCc().toString())
+                                .param("price", carEditRequest.getPrice().toString())
+                                .param("description", carEditRequest.getDescription())
+                                .param("transmission", carEditRequest.getTransmission())
+                                .param("tax", carEditRequest.getTax().toString())
+                                .param("discount", carEditRequest.getDiscount().toString())
+                                .header(AUTHORIZATION, "Bearer " + token)
+                )
+                .andExpectAll(status().isOk())
+                .andExpectAll(result -> {
+                    WebResponse<CarCreateAndEditResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+                    });
+
+                    Assertions.assertNotNull(response.getStatus());
+                    Assertions.assertNull(response.getError());
+                    Assertions.assertNotNull(response.getData());
+                    Assertions.assertNotNull(response.getData().getImageDetail());
+                    Assertions.assertNotNull(response.getData().getImage());
+
+                    Assertions.assertEquals(HttpStatus.OK.value(), response.getStatus());
+                    Assertions.assertEquals(carEditRequest.getName(), response.getData().getName());
+                    Assertions.assertEquals(carEditRequest.getBrand(), response.getData().getBrand());
+                    Assertions.assertEquals(carEditRequest.getYear(), response.getData().getYear());
+                    Assertions.assertEquals(carEditRequest.getCapacity(), response.getData().getCapacity());
+                    Assertions.assertEquals(carEditRequest.getCc(), response.getData().getCc());
+                    Assertions.assertEquals(carEditRequest.getDescription(), response.getData().getDescription());
+                    Assertions.assertEquals(carEditRequest.getTransmission(), response.getData().getTransmission());
+                    Assertions.assertEquals(carEditRequest.getTax(), response.getData().getTax());
+                    Assertions.assertEquals(carEditRequest.getDiscount(), response.getData().getDiscount());
+                    Assertions.assertEquals(carEditRequest.getPrice(), response.getData().getPrice());
+                    Assertions.assertEquals(5, response.getData().getImageDetail().size());
+                });
+    }
+
+    @Test
+    void editCarWithOutImageDontHaveAccessErrorTest() throws Exception {
+
+        CarEditRequest carEditRequest = CarEditRequest
+                .builder()
+                .name("Edited Car")
+                .brand(CarBrandEnum.TOYOTA.name())
+                .year(2024)
+                .capacity(4)
+                .cc(3000)
+                .price(400_000D)
+                .tax(1)
+                .discount(10)
+                .description("edited car data")
+                .transmission(CarTransmissionEnum.MT.name())
+                .build();
+
+        String token = jwtService.generateToken(user);
+
+        mockMvc.perform(
+                        MockMvcRequestBuilders.multipart("/api/v1/cars/{id}", car.getId())
+                                .with(request -> {
+                                    request.setMethod(HttpMethod.PATCH.name());
+                                    return request;
+                                })
+                                .accept(MediaType.APPLICATION_JSON)
+                                .contentType(MediaType.MULTIPART_FORM_DATA)
+                                .param("name", carEditRequest.getName())
+                                .param("brand", carEditRequest.getBrand())
+                                .param("year", carEditRequest.getYear().toString())
+                                .param("capacity", carEditRequest.getCapacity().toString())
+                                .param("cc", carEditRequest.getCc().toString())
+                                .param("price", carEditRequest.getPrice().toString())
+                                .param("description", carEditRequest.getDescription())
+                                .param("transmission", carEditRequest.getTransmission())
+                                .param("tax", carEditRequest.getTax().toString())
+                                .param("discount", carEditRequest.getDiscount().toString())
+                                .header(AUTHORIZATION, "Bearer " + token)
+                )
+                .andExpectAll(status().isForbidden())
+                .andExpectAll(result -> {
+                    WebResponse<CarCreateAndEditResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+                    });
+
+                    Assertions.assertNotNull(response.getStatus());
+                    Assertions.assertNotNull(response.getError());
+                    Assertions.assertNull(response.getData());
+
+                    Assertions.assertEquals(HttpStatus.FORBIDDEN.value(), response.getStatus());
+                    Assertions.assertEquals("don't have a access", response.getError());
+                });
+    }
+
+
     /*@Test
     void testImage() throws IOException {
         boolean exists = Files.exists(Path.of("images/user/profile/1695719036091.jpg"));
@@ -1012,4 +1239,5 @@ class CarControllerTest {
         System.out.println("is delete: " + b);
 
     }*/
+
 }

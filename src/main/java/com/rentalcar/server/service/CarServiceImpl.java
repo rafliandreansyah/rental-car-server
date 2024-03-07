@@ -460,8 +460,6 @@ public class CarServiceImpl implements CarService {
                 .discount(0)
                 .description("dummy car data")
                 .transmission(CarTransmissionEnum.AT)
-                .tax(0)
-                .discount(0)
                 .build();
         return carRepository.save(car);
     }
