@@ -3,17 +3,13 @@ package com.rentalcar.server.restcontroller;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rentalcar.server.entity.*;
-import com.rentalcar.server.model.CarCreateAndEditResponse;
-import com.rentalcar.server.model.CarCreateRequest;
-import com.rentalcar.server.model.CarDetailResponse;
-import com.rentalcar.server.model.CarEditRequest;
+import com.rentalcar.server.model.*;
 import com.rentalcar.server.model.base.WebResponse;
-import com.rentalcar.server.repository.CarAuthorizationRepository;
-import com.rentalcar.server.repository.CarImageDetailRepository;
-import com.rentalcar.server.repository.CarRepository;
-import com.rentalcar.server.repository.UserRepository;
+import com.rentalcar.server.model.base.WebResponsePaging;
+import com.rentalcar.server.repository.*;
 import com.rentalcar.server.security.JwtService;
 import com.rentalcar.server.service.AuthService;
+import com.rentalcar.server.service.TransactionService;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -32,6 +28,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.io.IOException;
+import java.lang.reflect.Type;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
@@ -64,6 +61,9 @@ class CarControllerTest {
 
     @Autowired
     AuthService authService;
+
+    @Autowired
+    TransactionService transactionService;
 
     @Autowired
     ObjectMapper objectMapper;
@@ -407,22 +407,22 @@ class CarControllerTest {
         String token = jwtService.generateToken(admin);
 
         mockMvc.perform(
-                MockMvcRequestBuilders.multipart("/api/v1/cars")
-                        .file(multipartFile)
-                        .param("name", carCreateRequest.getName())
-                        .param("price", carCreateRequest.getPrice().toString())
-                        .param("brand", carCreateRequest.getBrand())
-                        .param("year", carCreateRequest.getYear().toString())
-                        .param("capacity", carCreateRequest.getCapacity().toString())
-                        .param("cc", carCreateRequest.getCc().toString())
-                        .param("description", carCreateRequest.getDescription())
-                        .param("transmission", carCreateRequest.getTransmission())
-                        .param("discount", carCreateRequest.getDiscount().toString())
-                        .param("tax", carCreateRequest.getTax().toString())
-                        .header(AUTHORIZATION, "Bearer " + token)
-                        .contentType(MediaType.MULTIPART_FORM_DATA)
-                        .accept(MediaType.APPLICATION_JSON)
-        ).andExpectAll(status().isCreated())
+                        MockMvcRequestBuilders.multipart("/api/v1/cars")
+                                .file(multipartFile)
+                                .param("name", carCreateRequest.getName())
+                                .param("price", carCreateRequest.getPrice().toString())
+                                .param("brand", carCreateRequest.getBrand())
+                                .param("year", carCreateRequest.getYear().toString())
+                                .param("capacity", carCreateRequest.getCapacity().toString())
+                                .param("cc", carCreateRequest.getCc().toString())
+                                .param("description", carCreateRequest.getDescription())
+                                .param("transmission", carCreateRequest.getTransmission())
+                                .param("discount", carCreateRequest.getDiscount().toString())
+                                .param("tax", carCreateRequest.getTax().toString())
+                                .header(AUTHORIZATION, "Bearer " + token)
+                                .contentType(MediaType.MULTIPART_FORM_DATA)
+                                .accept(MediaType.APPLICATION_JSON)
+                ).andExpectAll(status().isCreated())
                 .andExpectAll(result -> {
                     WebResponse<CarCreateAndEditResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
                     });
@@ -459,9 +459,9 @@ class CarControllerTest {
         for (int i = 0; i < 5; i++) {
             MockMultipartFile multipartImageDetail = new MockMultipartFile(
                     "image_detail",
-                    "car" + i +".jpg",
+                    "car" + i + ".jpg",
                     MediaType.IMAGE_JPEG_VALUE,
-                    ("my-images"  + i).getBytes()
+                    ("my-images" + i).getBytes()
             );
             multipartFiles.add(multipartImageDetail);
         }
@@ -1045,25 +1045,25 @@ class CarControllerTest {
         String token = jwtService.generateToken(admin);
 
         mockMvc.perform(
-                MockMvcRequestBuilders.multipart("/api/v1/cars/{id}", car.getId())
-                        .with(request -> {
-                            request.setMethod(HttpMethod.PATCH.name());
-                            return request;
-                        })
-                        .accept(MediaType.APPLICATION_JSON)
-                        .contentType(MediaType.MULTIPART_FORM_DATA)
-                        .param("name", carEditRequest.getName())
-                        .param("brand", carEditRequest.getBrand())
-                        .param("year", carEditRequest.getYear().toString())
-                        .param("capacity", carEditRequest.getCapacity().toString())
-                        .param("cc", carEditRequest.getCc().toString())
-                        .param("price", carEditRequest.getPrice().toString())
-                        .param("description", carEditRequest.getDescription())
-                        .param("transmission", carEditRequest.getTransmission())
-                        .param("tax", carEditRequest.getTax().toString())
-                        .param("discount", carEditRequest.getDiscount().toString())
-                        .header(AUTHORIZATION, "Bearer " + token)
-        )
+                        MockMvcRequestBuilders.multipart("/api/v1/cars/{id}", car.getId())
+                                .with(request -> {
+                                    request.setMethod(HttpMethod.PATCH.name());
+                                    return request;
+                                })
+                                .accept(MediaType.APPLICATION_JSON)
+                                .contentType(MediaType.MULTIPART_FORM_DATA)
+                                .param("name", carEditRequest.getName())
+                                .param("brand", carEditRequest.getBrand())
+                                .param("year", carEditRequest.getYear().toString())
+                                .param("capacity", carEditRequest.getCapacity().toString())
+                                .param("cc", carEditRequest.getCc().toString())
+                                .param("price", carEditRequest.getPrice().toString())
+                                .param("description", carEditRequest.getDescription())
+                                .param("transmission", carEditRequest.getTransmission())
+                                .param("tax", carEditRequest.getTax().toString())
+                                .param("discount", carEditRequest.getDiscount().toString())
+                                .header(AUTHORIZATION, "Bearer " + token)
+                )
                 .andExpectAll(status().isOk())
                 .andExpectAll(result -> {
                     WebResponse<CarCreateAndEditResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
@@ -1101,9 +1101,9 @@ class CarControllerTest {
         for (int i = 0; i < 5; i++) {
             MockMultipartFile multipartImageDetail = new MockMultipartFile(
                     "image_detail",
-                    "car" + i +".jpg",
+                    "car" + i + ".jpg",
                     MediaType.IMAGE_JPEG_VALUE,
-                    ("my-images"  + i).getBytes()
+                    ("my-images" + i).getBytes()
             );
             multipartFiles.add(multipartImageDetail);
         }
@@ -1229,6 +1229,398 @@ class CarControllerTest {
                 });
     }
 
+    @Test
+    void getListCarAdminSuccessTest() throws Exception {
+        List<CarAuthorization> carAuthorizations = new ArrayList<>();
+        for (int i = 0; i < 30; i++) {
+            // Create car dummy data
+            Car carData = Car.builder()
+                    .name("Dummy Car " + i)
+                    .imageUrl("testing_image")
+                    .brand(CarBrandEnum.TOYOTA)
+                    .year(2022)
+                    .capacity(6)
+                    .cc(2000)
+                    .pricePerDay(200_000D)
+                    .tax(0)
+                    .discount(0)
+                    .description("dummy car data")
+                    .transmission(CarTransmissionEnum.AT)
+                    .tax(0)
+                    .discount(0)
+                    .build();
+            Car savedCar = carRepository.save(carData);
+            carAuthorizations.add(
+                    CarAuthorization.builder()
+                            .user(admin)
+                            .car(savedCar)
+                            .build()
+            );
+        }
+        carAuthorizationRepository.saveAll(carAuthorizations.stream().toList());
+
+        String token = jwtService.generateToken(admin);
+
+        mockMvc.perform(
+                        MockMvcRequestBuilders.get("/api/v1/cars")
+                                .header(AUTHORIZATION, "Bearer " + token)
+                                .accept(MediaType.APPLICATION_JSON)
+                )
+                .andExpectAll(status().isOk())
+                .andExpectAll(result -> {
+                    WebResponsePaging<List<CarResponse>> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<WebResponsePaging<List<CarResponse>>>() {
+                    });
+
+                    Assertions.assertNotNull(response.getStatus());
+                    Assertions.assertNull(response.getError());
+                    Assertions.assertNotNull(response.getData());
+
+                    Assertions.assertEquals(HttpStatus.OK.value(), response.getStatus());
+                    Assertions.assertEquals(1, response.getCurrentPage());
+                    Assertions.assertEquals(2, response.getLastPage());
+                    Assertions.assertEquals(20, response.getPerPage());
+                    Assertions.assertEquals(30, response.getTotalItem());
+                    Assertions.assertEquals(20, response.getData().size());
+
+                });
+    }
+
+    @Test
+    void getListCarAdminPerintisSuccessTest() throws Exception {
+        for (int i = 0; i < 30; i++) {
+            // Create car dummy data
+            Car carData = Car.builder()
+                    .name("Dummy Car " + i)
+                    .imageUrl("testing_image")
+                    .brand(CarBrandEnum.TOYOTA)
+                    .year(2022)
+                    .capacity(6)
+                    .cc(2000)
+                    .pricePerDay(200_000D)
+                    .tax(0)
+                    .discount(0)
+                    .description("dummy car data")
+                    .transmission( i % 2 == 0 ? CarTransmissionEnum.AT : CarTransmissionEnum.MT)
+                    .tax(0)
+                    .discount(0)
+                    .build();
+            Car savedCar = carRepository.save(carData);
+        }
+
+        User perintis = User.builder()
+                .name("Perintis")
+                .email("perintis@gmail.com")
+                .password("amaterasu")
+                .phoneNumber("+6289283839922")
+                .dateOfBirth(Instant.now())
+                .role(UserRoleEnum.ADMIN)
+                .build();
+        User userPerintisSaved = userRepository.save(perintis);
+
+        String token = jwtService.generateToken(userPerintisSaved);
+
+        mockMvc.perform(
+                        MockMvcRequestBuilders.get("/api/v1/cars")
+                                .header(AUTHORIZATION, "Bearer " + token)
+                                .accept(MediaType.APPLICATION_JSON)
+                )
+                .andExpectAll(status().isOk())
+                .andExpectAll(result -> {
+                    WebResponsePaging<List<CarResponse>> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<WebResponsePaging<List<CarResponse>>>() {
+                    });
+
+                    Assertions.assertNotNull(response.getStatus());
+                    Assertions.assertNull(response.getError());
+                    Assertions.assertNotNull(response.getData());
+
+                    Assertions.assertEquals(HttpStatus.OK.value(), response.getStatus());
+                    Assertions.assertEquals(1, response.getCurrentPage());
+                    Assertions.assertEquals(2, response.getLastPage());
+                    Assertions.assertEquals(20, response.getPerPage());
+                    Assertions.assertEquals(31, response.getTotalItem());
+                    Assertions.assertEquals(20, response.getData().size());
+
+                });
+    }
+
+    @Test
+    void getListCarAdminWithQueryNameSuccessTest() throws Exception {
+        List<CarAuthorization> carAuthorizations = new ArrayList<>();
+
+        for (int i = 0; i < 30; i++) {
+            // Create car dummy data
+            Car carData = Car.builder()
+                    .name("Dummy Car " + i)
+                    .imageUrl("testing_image")
+                    .brand(CarBrandEnum.TOYOTA)
+                    .year(2022)
+                    .capacity(6)
+                    .cc(2000)
+                    .pricePerDay(200_000D)
+                    .tax(0)
+                    .discount(0)
+                    .description("dummy car data")
+                    .transmission( i % 2 == 0 ? CarTransmissionEnum.AT : CarTransmissionEnum.MT)
+                    .tax(0)
+                    .discount(0)
+                    .build();
+            Car savedCar = carRepository.save(carData);
+            carAuthorizations.add(
+                    CarAuthorization.builder()
+                            .user(admin)
+                            .car(savedCar)
+                            .build()
+            );
+        }
+        carAuthorizationRepository.saveAll(carAuthorizations.stream().toList());
+
+        String token = jwtService.generateToken(admin);
+
+        mockMvc.perform(
+                        MockMvcRequestBuilders.get("/api/v1/cars")
+                                .header(AUTHORIZATION, "Bearer " + token)
+                                .param("name", "dummy car 1")
+                                .accept(MediaType.APPLICATION_JSON)
+                )
+                .andExpectAll(status().isOk())
+                .andExpectAll(result -> {
+                    WebResponsePaging<List<CarResponse>> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<WebResponsePaging<List<CarResponse>>>() {
+                    });
+
+                    Assertions.assertNotNull(response.getStatus());
+                    Assertions.assertNull(response.getError());
+                    Assertions.assertNotNull(response.getData());
+
+                    Assertions.assertEquals(HttpStatus.OK.value(), response.getStatus());
+                    Assertions.assertEquals(1, response.getCurrentPage());
+                    Assertions.assertEquals(1, response.getLastPage());
+                    Assertions.assertEquals(20, response.getPerPage());
+                    Assertions.assertEquals(11, response.getTotalItem());
+                    Assertions.assertEquals(11, response.getData().size());
+
+                });
+    }
+
+    @Test
+    void getListCarAdminWithQueryTransmissionSuccessTest() throws Exception {
+        List<CarAuthorization> carAuthorizations = new ArrayList<>();
+
+        for (int i = 0; i < 30; i++) {
+            // Create car dummy data
+            Car carData = Car.builder()
+                    .name("Dummy Car " + i)
+                    .imageUrl("testing_image")
+                    .brand(CarBrandEnum.TOYOTA)
+                    .year(2022)
+                    .capacity(6)
+                    .cc(2000)
+                    .pricePerDay(200_000D)
+                    .tax(0)
+                    .discount(0)
+                    .description("dummy car data")
+                    .transmission( i % 2 == 0 ? CarTransmissionEnum.AT : CarTransmissionEnum.MT)
+                    .tax(0)
+                    .discount(0)
+                    .build();
+            Car savedCar = carRepository.save(carData);
+            carAuthorizations.add(
+                    CarAuthorization.builder()
+                            .user(admin)
+                            .car(savedCar)
+                            .build()
+            );
+        }
+        carAuthorizationRepository.saveAll(carAuthorizations.stream().toList());
+
+        String token = jwtService.generateToken(admin);
+
+        mockMvc.perform(
+                        MockMvcRequestBuilders.get("/api/v1/cars")
+                                .header(AUTHORIZATION, "Bearer " + token)
+                                .param("transmission", "at")
+                                .accept(MediaType.APPLICATION_JSON)
+                )
+                .andExpectAll(status().isOk())
+                .andExpectAll(result -> {
+                    WebResponsePaging<List<CarResponse>> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<WebResponsePaging<List<CarResponse>>>() {
+                    });
+
+                    Assertions.assertNotNull(response.getStatus());
+                    Assertions.assertNull(response.getError());
+                    Assertions.assertNotNull(response.getData());
+
+                    Assertions.assertEquals(HttpStatus.OK.value(), response.getStatus());
+                    Assertions.assertEquals(1, response.getCurrentPage());
+                    Assertions.assertEquals(1, response.getLastPage());
+                    Assertions.assertEquals(20, response.getPerPage());
+                    Assertions.assertEquals(15, response.getTotalItem());
+                    Assertions.assertEquals(15, response.getData().size());
+
+                });
+    }
+
+    @Test
+    void getListCarUserSuccessTest() throws Exception {
+        for (int i = 0; i < 30; i++) {
+            // Create car dummy data
+            Car carData = Car.builder()
+                    .name("Dummy Car " + i)
+                    .imageUrl("testing_image")
+                    .brand(CarBrandEnum.TOYOTA)
+                    .year(2022)
+                    .capacity(6)
+                    .cc(2000)
+                    .pricePerDay(200_000D)
+                    .tax(0)
+                    .discount(0)
+                    .description("dummy car data")
+                    .transmission( i % 2 == 0 ? CarTransmissionEnum.AT : CarTransmissionEnum.MT)
+                    .tax(0)
+                    .discount(0)
+                    .build();
+            Car savedCar = carRepository.save(carData);
+        }
+
+        String token = jwtService.generateToken(user);
+
+        mockMvc.perform(
+                        MockMvcRequestBuilders.get("/api/v1/cars")
+                                .header(AUTHORIZATION, "Bearer " + token)
+                                .param("start_date_rent", "2024-04-20T10:00:00")
+                                .param("duration", "1")
+                                .accept(MediaType.APPLICATION_JSON)
+                )
+                .andExpectAll(status().isOk())
+                .andExpectAll(result -> {
+                    WebResponsePaging<List<CarResponse>> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<WebResponsePaging<List<CarResponse>>>() {
+                    });
+
+                    Assertions.assertNotNull(response.getStatus());
+                    Assertions.assertNull(response.getError());
+                    Assertions.assertNotNull(response.getData());
+
+                    Assertions.assertEquals(HttpStatus.OK.value(), response.getStatus());
+                    Assertions.assertEquals(1, response.getCurrentPage());
+                    Assertions.assertEquals(2, response.getLastPage());
+                    Assertions.assertEquals(20, response.getPerPage());
+                    Assertions.assertEquals(31, response.getTotalItem());
+                    Assertions.assertEquals(20, response.getData().size());
+
+                });
+    }
+
+
+    @Test
+    void getListCarUserWithCarOrderedSuccessTest() throws Exception {
+        for (int i = 0; i < 30; i++) {
+            // Create car dummy data
+            Car carData = Car.builder()
+                    .name("Dummy Car " + i)
+                    .imageUrl("testing_image")
+                    .brand(CarBrandEnum.TOYOTA)
+                    .year(2022)
+                    .capacity(6)
+                    .cc(2000)
+                    .pricePerDay(200_000D)
+                    .tax(0)
+                    .discount(0)
+                    .description("dummy car data")
+                    .transmission( i % 2 == 0 ? CarTransmissionEnum.AT : CarTransmissionEnum.MT)
+                    .tax(0)
+                    .discount(0)
+                    .build();
+            Car savedCar = carRepository.save(carData);
+
+            if (i % 2 ==0) {
+                TransactionCreateRequest request = TransactionCreateRequest.builder()
+                        .dateAndTime("2024-04-20T10:00:00")
+                        .duration(1)
+                        .carId(savedCar.getId().toString())
+                        .userId(user.getId().toString())
+                        .build();
+                transactionService.createTransaction(user, request);
+            }
+
+        }
+
+        String token = jwtService.generateToken(user);
+
+        mockMvc.perform(
+                        MockMvcRequestBuilders.get("/api/v1/cars")
+                                .header(AUTHORIZATION, "Bearer " + token)
+                                .param("start_date_rent", "2024-04-20T10:00:00")
+                                .param("duration", "1")
+                                .accept(MediaType.APPLICATION_JSON)
+                )
+                .andExpectAll(status().isOk())
+                .andExpectAll(result -> {
+                    WebResponsePaging<List<CarResponse>> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<WebResponsePaging<List<CarResponse>>>() {
+                    });
+
+                    Assertions.assertNotNull(response.getStatus());
+                    Assertions.assertNull(response.getError());
+                    Assertions.assertNotNull(response.getData());
+
+                    Assertions.assertEquals(HttpStatus.OK.value(), response.getStatus());
+                    Assertions.assertEquals(1, response.getCurrentPage());
+                    Assertions.assertEquals(1, response.getLastPage());
+                    Assertions.assertEquals(20, response.getPerPage());
+                    Assertions.assertEquals(16, response.getTotalItem());
+                    Assertions.assertEquals(16, response.getData().size());
+
+                });
+    }
+
+    @Test
+    void getListCarUserEmptyDateErrorTest() throws Exception {
+
+        String token = jwtService.generateToken(user);
+
+        mockMvc.perform(
+                        MockMvcRequestBuilders.get("/api/v1/cars")
+                                .header(AUTHORIZATION, "Bearer " + token)
+                                .param("duration", "1")
+                                .accept(MediaType.APPLICATION_JSON)
+                )
+                .andExpectAll(status().isBadRequest())
+                .andExpectAll(result -> {
+                    WebResponsePaging<List<CarResponse>> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<WebResponsePaging<List<CarResponse>>>() {
+                    });
+
+                    Assertions.assertNotNull(response.getStatus());
+                    Assertions.assertNotNull(response.getError());
+                    Assertions.assertNull(response.getData());
+
+                    Assertions.assertEquals(HttpStatus.BAD_REQUEST.value(), response.getStatus());
+                    Assertions.assertEquals("start date must not be blank", response.getError());
+
+                });
+    }
+
+    @Test
+    void getListCarUserEmptyDurationErrorTest() throws Exception {
+
+        String token = jwtService.generateToken(user);
+
+        mockMvc.perform(
+                        MockMvcRequestBuilders.get("/api/v1/cars")
+                                .header(AUTHORIZATION, "Bearer " + token)
+                                .param("start_date_rent", "2024-04-20T10:00:00")
+                                .accept(MediaType.APPLICATION_JSON)
+                )
+                .andExpectAll(status().isBadRequest())
+                .andExpectAll(result -> {
+                    WebResponsePaging<List<CarResponse>> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<WebResponsePaging<List<CarResponse>>>() {
+                    });
+
+                    Assertions.assertNotNull(response.getStatus());
+                    Assertions.assertNotNull(response.getError());
+                    Assertions.assertNull(response.getData());
+
+                    Assertions.assertEquals(HttpStatus.BAD_REQUEST.value(), response.getStatus());
+                    Assertions.assertEquals("duration must not be blank", response.getError());
+                });
+    }
 
     /*@Test
     void testImage() throws IOException {

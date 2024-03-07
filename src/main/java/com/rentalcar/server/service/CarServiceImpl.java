@@ -373,11 +373,20 @@ public class CarServiceImpl implements CarService {
 
                 List<Predicate> predicates = new ArrayList<>();
 
-                Join<Car, CarRented> carRentedJoin = root.join("car", JoinType.INNER);
+                Join<Car, CarRented> carRentedJoin = root.join("carsRented", JoinType.LEFT);
                 predicates.add(
                         criteriaBuilder.or(
-                                criteriaBuilder.lessThan(carRentedJoin.get("startDate"), startDate),
-                                criteriaBuilder.greaterThan(carRentedJoin.get("endDate"), endDate)
+                                criteriaBuilder.isNull(carRentedJoin.get("id")),
+                                criteriaBuilder.or(
+                                        criteriaBuilder.and(
+                                                criteriaBuilder.lessThan(carRentedJoin.get("startDate"), startDate),
+                                                criteriaBuilder.lessThan(carRentedJoin.get("endDate"), endDate)
+                                        ),
+                                        criteriaBuilder.and(
+                                                criteriaBuilder.greaterThan(carRentedJoin.get("startDate"), startDate),
+                                                criteriaBuilder.greaterThan(carRentedJoin.get("endDate"), endDate)
+                                        )
+                                )
                         )
                 );
 
@@ -393,11 +402,16 @@ public class CarServiceImpl implements CarService {
 
                 List<Predicate> predicates = new ArrayList<>();
 
-                Join<Car, CarAuthorization> carAuthorizationJoin = root.join("car", JoinType.INNER);
+                /*
+                 * Super admin is user perintis@gmail.com
+                 * */
+                if (!user.getEmail().equalsIgnoreCase("perintis@gmail.com")) {
+                    Join<Car, CarAuthorization> carAuthorizationJoin = root.join("carAuthorizations", JoinType.INNER);
 
-                predicates.add(
-                        criteriaBuilder.equal(carAuthorizationJoin.get("user"), user)
-                );
+                    predicates.add(
+                            criteriaBuilder.equal(carAuthorizationJoin.get("user"), user)
+                    );
+                }
 
                 if (Objects.nonNull(carRequest.getName())) {
                     predicates.add(
