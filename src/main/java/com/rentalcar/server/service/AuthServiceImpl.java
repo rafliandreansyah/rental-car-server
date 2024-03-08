@@ -1,5 +1,6 @@
 package com.rentalcar.server.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rentalcar.server.component.TokenGenerator;
 import com.rentalcar.server.entity.ResetToken;
 import com.rentalcar.server.entity.User;
@@ -13,6 +14,7 @@ import com.rentalcar.server.util.UUIDUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -21,9 +23,16 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
+import sendinblue.ApiClient;
+import sendinblue.Configuration;
+import sendinblue.auth.ApiKeyAuth;
+import sibApi.TransactionalEmailsApi;
+import sibModel.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -41,6 +50,9 @@ public class AuthServiceImpl implements AuthService {
     private final TokenGenerator tokenGenerator;
     private final DateTimeUtils dateTimeUtils;
     private final UUIDUtils uuidUtils;
+    private final TransactionalEmailsApi api;
+    private final SendSmtpEmailSender sender;
+    private final SendSmtpEmail sendSmtpEmail;
 
     @Transactional
     @Override
@@ -138,7 +150,7 @@ public class AuthServiceImpl implements AuthService {
                 .build());
 
         // Get base url to access reset token link
-        String baseUrl = String.format("%s://%s:%d/reset-password?token=%s",
+        String baseUrl = String.format("%s://%s:%d/api/v1/auth/reset-password?token=%s",
                 request.getScheme(),
                 request.getServerName(),
                 request.getServerPort(),
@@ -149,9 +161,40 @@ public class AuthServiceImpl implements AuthService {
         /*
          * Sending link reset password to email
          * */
+        try {
+
+            // Get template html
+            GetSmtpTemplateOverview responseTemplate = api.getSmtpTemplate(1L);
+            System.out.println(responseTemplate.getHtmlContent().replace("<a href=\"#top\"" , "<a href=\""+ baseUrl + "\""));
+            String templateResetPasswordEmail = responseTemplate.getHtmlContent().replace("<a href=\"#top\"" , "<a href=\""+ baseUrl + "\"");
+
+            //set to email
+            List<SendSmtpEmailTo> toList = new ArrayList<>();
+            SendSmtpEmailTo to = new SendSmtpEmailTo();
+            to.setEmail(user.getEmail());
+            to.setName(user.getName());
+            toList.add(to);
+
+            // Send email configure
+            sendSmtpEmail.setSender(sender);
+            sendSmtpEmail.setTo(toList);
+            sendSmtpEmail.setHtmlContent(templateResetPasswordEmail);
+            sendSmtpEmail.setSubject("Reset Password Request");
+
+            // Send reset password to email
+            CreateSmtpEmail response = api.sendTransacEmail(sendSmtpEmail);
+            System.out.println(response.toString());
+
+            return "success send link reset password to email";
 
 
-        return "success send link reset password to email";
+        }catch (Exception e) {
+            System.out.println("Exception occurred:- " + e.getMessage());
+            e.printStackTrace();
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "failed send reset password link to email");
+        }
+
+
     }
 
     @Override
@@ -200,7 +243,6 @@ public class AuthServiceImpl implements AuthService {
         userData.setPassword(passwordEncoder.encode(resetNewPasswordRequest.getNewPassword()));
 
         userRepository.save(userData);
-
         return "success reset new password";
     }
 }
