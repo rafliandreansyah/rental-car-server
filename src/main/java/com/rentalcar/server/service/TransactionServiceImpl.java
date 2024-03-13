@@ -8,8 +8,11 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
+import com.rentalcar.server.entity.*;
 import com.rentalcar.server.model.*;
 import com.rentalcar.server.util.EnumUtils;
+import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.*;
@@ -19,12 +22,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
-import com.rentalcar.server.entity.Car;
-import com.rentalcar.server.entity.CarRented;
-import com.rentalcar.server.entity.Transaction;
-import com.rentalcar.server.entity.TransactionStatusEnum;
-import com.rentalcar.server.entity.User;
-import com.rentalcar.server.entity.UserRoleEnum;
 import com.rentalcar.server.repository.CarRentedRepository;
 import com.rentalcar.server.repository.CarRepository;
 import com.rentalcar.server.repository.TransactionRepository;
@@ -241,7 +238,7 @@ public class TransactionServiceImpl implements TransactionService {
         transactionsRequest.setPage(transactionsRequest.getPage() > 0 ? transactionsRequest.getPage() - 1 : transactionsRequest.getPage());
 
 
-        if (!user.getRole().equals(UserRoleEnum.ADMIN)) {
+        if (user.getRole().equals(UserRoleEnum.USER)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "don't have access");
         }
 
@@ -259,6 +256,19 @@ public class TransactionServiceImpl implements TransactionService {
 
         Specification<Transaction> specification = ((root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
+
+            /*
+             * Super admin is user perintis@gmail.com
+             * */
+            if (!user.getEmail().equalsIgnoreCase("perintis@gmail.com")) {
+
+                Join<Transaction, Car> carJoin = root.join("car", JoinType.INNER);
+                Join<Car, CarAuthorization> carAuthorizationJoin = carJoin.join("carAuthorizations", JoinType.INNER);
+
+                predicates.add(
+                        criteriaBuilder.equal(carAuthorizationJoin.get("user"), user)
+                );
+            }
 
             if (Objects.nonNull(transactionsRequest.getStartDate()) && Objects.nonNull(transactionsRequest.getEndDate())) {
                 int startTDateIndex = transactionsRequest.getStartDate().indexOf("T");
