@@ -45,6 +45,20 @@ CREATE TABLE "cars"
     "is_deleted"    boolean
 );
 
+CREATE TABLE "ratings"
+(
+    "id"         uuid UNIQUE PRIMARY KEY NOT NULL,
+    "car_id"     uuid,
+    "user_id"    uuid,
+    "rating"     numeric(2, 1)           NOT NULL,
+    "comment"    text                    NOT NULL,
+    "image_url"  varchar(255),
+    "created_at" timestamp DEFAULT (now()),
+    "updated_at" timestamp,
+    "is_deleted" boolean
+);
+
+
 CREATE TABLE "cars_image_details"
 (
     "id"         uuid UNIQUE PRIMARY KEY NOT NULL,
@@ -134,6 +148,12 @@ ALTER TABLE "cars_authorization"
 
 ALTER TABLE "cars_authorization"
     ADD FOREIGN KEY ("car_id") REFERENCES "cars" ("id");
+
+ALTER TABLE "ratings"
+    ADD FOREIGN KEY ("car_id") REFERENCES "cars" ("id");
+
+ALTER TABLE "ratings"
+    ADD FOREIGN KEY ("user_id") REFERENCES "users" ("id");
 
 ALTER TABLE "cars_image_details"
     ADD FOREIGN KEY ("car_id") REFERENCES "cars" ("id");
