@@ -103,4 +103,25 @@ public class CarController {
         );
     }
 
+    @PostMapping(value = "/car/rating", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<WebResponse<String>> createRating(
+            User user,
+            @RequestParam("car_id") String carId,
+            @RequestParam("rating") Double rating,
+            @RequestParam(value = "comment", required = false) String comment,
+            @RequestParam(name = "image", required = false) MultipartFile image
+            ) {
+
+        String response = carService.createRating(user, carId, rating, comment, image);
+
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(WebResponse.<String>builder()
+                        .status(HttpStatus.CREATED.value())
+                        .data(response)
+                        .build()
+                );
+
+    }
+
+
 }

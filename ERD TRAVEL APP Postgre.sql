@@ -52,7 +52,7 @@ CREATE TABLE "ratings"
     "car_id"     uuid,
     "user_id"    uuid,
     "rating"     numeric(5, 1)           NOT NULL,
-    "comment"    text                    NOT NULL,
+    "comment"    text,
     "image_url"  varchar(255),
     "created_at" timestamp DEFAULT (now()),
     "updated_at" timestamp,
@@ -182,6 +182,5 @@ ALTER TABLE "transactions"
 
 -- ALTER TABLE "cars" ADD COLUMN "luggage" int;
 
--- ALTER TABLE ratings
---     ALTER COLUMN "rating" TYPE numeric(5, 1),
---     ALTER COLUMN "rating" SET NOT NULL;
+ALTER TABLE ratings
+    ALTER COLUMN "comment" TYPE TEXT;

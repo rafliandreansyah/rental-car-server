@@ -10,6 +10,7 @@ import java.util.UUID;
 
 import com.rentalcar.server.entity.*;
 import com.rentalcar.server.model.*;
+import com.rentalcar.server.repository.*;
 import com.rentalcar.server.util.EnumUtils;
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.JoinType;
@@ -22,10 +23,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
-import com.rentalcar.server.repository.CarRentedRepository;
-import com.rentalcar.server.repository.CarRepository;
-import com.rentalcar.server.repository.TransactionRepository;
-import com.rentalcar.server.repository.UserRepository;
 import com.rentalcar.server.util.DateTimeUtils;
 import com.rentalcar.server.util.UUIDUtils;
 
@@ -42,6 +39,7 @@ public class TransactionServiceImpl implements TransactionService {
     private final UserRepository userRepository;
     private final CarRepository carRepository;
     private final CarRentedRepository carRentedRepository;
+    private final RatingRepository ratingRepository;
     private final UUIDUtils uuidUtils;
     private final DateTimeUtils dateTimeUtils;
     private final EnumUtils enumUtils;
@@ -192,6 +190,12 @@ public class TransactionServiceImpl implements TransactionService {
 
         }
 
+        boolean isRated = false;
+        List<Rating> userRated = ratingRepository.findByUserIdAndCarId(user.getId(), transaction.getCar().getId());
+        if (userRated != null && !userRated.isEmpty()) {
+            isRated = true;
+        }
+
         return TransactionDetailResponse.builder()
                 .id(transaction.getId().toString())
                 .noInvoice(transaction.getNoInvoice())
@@ -229,6 +233,7 @@ public class TransactionServiceImpl implements TransactionService {
                                 transaction.getUser().getCreatedAt()).toString())
                         .build())
                 .carId(transaction.getCar().getId().toString())
+                .isRated(isRated)
                 .createdAt(transaction.getCreatedAt().toString())
                 .build();
     }
