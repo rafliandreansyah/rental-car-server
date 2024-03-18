@@ -42,6 +42,10 @@ public class CarDetailResponse{
 
 	private String brand;
 
+	private Double rating;
+
+	private Integer totalReview;
+
 	@JsonProperty("has_authorization")
 	private List<UserResponse> hasAuthorization;
 

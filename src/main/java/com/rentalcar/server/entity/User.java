@@ -60,6 +60,9 @@ public class User implements UserDetails {
     @OneToOne(mappedBy = "user", cascade = CascadeType.REMOVE)
     private ResetToken resetToken;
 
+    @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE)
+    private List<Rating> ratings;
+
     @CreatedDate
     @Column(name = "created_at")
     private Instant createdAt;

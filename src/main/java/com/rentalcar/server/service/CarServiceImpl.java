@@ -54,6 +54,7 @@ public class CarServiceImpl implements CarService {
 
         Car carData = carRepository.findById(carId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "car not found"));
 
+
         var carDetailResponse = CarDetailResponse.builder()
                 .id(carData.getId().toString())
                 .name(carData.getName())
@@ -66,6 +67,8 @@ public class CarServiceImpl implements CarService {
                 .tax(carData.getTax())
                 .discount(carData.getDiscount())
                 .description(carData.getDescription())
+                .rating(generateRating(carData.getRatings()))
+                .totalReview(carData.getRatings() != null && !carData.getRatings().isEmpty() ? carData.getRatings().size() : 0)
                 .transmission(carData.getTransmission().equals(CarTransmissionEnum.MT) ? "manual" : "automatic")
                 .isActive(carData.getIsActive())
                 .build();
@@ -133,6 +136,7 @@ public class CarServiceImpl implements CarService {
                 .cc(carCreateRequest.getCc())
                 .pricePerDay(carCreateRequest.getPrice())
                 .tax(carCreateRequest.getTax())
+                .luggage(carCreateRequest.getLuggage())
                 .discount(carCreateRequest.getDiscount())
                 .description(carCreateRequest.getDescription())
                 .transmission(carTransmissionEnum)
@@ -172,6 +176,7 @@ public class CarServiceImpl implements CarService {
                 .discount(saveCar.getDiscount())
                 .tax(saveCar.getTax())
                 .capacity(saveCar.getCapacity())
+                .luggage(saveCar.getLuggage())
                 .transmission(saveCar.getTransmission().name())
                 .brand(saveCar.getBrand().name())
                 .imageDetail(imageDetailItems.isEmpty() ? null : imageDetailItems)
@@ -251,6 +256,10 @@ public class CarServiceImpl implements CarService {
 
         if (Objects.nonNull(carEditRequest.getCapacity())) {
             car.setCapacity(carEditRequest.getCapacity());
+        }
+
+        if (Objects.nonNull(carEditRequest.getLuggage())) {
+            car.setLuggage(carEditRequest.getLuggage());
         }
 
         if (Objects.nonNull(carEditRequest.getCc())) {
@@ -341,6 +350,7 @@ public class CarServiceImpl implements CarService {
                 .name(savedCar.getName())
                 .id(savedCar.getId().toString())
                 .brand(savedCar.getBrand().name())
+                .luggage(savedCar.getLuggage())
                 .imageDetail(imageDetailItems.isEmpty() ? null : imageDetailItems)
                 .build();
     }
@@ -451,12 +461,29 @@ public class CarServiceImpl implements CarService {
                         .name(car.getName())
                         .year(car.getYear())
                         .transmission(car.getTransmission().name())
+                        .luggage(car.getLuggage())
+                        .rating(generateRating(car.getRatings()))
                         .imageUrl(car.getImageUrl())
                         .price(car.getPricePerDay())
                         .build())
                 .toList();
 
         return new PageImpl<>(cars, pageable, carsData.getTotalElements());
+    }
+
+    private double generateRating(List<Rating> ratings) {
+        double rating = 0;
+        if (ratings != null && !ratings.isEmpty()) {
+            Double ratingMap = ratings.stream()
+                    .mapToDouble(dataRating -> (dataRating.getRating() == null ? 0 : dataRating.getRating()))
+                    .average()
+                    .orElse(0);
+            // Memformat nilai rata-rata hingga satu angka di belakang koma
+            String formatRating = String.format("%.1f", ratingMap);
+            rating = Double.parseDouble(formatRating);
+        }
+
+        return rating;
     }
 
     @Override

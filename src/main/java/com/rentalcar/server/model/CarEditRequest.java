@@ -33,5 +33,7 @@ public class CarEditRequest {
 
     private Integer discount;
 
+    private Integer luggage;
+
     private List<String> deletedDetailImagesId;
 }
