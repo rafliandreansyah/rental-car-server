@@ -9,7 +9,6 @@ import org.springframework.web.server.ResponseStatusException;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.time.Instant;
 import java.util.Objects;
@@ -22,9 +21,9 @@ public class FileStorageServiceImpl implements FileStorageService {
 
     @Override
     public String storeFile(MultipartFile file, String path) {
-
         String fileExtension = Objects.requireNonNull(file.getOriginalFilename()).substring(file.getOriginalFilename().lastIndexOf("."));
-        final Path fileStorageLocation = Paths.get(userImageDir + path, (Instant.now().toEpochMilli())+fileExtension);
+        final Path fileStorageLocation = Path.of(userImageDir, path, (Instant.now().toEpochMilli())+fileExtension);
+
         if (file.isEmpty()){
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "image must not be blank");
         }
@@ -36,7 +35,7 @@ public class FileStorageServiceImpl implements FileStorageService {
         try {
             Files.createDirectories(fileStorageLocation.getParent());
             Files.copy(file.getInputStream(), fileStorageLocation, StandardCopyOption.REPLACE_EXISTING);
-            return fileStorageLocation.toString();
+            return fileStorageLocation.toString().replace("\\", "/");
         }catch (Exception e) {
             e.printStackTrace();
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "error upload image");
