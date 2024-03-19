@@ -13,6 +13,7 @@ import com.rentalcar.server.repository.UserRepository;
 import com.rentalcar.server.security.JwtService;
 import com.rentalcar.server.service.AuthService;
 import com.rentalcar.server.util.DateTimeUtils;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -75,9 +76,6 @@ class UserControllerTest {
 
     @BeforeEach
     void setUp() {
-        carAuthorizationRepository.deleteAll();
-        transactionRepository.deleteAll();
-        userRepository.deleteAll();
         admin = authService.createAdmin(
                 User.builder()
                         .name("Admin")
@@ -86,6 +84,14 @@ class UserControllerTest {
                         .phoneNumber("+628928383744")
                         .build()
         );
+    }
+
+    @AfterEach
+    void afterTest() {
+        carAuthorizationRepository.deleteAll();
+        transactionRepository.deleteAll();
+        userRepository.deleteAll();
+        carRepository.deleteAll();
     }
 
     @Test

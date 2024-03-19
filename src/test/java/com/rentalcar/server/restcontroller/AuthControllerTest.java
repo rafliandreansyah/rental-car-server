@@ -12,6 +12,7 @@ import com.rentalcar.server.repository.ResetTokenRepository;
 import com.rentalcar.server.repository.UserRepository;
 import com.rentalcar.server.service.AuthService;
 import com.rentalcar.server.util.DateTimeUtils;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -62,8 +63,6 @@ class AuthControllerTest {
 
     @BeforeEach
     void setUp() {
-        repository.deleteAll();
-
         var user = User.builder()
                 .email("rafli@gmail.com")
                 .phoneNumber("+6281232720821")
@@ -72,6 +71,11 @@ class AuthControllerTest {
                 .role(UserRoleEnum.USER)
                 .build();
         userData = repository.save(user);
+    }
+
+    @AfterEach
+    void afterTest() {
+        repository.deleteAll();
     }
 
     @Test

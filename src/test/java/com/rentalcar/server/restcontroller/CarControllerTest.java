@@ -10,6 +10,7 @@ import com.rentalcar.server.repository.*;
 import com.rentalcar.server.security.JwtService;
 import com.rentalcar.server.service.AuthService;
 import com.rentalcar.server.service.TransactionService;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -79,10 +80,6 @@ class CarControllerTest {
 
     @BeforeEach
     void setUp() {
-        ratingRepository.deleteAll();
-        carImageDetailRepository.deleteAll();
-        userRepository.deleteAll();
-        carRepository.deleteAll();
         admin = authService.createAdmin(
                 User.builder()
                         .name("Admin")
@@ -118,6 +115,14 @@ class CarControllerTest {
                 .discount(0)
                 .build();
         carRepository.save(car);
+    }
+
+    @AfterEach
+    void afterTest() {
+        ratingRepository.deleteAll();
+        carImageDetailRepository.deleteAll();
+        userRepository.deleteAll();
+        carRepository.deleteAll();
     }
 
     @Test

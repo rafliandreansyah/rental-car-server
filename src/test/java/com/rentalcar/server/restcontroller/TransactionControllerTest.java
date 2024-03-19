@@ -17,6 +17,7 @@ import com.rentalcar.server.service.CarService;
 import com.rentalcar.server.service.TransactionService;
 import com.rentalcar.server.util.UUIDUtils;
 import org.apache.tomcat.util.http.parser.Authorization;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -82,10 +83,6 @@ class TransactionControllerTest {
 
     @BeforeEach
     void setUp() {
-        transactionRepository.deleteAll();
-        carRentedRepository.deleteAll();
-        carRepository.deleteAll();
-        userRepository.deleteAll();
 
         // create admin data
         admin = authService.createAdmin(User.builder()
@@ -113,6 +110,14 @@ class TransactionControllerTest {
 
         // generate user token
         userToken = jwtService.generateToken(user);
+    }
+
+    @AfterEach
+    void afterTest() {
+        transactionRepository.deleteAll();
+        carRentedRepository.deleteAll();
+        carRepository.deleteAll();
+        userRepository.deleteAll();
     }
 
     @Test
