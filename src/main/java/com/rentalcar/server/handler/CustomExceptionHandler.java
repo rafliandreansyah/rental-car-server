@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.servlet.NoHandlerFoundException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -79,6 +80,12 @@ public class CustomExceptionHandler {
         methodArgumentTypeMismatchException.printStackTrace();
         return new ResponseEntity<>(WebResponse.<String>builder().error("invalid request data type")
                 .status(HttpStatus.BAD_REQUEST.value()).build(), HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(NoHandlerFoundException.class)
+    public ResponseEntity<WebResponse<String>> handle404(NoHandlerFoundException ex) {
+        return new ResponseEntity<>(WebResponse.<String>builder().error("url not found")
+                .status(HttpStatus.NOT_FOUND.value()).build(), HttpStatus.NOT_FOUND);// Mengarahkan ke halaman kustom 404
     }
 
 }
