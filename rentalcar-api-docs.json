@@ -263,6 +263,112 @@
         }
       }
     },
+    "/app/dashboard": {
+      "get": {
+        "security": [
+          {
+            "AppSecurity": []
+          }
+        ],
+        "description": "get detail dashboard admin",
+        "tags": [
+          "App"
+        ],
+        "responses": {
+          "200": {
+            "description": "success response get dashboard",
+            "content": {
+              "application/json" : {
+                "schema": {
+                  "$ref": "#/components/schemas/GeneralResponseWithDataObject"
+                },
+                "examples": {
+                  "success" : {
+                    "value": {
+                      "status": 200,
+                      "error": null,
+                      "data": {
+                        "total_transactions": 200000000,
+                        "total_transactions_this_month": 1000000,
+                        "total_car_rented": 300,
+                        "total_users": 200,
+                        "car_rented_today": {
+                          "total_cars": 30,
+                          "car_rented_today": 10
+                        },
+                        "transaction_last_week": {
+                          "sunday": 10,
+                          "monday": 3,
+                          "tuesday": 4,
+                          "wednesday": 5,
+                          "thursday": 1,
+                          "friday": 1,
+                          "saturday": 6
+                        },
+                        "transaction_waiting_approve": [
+                          {
+                            "id": "0JJS8-884JN-MMMS8-KKSK0",
+                            "no_invoice": "trx-snn89920mmdsm",
+                            "start_date": "2022-10-25T10:00:00",
+                            "end_date": "2022-10-26T10:00:00",
+                            "duration": 1,
+                            "car_name": "pajero",
+                            "brand": "mitsubishi",
+                            "total_price": 300000.00,
+                            "status": "WAITING_APPROVE"
+                          },
+                          {
+                            "id": "0JJS8-884JN-MMMS8-KKSK0",
+                            "no_invoice": "trx-snn89920mmdsm",
+                            "start_date": "2022-10-25T10:00:00",
+                            "end_date": "2022-10-26T10:00:00",
+                            "duration": 1,
+                            "car_name": "pajero",
+                            "brand": "mitsubishi",
+                            "total_price": 300000.00,
+                            "status": "WAITING_APPROVE"
+                          }
+                        ],
+                        "transaction_latest": [
+                          {
+                            "id": "0JJS8-884JN-MMMS8-KKSK0",
+                            "no_invoice": "trx-snn89920mmdsm",
+                            "start_date": "2022-10-25T10:00:00",
+                            "end_date": "2022-10-26T10:00:00",
+                            "duration": 1,
+                            "car_name": "pajero",
+                            "brand": "mitsubishi",
+                            "total_price": 300000.00,
+                            "status": "WAITING_PAYMENT"
+                          },
+                          {
+                            "id": "0JJS8-884JN-MMMS8-KKSK0",
+                            "no_invoice": "trx-snn89920mmdsm",
+                            "start_date": "2022-10-25T10:00:00",
+                            "end_date": "2022-10-26T10:00:00",
+                            "duration": 1,
+                            "car_name": "pajero",
+                            "brand": "mitsubishi",
+                            "total_price": 300000.00,
+                            "status": "WAITING_PAYMENT"
+                          }
+                        ]
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbiddenError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          }
+        }
+      }
+    },
     "/users": {
       "get": {
         "security": [
