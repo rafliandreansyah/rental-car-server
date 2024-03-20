@@ -35,6 +35,6 @@ public class UserCreateRequest {
     @NotBlank(message = "role must not be blank")
     private String role;
 
-    private Instant dob;
+    private String dob;
 
 }

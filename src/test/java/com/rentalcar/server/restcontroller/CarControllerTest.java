@@ -80,6 +80,12 @@ class CarControllerTest {
 
     @BeforeEach
     void setUp() {
+
+        ratingRepository.deleteAll();
+        carImageDetailRepository.deleteAll();
+        userRepository.deleteAll();
+        carRepository.deleteAll();
+
         admin = authService.createAdmin(
                 User.builder()
                         .name("Admin")

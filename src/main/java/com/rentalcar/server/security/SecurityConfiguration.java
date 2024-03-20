@@ -43,15 +43,17 @@ public class SecurityConfiguration {
                                 new AntPathRequestMatcher("/api/v1/cars", HttpMethod.POST.name()),
                                 new AntPathRequestMatcher("/api/v1/cars/**", HttpMethod.DELETE.name()),
                                 new AntPathRequestMatcher("/api/v1/cars/**", HttpMethod.PATCH.name()),
-                                new AntPathRequestMatcher("/api/v1/transactions", HttpMethod.GET.name())
+                                new AntPathRequestMatcher("/api/v1/transactions", HttpMethod.GET.name()),
+                                new AntPathRequestMatcher("/api/v1/app/**")
                         ).hasAnyAuthority(UserRoleEnum.ADMIN.name())
                         .requestMatchers(
-                                new AntPathRequestMatcher("/api/v1/auth/**"),
-                                new AntPathRequestMatcher("/images/**")
+                                new AntPathRequestMatcher("/api/v1/users/**"),
+                                new AntPathRequestMatcher("/api/v1/cars/**"),
+                                new AntPathRequestMatcher("/api/v1/transactions/**")
                         )
-                        .permitAll()
-                        .anyRequest()
                         .authenticated()
+                        .anyRequest()
+                        .permitAll()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .csrf(AbstractHttpConfigurer::disable)

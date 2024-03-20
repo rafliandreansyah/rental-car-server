@@ -34,4 +34,13 @@ public class DateTimeUtils {
         return localDateTime.atZone(ZoneId.of("Asia/Jakarta")).toInstant();
     }
 
+    public Instant instantFromLocalDateZoneJakarta(String date) {
+        try {
+            LocalDate localDate = LocalDate.parse(date.split("T")[0]);
+            return localDate.atStartOfDay().atZone(ZoneId.of("Asia/Jakarta")).toInstant();
+        }catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "format date invalid");
+        }
+    }
+
 }

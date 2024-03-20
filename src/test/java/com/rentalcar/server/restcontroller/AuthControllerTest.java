@@ -63,6 +63,7 @@ class AuthControllerTest {
 
     @BeforeEach
     void setUp() {
+        repository.deleteAll();
         var user = User.builder()
                 .email("rafli@gmail.com")
                 .phoneNumber("+6281232720821")
@@ -76,6 +77,33 @@ class AuthControllerTest {
     @AfterEach
     void afterTest() {
         repository.deleteAll();
+    }
+
+    @Test
+    void registerNotFoundErrorTest() throws Exception {
+        repository.deleteById(userData.getId());
+        var request = RegisterRequest
+                .builder()
+                .email("rafli@gmail.com")
+                .phone("+6281232720821")
+                .password("secretpassword")
+                .name("rafli andreansyah")
+                .build();
+
+        mockMvc.perform(
+                post("/api/v1/auth/registertest")
+                        .contentType(MediaType.APPLICATION_JSON_VALUE)
+                        .accept(MediaType.APPLICATION_JSON_VALUE)
+                        .content(objectMapper.writeValueAsString(request))
+        ).andExpectAll(
+                status().isNotFound()
+        ).andExpectAll(result -> {
+            WebResponse<String> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+            });
+
+            Assertions.assertEquals("url not found", response.getError());
+        });
+
     }
 
     @Test

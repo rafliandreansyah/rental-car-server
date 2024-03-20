@@ -84,6 +84,11 @@ class TransactionControllerTest {
     @BeforeEach
     void setUp() {
 
+        transactionRepository.deleteAll();
+        carRentedRepository.deleteAll();
+        carRepository.deleteAll();
+        userRepository.deleteAll();
+
         // create admin data
         admin = authService.createAdmin(User.builder()
                 .name("Admin")

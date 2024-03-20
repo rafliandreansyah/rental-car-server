@@ -180,7 +180,7 @@ ALTER TABLE "transactions"
 
 -- ALTER TABLE "logs" ADD FOREIGN KEY ("user_id") REFERENCES "users" ("id");
 
--- ALTER TABLE "cars" ADD COLUMN "luggage" int;
+ALTER TABLE "cars" ADD COLUMN "luggage" int;
 
 ALTER TABLE ratings
     ALTER COLUMN "comment" TYPE TEXT;

@@ -65,6 +65,7 @@ public class UserServiceImpl implements UserService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "user role is not found");
         }
 
+
         User user = User.builder()
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
@@ -72,7 +73,7 @@ public class UserServiceImpl implements UserService {
                 .phoneNumber(request.getPhone())
                 .role(request.getRole().trim().equalsIgnoreCase("admin") ? UserRoleEnum.ADMIN : UserRoleEnum.USER)
                 .imageUrl(pathImage)
-                .dateOfBirth(request.getDob())
+                .dateOfBirth(dateTimeUtils.instantFromLocalDateZoneJakarta(request.getDob()))
                 .build();
 
         User saveUserData = userRepository.save(user);
