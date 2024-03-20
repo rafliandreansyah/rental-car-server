@@ -93,7 +93,7 @@ public class TransactionController {
     public ResponseEntity<WebResponse<TransactionEditResponse>> editTransaction(
             User user,
             @PathVariable("id") String trxId,
-            @RequestParam("status") Integer status,
+            @RequestParam("status") String status,
             @RequestParam(value = "payment_image", required = false) MultipartFile paymentImage
     ) {
         TransactionEditResponse transactionEditResponse = transactionService.editTransaction(user, trxId, status, paymentImage);

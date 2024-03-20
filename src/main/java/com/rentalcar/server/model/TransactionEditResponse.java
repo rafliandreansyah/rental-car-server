@@ -14,7 +14,7 @@ import lombok.NoArgsConstructor;
 public class TransactionEditResponse {
 
     @JsonProperty("status")
-    private Integer status;
+    private String status;
 
     @JsonProperty("paymentImage")
     @JsonInclude(JsonInclude.Include.NON_NULL)

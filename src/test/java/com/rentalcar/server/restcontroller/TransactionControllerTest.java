@@ -1090,7 +1090,7 @@ class TransactionControllerTest {
         TransactionCreateResponse transactionCreated = transactionService.createTransaction(user, createTransactionRequest);
 
         //Edit transaction
-        transactionService.editTransaction(admin, transactionCreated.getId(), 0, null);
+        transactionService.editTransaction(admin, transactionCreated.getId(), TransactionStatusEnum.WAITING_APPROVE.name(), null);
 
         mockMvc.perform(
                         MockMvcRequestBuilders.delete("/api/v1/transactions/" + transactionCreated.getId())
@@ -1137,7 +1137,7 @@ class TransactionControllerTest {
                                     request.setMethod(HttpMethod.PATCH.name());
                                     return request;
                                 })
-                                .param("status", "0")
+                                .param("status", TransactionStatusEnum.WAITING_APPROVE.name())
                                 .header(AUTHORIZATION, "Bearer " + userToken)
                                 .contentType(MediaType.MULTIPART_FORM_DATA)
                                 .accept(MediaType.APPLICATION_JSON)
@@ -1153,7 +1153,7 @@ class TransactionControllerTest {
                     Assertions.assertNotNull(response.getData());
 
                     Assertions.assertEquals(HttpStatus.OK.value(), response.getStatus());
-                    Assertions.assertEquals(0, response.getData().getStatus());
+                    Assertions.assertEquals(TransactionStatusEnum.WAITING_APPROVE.name(), response.getData().getStatus());
                 });
     }
 
@@ -1174,7 +1174,7 @@ class TransactionControllerTest {
                                     request.setMethod(HttpMethod.PATCH.name());
                                     return request;
                                 })
-                                .param("status", "1")
+                                .param("status", TransactionStatusEnum.APPROVED.name())
                                 .header(AUTHORIZATION, "Bearer " + adminToken)
                                 .contentType(MediaType.MULTIPART_FORM_DATA)
                                 .accept(MediaType.APPLICATION_JSON)
@@ -1190,7 +1190,7 @@ class TransactionControllerTest {
                     Assertions.assertNotNull(response.getData());
 
                     Assertions.assertEquals(HttpStatus.OK.value(), response.getStatus());
-                    Assertions.assertEquals(1, response.getData().getStatus());
+                    Assertions.assertEquals(TransactionStatusEnum.APPROVED.name(), response.getData().getStatus());
                 });
     }
 

@@ -955,7 +955,7 @@
                           "car_name": "pajero",
                           "brand": "mitsubishi",
                           "total_price": 300000.00,
-                          "status": "finish"
+                          "status": "FINISH"
                         }
                       ]
                     }
@@ -1580,7 +1580,7 @@
                           "car_name": "pajero",
                           "brand": "mitsubishi",
                           "total_price": 300000.00,
-                          "status": "finish"
+                          "status": "WAITING_PAYMENT"
                         }
                       ]
                     }
@@ -1735,7 +1735,7 @@
                         "tax": 0,
                         "discount": 0,
                         "total_price": 300000.00,
-                        "status": "finish",
+                        "status": "FINISH",
                         "user_id": "0KSK0-884JN-MMMS8-KKSK0",
                         "user": {
                           "id": "8DJS-KWME-DMWA-MDMM",
@@ -1848,7 +1848,15 @@
                 "type": "object",
                 "properties": {
                   "status": {
-                    "type": "integer"
+                    "type": "string",
+                    "enum": [
+                      "WAITING_PAYMENT",
+                      "WAITING_APPROVE",
+                      "APPROVED",
+                      "REJECTED",
+                      "ON_GOING",
+                      "FINISH"
+                    ]
                   },
                   "payment_image": {
                     "type": "array",
@@ -1876,7 +1884,7 @@
                       "status": 200,
                       "error": null,
                       "data": {
-                        "status": 1,
+                        "status": "WAITING_APPROVE",
                         "payment_image": "https://payment.com"
                       }
                     }

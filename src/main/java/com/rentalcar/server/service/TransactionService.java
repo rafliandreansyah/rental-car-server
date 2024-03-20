@@ -18,6 +18,6 @@ public interface TransactionService {
 
     public Page<TransactionResponse> getListTransaction(User user, TransactionsRequest transactionsRequest);
 
-    public TransactionEditResponse editTransaction(User user, String trxId, Integer status, MultipartFile paymentImage);
+    public TransactionEditResponse editTransaction(User user, String trxId, String status, MultipartFile paymentImage);
 
 }

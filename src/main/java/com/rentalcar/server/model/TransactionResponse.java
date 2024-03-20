@@ -25,6 +25,8 @@ public class TransactionResponse {
 
     private Integer duration;
 
+    private String userName;
+
     @JsonProperty("car_name")
     private String carName;
 
