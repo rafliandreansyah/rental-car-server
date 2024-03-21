@@ -2,6 +2,8 @@ package com.rentalcar.server.restcontroller;
 
 import com.rentalcar.server.model.*;
 import com.rentalcar.server.model.base.WebResponsePaging;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -17,6 +19,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
+@Tag(name = "Transaction")
 @RestController
 @RequestMapping("/api/v1/transactions")
 @RequiredArgsConstructor
@@ -28,7 +31,7 @@ public class TransactionController {
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    public ResponseEntity<WebResponse<TransactionCreateResponse>> createTransaction(User user,
+    public ResponseEntity<WebResponse<TransactionCreateResponse>> createTransaction(@Parameter(hidden = true) User user,
                                                                                     @RequestBody TransactionCreateRequest transactionCreateRequest) {
         var transactionResponse = transactionService.createTransaction(user, transactionCreateRequest);
         return ResponseEntity.status(HttpStatus.CREATED).body(WebResponse.<TransactionCreateResponse>builder()
@@ -38,7 +41,7 @@ public class TransactionController {
     }
 
     @DeleteMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<WebResponse<String>> deleteTransaction(User user, @PathVariable("id") String id) {
+    public ResponseEntity<WebResponse<String>> deleteTransaction(@Parameter(hidden = true) User user, @PathVariable("id") String id) {
         var deleteTransactionResponse = transactionService.deleteTransactionById(user, id);
         return ResponseEntity.ok().body(WebResponse.<String>builder()
                 .status(HttpStatus.OK.value())
@@ -47,7 +50,7 @@ public class TransactionController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<WebResponse<TransactionDetailResponse>> getDetailTransaction(User user,
+    public ResponseEntity<WebResponse<TransactionDetailResponse>> getDetailTransaction(@Parameter(hidden = true) User user,
                                                                                        @PathVariable("id") String id) {
         var detailTransactionResponse = transactionService.getDetailTransaction(user, id);
         return ResponseEntity.ok().body(WebResponse.<TransactionDetailResponse>builder()
@@ -58,7 +61,7 @@ public class TransactionController {
 
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<WebResponsePaging<List<TransactionResponse>>> getListTransaction(
-            User user,
+            @Parameter(hidden = true) User user,
             @RequestParam(name = "page", defaultValue = "0") Integer page,
             @RequestParam(name = "size", defaultValue = "10") Integer size,
             @RequestParam(name = "start_date", required = false) String startDate,
@@ -91,7 +94,7 @@ public class TransactionController {
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE
     )
     public ResponseEntity<WebResponse<TransactionEditResponse>> editTransaction(
-            User user,
+            @Parameter(hidden = true) User user,
             @PathVariable("id") String trxId,
             @RequestParam("status") String status,
             @RequestParam(value = "payment_image", required = false) MultipartFile paymentImage
