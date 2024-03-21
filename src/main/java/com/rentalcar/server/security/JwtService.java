@@ -49,7 +49,7 @@ public class JwtService {
                 .setSubject(userDetails.getUsername())
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 // Expired date dalam jam
-                .setExpiration(new Date(System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(EXPIRATION_DATE)))
+                .setExpiration(new Date(System.currentTimeMillis() + TimeUnit.DAYS.toMillis(EXPIRATION_DATE)))
                 .signWith(getSignInKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
