@@ -4,6 +4,7 @@ import com.rentalcar.server.entity.UserRoleEnum;
 import com.rentalcar.server.handler.CustomAccessDeniedHandler;
 import com.rentalcar.server.handler.CustomAuthenticationEntryPointHandler;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -21,17 +22,34 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.web.servlet.HandlerExceptionResolver;
 
 @EnableWebSecurity
 @Configuration
-@RequiredArgsConstructor
+//@RequiredArgsConstructor
 public class SecurityConfiguration {
 
+    @Qualifier("handlerExceptionResolver")
+    private final HandlerExceptionResolver exceptionResolver;
     private final UserDetailsService userDetailsService;
-    private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    //private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final CustomAccessDeniedHandler customAccessDeniedHandler;
     private final CustomAuthenticationEntryPointHandler customAuthenticationEntryPointHandler;
+    private final JwtService jwtService;
 
+    public SecurityConfiguration(@Qualifier("handlerExceptionResolver") HandlerExceptionResolver exceptionResolver, UserDetailsService userDetailsService, CustomAccessDeniedHandler customAccessDeniedHandler, CustomAuthenticationEntryPointHandler customAuthenticationEntryPointHandler, JwtService jwtService) {
+        this.exceptionResolver = exceptionResolver;
+        this.userDetailsService = userDetailsService;
+        this.customAccessDeniedHandler = customAccessDeniedHandler;
+        this.customAuthenticationEntryPointHandler = customAuthenticationEntryPointHandler;
+        this.jwtService = jwtService;
+    }
+
+    /*@Bean
+        public JwtAuthenticationFilter jwtAuthenticationFilter(@Qualifier("handlerExceptionResolver") HandlerExceptionResolver exceptionResolver) {
+            return new JwtAuthenticationFilter(exceptionResolver, userDetailsService, jwtService);
+        }
+    */
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
@@ -61,7 +79,7 @@ public class SecurityConfiguration {
                 .exceptionHandling(httpSecurityExceptionHandlingConfigurer -> httpSecurityExceptionHandlingConfigurer
                         .accessDeniedHandler(customAccessDeniedHandler)
                         .authenticationEntryPoint(customAuthenticationEntryPointHandler))
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(new JwtAuthenticationFilter(exceptionResolver, userDetailsService, jwtService), UsernamePasswordAuthenticationFilter.class)
                 .build();
 
     }

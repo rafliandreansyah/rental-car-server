@@ -1,6 +1,9 @@
 package com.rentalcar.server.handler;
 
 import com.rentalcar.server.model.base.WebResponse;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.MalformedJwtException;
+import io.jsonwebtoken.security.SignatureException;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -86,6 +89,25 @@ public class CustomExceptionHandler {
     public ResponseEntity<WebResponse<String>> handle404(NoHandlerFoundException ex) {
         return new ResponseEntity<>(WebResponse.<String>builder().error("url not found")
                 .status(HttpStatus.NOT_FOUND.value()).build(), HttpStatus.NOT_FOUND);// Mengarahkan ke halaman kustom 404
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<WebResponse<String>> jwtErrorHandling(Exception ex) {
+        ex.printStackTrace();
+        if (ex instanceof SignatureException) {
+            return new ResponseEntity<>(WebResponse.<String>builder().error(ex.getMessage())
+                    .status(HttpStatus.UNAUTHORIZED.value()).build(), HttpStatus.UNAUTHORIZED);
+        }
+        if (ex instanceof ExpiredJwtException) {
+            return new ResponseEntity<>(WebResponse.<String>builder().error("token expired")
+                    .status(HttpStatus.UNAUTHORIZED.value()).build(), HttpStatus.UNAUTHORIZED);
+        }
+        if (ex instanceof MalformedJwtException) {
+            return new ResponseEntity<>(WebResponse.<String>builder().error(ex.getMessage())
+                    .status(HttpStatus.UNAUTHORIZED.value()).build(), HttpStatus.UNAUTHORIZED);
+        }
+        return new ResponseEntity<>(WebResponse.<String>builder().error(ex.getMessage())
+                .status(HttpStatus.INTERNAL_SERVER_ERROR.value()).build(), HttpStatus.INTERNAL_SERVER_ERROR);// Mengarahkan ke halaman kustom 404
     }
 
 }
