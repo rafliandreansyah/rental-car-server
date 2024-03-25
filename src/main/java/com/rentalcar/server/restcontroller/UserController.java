@@ -5,6 +5,8 @@ import com.rentalcar.server.model.*;
 import com.rentalcar.server.model.base.WebResponse;
 import com.rentalcar.server.model.base.WebResponsePaging;
 import com.rentalcar.server.service.UserService;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -16,6 +18,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
+@Tag(name = "User")
 @RestController
 @RequestMapping("/api/v1/users")
 @RequiredArgsConstructor
@@ -37,7 +40,7 @@ public class UserController {
             value = "/{id}",
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    public ResponseEntity<WebResponse<DetailUserResponse>> getDetailUser(User user, @PathVariable("id") String userId) {
+    public ResponseEntity<WebResponse<DetailUserResponse>> getDetailUser(@Parameter(hidden = true) User user, @PathVariable("id") String userId) {
         DetailUserResponse detailUser = userService.getDetailUser(user, userId);
         return ResponseEntity.ok(WebResponse.<DetailUserResponse>builder().status(HttpStatus.OK.value()).data(detailUser).build());
     }
@@ -46,7 +49,7 @@ public class UserController {
             value = "/{id}",
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    public ResponseEntity<WebResponse<String>> deleteUserById(User user, @PathVariable("id") String userId) {
+    public ResponseEntity<WebResponse<String>> deleteUserById(@Parameter(hidden = true) User user, @PathVariable("id") String userId) {
         String deleteUserMessage = userService.deleteUserById(user, userId);
         return ResponseEntity.ok(WebResponse.<String>builder().data(deleteUserMessage).status(HttpStatus.OK.value()).build());
     }
@@ -56,7 +59,7 @@ public class UserController {
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     public ResponseEntity<WebResponsePaging<List<UserResponse>>> getUsers(
-            User user,
+            @Parameter(hidden = true) User user,
             @RequestParam(name = "role", required = false, defaultValue = "USER") String role,
             @RequestParam(name = "email", required = false) String email,
             @RequestParam(name = "name", required = false) String name,
@@ -92,7 +95,7 @@ public class UserController {
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     public ResponseEntity<WebResponsePaging<List<UserTransactionResponse>>> getListUserTransactions(
-            User user,
+            @Parameter(hidden = true) User user,
             @RequestParam(name = "page", defaultValue = "0") Integer page,
             @RequestParam(name = "size", defaultValue = "20") Integer size
     ) {
@@ -113,7 +116,7 @@ public class UserController {
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     public ResponseEntity<WebResponsePaging<List<UserAuthorizationCarResponse>>> getListUserCarAuthorization(
-            User user,
+            @Parameter(hidden = true) User user,
             @RequestParam(name = "email", required = false) String email,
             @RequestParam(name = "name", required = false) String name,
             @RequestParam(name = "is_active", required = false, defaultValue = "true") Boolean isActive,
@@ -145,7 +148,7 @@ public class UserController {
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     public ResponseEntity<WebResponse<UserEditResponse>> editUser(
-            User user,
+            @Parameter(hidden = true) User user,
             @PathVariable("id") String userId,
             @ModelAttribute @Valid UserEditRequest userEditRequest,
             @RequestParam(value = "is_active", required = false) Boolean isActive,

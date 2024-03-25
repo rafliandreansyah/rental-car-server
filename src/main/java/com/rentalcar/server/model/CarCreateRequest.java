@@ -41,4 +41,6 @@ public class CarCreateRequest {
 
     private Integer discount;
 
+    private Integer luggage;
+
 }

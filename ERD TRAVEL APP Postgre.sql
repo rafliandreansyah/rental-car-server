@@ -35,6 +35,7 @@ CREATE TABLE "cars"
     "capacity"      int                     NOT NULL,
     "cc"            int                     NOT NULL,
     "price_per_day" numeric(8, 2)           NOT NULL,
+    "luggage"       int,
     "tax"           int                     NOT NULL DEFAULT 0,
     "discount"      int                     NOT NULL DEFAULT 0,
     "description"   text                    NOT NULL,
@@ -44,6 +45,20 @@ CREATE TABLE "cars"
     "updated_at"    timestamp,
     "is_deleted"    boolean
 );
+
+CREATE TABLE "ratings"
+(
+    "id"         uuid UNIQUE PRIMARY KEY NOT NULL,
+    "car_id"     uuid,
+    "user_id"    uuid,
+    "rating"     numeric(5, 1)           NOT NULL,
+    "comment"    text,
+    "image_url"  varchar(255),
+    "created_at" timestamp DEFAULT (now()),
+    "updated_at" timestamp,
+    "is_deleted" boolean
+);
+
 
 CREATE TABLE "cars_image_details"
 (
@@ -135,6 +150,12 @@ ALTER TABLE "cars_authorization"
 ALTER TABLE "cars_authorization"
     ADD FOREIGN KEY ("car_id") REFERENCES "cars" ("id");
 
+ALTER TABLE "ratings"
+    ADD FOREIGN KEY ("car_id") REFERENCES "cars" ("id");
+
+ALTER TABLE "ratings"
+    ADD FOREIGN KEY ("user_id") REFERENCES "users" ("id");
+
 ALTER TABLE "cars_image_details"
     ADD FOREIGN KEY ("car_id") REFERENCES "cars" ("id");
 
@@ -158,3 +179,8 @@ ALTER TABLE "transactions"
     ADD FOREIGN KEY ("car_id") REFERENCES "cars" ("id");
 
 -- ALTER TABLE "logs" ADD FOREIGN KEY ("user_id") REFERENCES "users" ("id");
+
+ALTER TABLE "cars" ADD COLUMN "luggage" int;
+
+ALTER TABLE ratings
+    ALTER COLUMN "comment" TYPE TEXT;

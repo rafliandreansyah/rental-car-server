@@ -4,10 +4,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
+import java.time.*;
 import java.time.format.DateTimeParseException;
 
 @Service
@@ -32,6 +29,15 @@ public class DateTimeUtils {
 
     public Instant instantFromLocalDateTimeZoneJakarta(LocalDateTime localDateTime) {
         return localDateTime.atZone(ZoneId.of("Asia/Jakarta")).toInstant();
+    }
+
+    public Instant instantFromLocalDateZoneJakarta(String date) {
+        try {
+            LocalDate localDate = LocalDate.parse(date.split("T")[0]);
+            return localDate.atStartOfDay().atZone(ZoneId.of("Asia/Jakarta")).toInstant();
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "format date invalid");
+        }
     }
 
 }

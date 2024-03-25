@@ -49,6 +49,8 @@ public class Car {
 
     private String description;
 
+    private Integer luggage;
+
     @Enumerated(EnumType.STRING)
     private CarTransmissionEnum transmission;
 
@@ -66,6 +68,9 @@ public class Car {
 
     @OneToMany(mappedBy = "car", cascade = CascadeType.REMOVE)
     private List<CarRented> carsRented;
+
+    @OneToMany(mappedBy = "car", cascade = CascadeType.REMOVE)
+    private List<Rating> ratings;
 
     @CreatedDate
     @Column(name = "created_at")

@@ -3,10 +3,7 @@ package com.rentalcar.server.restcontroller;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.rentalcar.server.entity.Car;
-import com.rentalcar.server.entity.CarBrandEnum;
-import com.rentalcar.server.entity.CarTransmissionEnum;
-import com.rentalcar.server.entity.User;
+import com.rentalcar.server.entity.*;
 import com.rentalcar.server.model.*;
 import com.rentalcar.server.model.base.WebResponse;
 import com.rentalcar.server.model.base.WebResponsePaging;
@@ -20,6 +17,7 @@ import com.rentalcar.server.service.CarService;
 import com.rentalcar.server.service.TransactionService;
 import com.rentalcar.server.util.UUIDUtils;
 import org.apache.tomcat.util.http.parser.Authorization;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -33,6 +31,7 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -84,6 +83,7 @@ class TransactionControllerTest {
 
     @BeforeEach
     void setUp() {
+
         transactionRepository.deleteAll();
         carRentedRepository.deleteAll();
         carRepository.deleteAll();
@@ -115,6 +115,14 @@ class TransactionControllerTest {
 
         // generate user token
         userToken = jwtService.generateToken(user);
+    }
+
+    @AfterEach
+    void afterTest() {
+        transactionRepository.deleteAll();
+        carRentedRepository.deleteAll();
+        carRepository.deleteAll();
+        userRepository.deleteAll();
     }
 
     @Test
@@ -447,7 +455,68 @@ class TransactionControllerTest {
     }
 
     @Test
-    void getListTransactionByAdminSuccess() throws Exception {
+    void getListTransactionByAdminPerintisSuccessTest() throws Exception {
+
+        for (int i = 0; i < 10; i++) {
+            String date;
+            int dateIncrement = (i + 1) + i + 1;
+            if (dateIncrement < 10) {
+                date = "0" + dateIncrement;
+            } else {
+                date = dateIncrement + "";
+            }
+
+
+            TransactionCreateRequest createTransactionRequest = TransactionCreateRequest.builder()
+                    .carId(car.getId().toString())
+                    .userId(user.getId().toString())
+                    .duration(1)
+                    .dateAndTime("2024-03-" + date + "T12:00:00")
+                    .build();
+
+            transactionService.createTransaction(user, createTransactionRequest);
+        }
+
+        // create admin data
+        User adminPerintis = authService.createAdmin(User.builder()
+                        .name("Admin Perintis")
+                        .email("perintis@gmail.com")
+                        .password("amaterasu")
+                        .phoneNumber("+62892838223744")
+                        .build());
+
+
+        mockMvc.perform(
+                        MockMvcRequestBuilders.get("/api/v1/transactions")
+                                .header(AUTHORIZATION, "Bearer " + jwtService.generateToken(adminPerintis))
+                                .accept(MediaType.APPLICATION_JSON)
+
+                )
+                .andExpectAll(status().isOk())
+                .andExpectAll(result -> {
+                    WebResponsePaging<List<TransactionResponse>> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+                    });
+
+                    Assertions.assertNotNull(response.getStatus());
+                    Assertions.assertNull(response.getError());
+                    Assertions.assertNotNull(response.getData());
+                    Assertions.assertNotNull(response.getPerPage());
+                    Assertions.assertNotNull(response.getTotalItem());
+                    Assertions.assertNotNull(response.getCurrentPage());
+                    Assertions.assertNotNull(response.getLastPage());
+
+                    Assertions.assertEquals(HttpStatus.OK.value(), response.getStatus());
+                    Assertions.assertEquals(10, response.getData().size());
+                    Assertions.assertEquals(10, response.getPerPage());
+                    Assertions.assertEquals(10, response.getTotalItem());
+                    Assertions.assertEquals(1, response.getCurrentPage());
+                    Assertions.assertEquals(1, response.getLastPage());
+                });
+
+    }
+
+    @Test
+    void getListTransactionByAdminSuccessTest() throws Exception {
 
         for (int i = 0; i < 10; i++) {
             String date;
@@ -489,6 +558,68 @@ class TransactionControllerTest {
                     Assertions.assertNotNull(response.getLastPage());
 
                     Assertions.assertEquals(HttpStatus.OK.value(), response.getStatus());
+                    Assertions.assertEquals(0, response.getData().size());
+                    Assertions.assertEquals(10, response.getPerPage());
+                    Assertions.assertEquals(0, response.getTotalItem());
+                    Assertions.assertEquals(1, response.getCurrentPage());
+                    Assertions.assertEquals(0, response.getLastPage());
+                });
+
+    }
+
+    @Test
+    void getListTransactionByAdminWithAuthorizationSuccessTest() throws Exception {
+
+        for (int i = 0; i < 10; i++) {
+            String date;
+            int dateIncrement = (i + 1) + i + 1;
+            if (dateIncrement < 10) {
+                date = "0" + dateIncrement;
+            } else {
+                date = dateIncrement + "";
+            }
+
+
+            TransactionCreateRequest createTransactionRequest = TransactionCreateRequest.builder()
+                    .carId(car.getId().toString())
+                    .userId(user.getId().toString())
+                    .duration(1)
+                    .dateAndTime("2024-03-" + date + "T12:00:00")
+                    .build();
+
+            transactionService.createTransaction(user, createTransactionRequest);
+        }
+
+        /*
+        * Create authorization access car
+        * */
+        CarCreateAuthorizationRequest carCreateAuthorizationRequest = CarCreateAuthorizationRequest.builder()
+                .userId(List.of(admin.getId().toString()))
+                .carId(List.of(car.getId().toString()))
+                .build();
+
+        carService.createCarAuthorization(admin, carCreateAuthorizationRequest);
+
+        mockMvc.perform(
+                        MockMvcRequestBuilders.get("/api/v1/transactions")
+                                .header(AUTHORIZATION, "Bearer " + adminToken)
+                                .accept(MediaType.APPLICATION_JSON)
+
+                )
+                .andExpectAll(status().isOk())
+                .andExpectAll(result -> {
+                    WebResponsePaging<List<TransactionResponse>> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+                    });
+
+                    Assertions.assertNotNull(response.getStatus());
+                    Assertions.assertNull(response.getError());
+                    Assertions.assertNotNull(response.getData());
+                    Assertions.assertNotNull(response.getPerPage());
+                    Assertions.assertNotNull(response.getTotalItem());
+                    Assertions.assertNotNull(response.getCurrentPage());
+                    Assertions.assertNotNull(response.getLastPage());
+
+                    Assertions.assertEquals(HttpStatus.OK.value(), response.getStatus());
                     Assertions.assertEquals(10, response.getData().size());
                     Assertions.assertEquals(10, response.getPerPage());
                     Assertions.assertEquals(10, response.getTotalItem());
@@ -499,7 +630,7 @@ class TransactionControllerTest {
     }
 
     @Test
-    void getListTransactionByAdminWithPagingSuccess() throws Exception {
+    void getListTransactionByAdminWithPagingSuccessTest() throws Exception {
 
         for (int i = 0; i < 10; i++) {
             String date;
@@ -543,6 +674,70 @@ class TransactionControllerTest {
                     Assertions.assertNotNull(response.getLastPage());
 
                     Assertions.assertEquals(HttpStatus.OK.value(), response.getStatus());
+                    Assertions.assertEquals(0, response.getData().size());
+                    Assertions.assertEquals(5, response.getPerPage());
+                    Assertions.assertEquals(0, response.getTotalItem());
+                    Assertions.assertEquals(1, response.getCurrentPage());
+                    Assertions.assertEquals(0, response.getLastPage());
+                });
+
+    }
+
+    @Test
+    void getListTransactionByAdminWithPagingAndAuthorizationSuccessTest() throws Exception {
+
+        for (int i = 0; i < 10; i++) {
+            String date;
+            int dateIncrement = (i + 1) + i + 1;
+            if (dateIncrement < 10) {
+                date = "0" + dateIncrement;
+            } else {
+                date = dateIncrement + "";
+            }
+
+
+            TransactionCreateRequest createTransactionRequest = TransactionCreateRequest.builder()
+                    .carId(car.getId().toString())
+                    .userId(user.getId().toString())
+                    .duration(1)
+                    .dateAndTime("2024-03-" + date + "T12:00:00")
+                    .build();
+
+            transactionService.createTransaction(user, createTransactionRequest);
+        }
+
+        /*
+         * Create authorization access car
+         * */
+        CarCreateAuthorizationRequest carCreateAuthorizationRequest = CarCreateAuthorizationRequest.builder()
+                .userId(List.of(admin.getId().toString()))
+                .carId(List.of(car.getId().toString()))
+                .build();
+
+        carService.createCarAuthorization(admin, carCreateAuthorizationRequest);
+
+        mockMvc.perform(
+                        MockMvcRequestBuilders.get("/api/v1/transactions")
+                                .header(AUTHORIZATION, "Bearer " + adminToken)
+                                .accept(MediaType.APPLICATION_JSON)
+                                .param("page", "1")
+                                .param("size", "5")
+
+                )
+                .andExpectAll(status().isOk())
+                .andExpectAll(result -> {
+                    WebResponsePaging<List<TransactionResponse>> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+                    });
+
+                    Assertions.assertNotNull(response.getStatus());
+                    Assertions.assertNull(response.getError());
+                    Assertions.assertNotNull(response.getData());
+                    Assertions.assertNotNull(response.getPerPage());
+                    Assertions.assertNotNull(response.getTotalItem());
+                    Assertions.assertNotNull(response.getCurrentPage());
+                    Assertions.assertNotNull(response.getLastPage());
+
+                    Assertions.assertEquals(HttpStatus.OK.value(), response.getStatus());
                     Assertions.assertEquals(5, response.getData().size());
                     Assertions.assertEquals(5, response.getPerPage());
                     Assertions.assertEquals(10, response.getTotalItem());
@@ -553,7 +748,7 @@ class TransactionControllerTest {
     }
 
     @Test
-    void getListTransactionByAdminFilterByDateSuccess() throws Exception {
+    void getListTransactionByAdminFilterByDateSuccessTest() throws Exception {
 
         for (int i = 0; i < 10; i++) {
             String date;
@@ -596,6 +791,69 @@ class TransactionControllerTest {
                     Assertions.assertNotNull(response.getLastPage());
 
                     Assertions.assertEquals(HttpStatus.OK.value(), response.getStatus());
+                    Assertions.assertEquals(0, response.getData().size());
+                    Assertions.assertEquals(10, response.getPerPage());
+                    Assertions.assertEquals(0, response.getTotalItem());
+                    Assertions.assertEquals(1, response.getCurrentPage());
+                    Assertions.assertEquals(0, response.getLastPage());
+                });
+
+    }
+
+    @Test
+    void getListTransactionByAdminFilterByDateWithAuthorizationSuccessTest() throws Exception {
+
+        for (int i = 0; i < 10; i++) {
+            String date;
+            int dateIncrement = (i + 1) + i + 1;
+            if (dateIncrement < 10) {
+                date = "0" + dateIncrement;
+            } else {
+                date = dateIncrement + "";
+            }
+
+
+            TransactionCreateRequest createTransactionRequest = TransactionCreateRequest.builder()
+                    .carId(car.getId().toString())
+                    .userId(user.getId().toString())
+                    .duration(1)
+                    .dateAndTime("2024-03-" + date + "T12:00:00")
+                    .build();
+
+            transactionService.createTransaction(user, createTransactionRequest);
+        }
+
+        /*
+         * Create authorization access car
+         * */
+        CarCreateAuthorizationRequest carCreateAuthorizationRequest = CarCreateAuthorizationRequest.builder()
+                .userId(List.of(admin.getId().toString()))
+                .carId(List.of(car.getId().toString()))
+                .build();
+
+        carService.createCarAuthorization(admin, carCreateAuthorizationRequest);
+
+        mockMvc.perform(
+                        MockMvcRequestBuilders.get("/api/v1/transactions")
+                                .header(AUTHORIZATION, "Bearer " + adminToken)
+                                .accept(MediaType.APPLICATION_JSON)
+                                .param("start_date", LocalDateTime.now().toString())
+                                .param("end_date", LocalDateTime.now().plusDays(10).toString())
+                )
+                .andExpectAll(status().isOk())
+                .andExpectAll(result -> {
+                    WebResponsePaging<List<TransactionResponse>> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+                    });
+
+                    Assertions.assertNotNull(response.getStatus());
+                    Assertions.assertNull(response.getError());
+                    Assertions.assertNotNull(response.getData());
+                    Assertions.assertNotNull(response.getPerPage());
+                    Assertions.assertNotNull(response.getTotalItem());
+                    Assertions.assertNotNull(response.getCurrentPage());
+                    Assertions.assertNotNull(response.getLastPage());
+
+                    Assertions.assertEquals(HttpStatus.OK.value(), response.getStatus());
                     Assertions.assertEquals(10, response.getData().size());
                     Assertions.assertEquals(10, response.getPerPage());
                     Assertions.assertEquals(10, response.getTotalItem());
@@ -606,7 +864,7 @@ class TransactionControllerTest {
     }
 
     @Test
-    void getListTransactionByAdminFilterByDateError() throws Exception {
+    void getListTransactionByAdminFilterByDateErrorTest() throws Exception {
 
         for (int i = 0; i < 10; i++) {
             String date;
@@ -649,7 +907,7 @@ class TransactionControllerTest {
     }
 
     @Test
-    void getListTransactionByUserForbiddenAccessError() throws Exception {
+    void getListTransactionByUserForbiddenAccessErrorTest() throws Exception {
 
         for (int i = 0; i < 10; i++) {
             String date;
@@ -832,7 +1090,7 @@ class TransactionControllerTest {
         TransactionCreateResponse transactionCreated = transactionService.createTransaction(user, createTransactionRequest);
 
         //Edit transaction
-        transactionService.editTransaction(admin, transactionCreated.getId(), 0, null);
+        transactionService.editTransaction(admin, transactionCreated.getId(), TransactionStatusEnum.WAITING_APPROVE.name(), null);
 
         mockMvc.perform(
                         MockMvcRequestBuilders.delete("/api/v1/transactions/" + transactionCreated.getId())
@@ -879,7 +1137,7 @@ class TransactionControllerTest {
                                     request.setMethod(HttpMethod.PATCH.name());
                                     return request;
                                 })
-                                .param("status", "0")
+                                .param("status", TransactionStatusEnum.WAITING_APPROVE.name())
                                 .header(AUTHORIZATION, "Bearer " + userToken)
                                 .contentType(MediaType.MULTIPART_FORM_DATA)
                                 .accept(MediaType.APPLICATION_JSON)
@@ -895,7 +1153,7 @@ class TransactionControllerTest {
                     Assertions.assertNotNull(response.getData());
 
                     Assertions.assertEquals(HttpStatus.OK.value(), response.getStatus());
-                    Assertions.assertEquals(0, response.getData().getStatus());
+                    Assertions.assertEquals(TransactionStatusEnum.WAITING_APPROVE.name(), response.getData().getStatus());
                 });
     }
 
@@ -916,7 +1174,7 @@ class TransactionControllerTest {
                                     request.setMethod(HttpMethod.PATCH.name());
                                     return request;
                                 })
-                                .param("status", "1")
+                                .param("status", TransactionStatusEnum.APPROVED.name())
                                 .header(AUTHORIZATION, "Bearer " + adminToken)
                                 .contentType(MediaType.MULTIPART_FORM_DATA)
                                 .accept(MediaType.APPLICATION_JSON)
@@ -932,7 +1190,7 @@ class TransactionControllerTest {
                     Assertions.assertNotNull(response.getData());
 
                     Assertions.assertEquals(HttpStatus.OK.value(), response.getStatus());
-                    Assertions.assertEquals(1, response.getData().getStatus());
+                    Assertions.assertEquals(TransactionStatusEnum.APPROVED.name(), response.getData().getStatus());
                 });
     }
 

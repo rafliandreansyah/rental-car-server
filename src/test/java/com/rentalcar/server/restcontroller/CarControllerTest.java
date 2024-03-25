@@ -10,6 +10,7 @@ import com.rentalcar.server.repository.*;
 import com.rentalcar.server.security.JwtService;
 import com.rentalcar.server.service.AuthService;
 import com.rentalcar.server.service.TransactionService;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -57,6 +58,9 @@ class CarControllerTest {
     CarAuthorizationRepository carAuthorizationRepository;
 
     @Autowired
+    RatingRepository ratingRepository;
+
+    @Autowired
     JwtService jwtService;
 
     @Autowired
@@ -76,9 +80,12 @@ class CarControllerTest {
 
     @BeforeEach
     void setUp() {
+
+        ratingRepository.deleteAll();
         carImageDetailRepository.deleteAll();
         userRepository.deleteAll();
         carRepository.deleteAll();
+
         admin = authService.createAdmin(
                 User.builder()
                         .name("Admin")
@@ -114,6 +121,14 @@ class CarControllerTest {
                 .discount(0)
                 .build();
         carRepository.save(car);
+    }
+
+    @AfterEach
+    void afterTest() {
+        ratingRepository.deleteAll();
+        carImageDetailRepository.deleteAll();
+        userRepository.deleteAll();
+        carRepository.deleteAll();
     }
 
     @Test
@@ -163,6 +178,68 @@ class CarControllerTest {
                     Assertions.assertEquals(car.getDescription(), responseCarData.getDescription());
                     Assertions.assertEquals(car.getTransmission().equals(CarTransmissionEnum.MT) ? "manual" : "automatic", responseCarData.getTransmission());
                     Assertions.assertEquals(car.getIsActive(), responseCarData.getIsActive());
+                });
+    }
+
+    @Test
+    void getDetailCarWithRatingSuccessTest() throws Exception {
+        Car car = Car.builder()
+                .name("Avanza")
+                .brand(CarBrandEnum.TOYOTA)
+                .capacity(6)
+                .year(2020)
+                .transmission(CarTransmissionEnum.AT)
+                .pricePerDay(250000.0)
+                .imageUrl("url")
+                .cc(2000)
+                .description("description")
+                .discount(0)
+                .tax(0)
+                .build();
+        Car saveCar = carRepository.save(car);
+
+        for (int i = 0; i < 10; i++) {
+            ratingRepository.save(Rating.builder()
+                    .rating(10.0)
+                    .comment("Good")
+                    .user(user)
+                    .car(saveCar)
+                    .build()
+            );
+        }
+
+        String token = jwtService.generateToken(user);
+
+        mockMvc.perform(
+                        get("/api/v1/cars/" + saveCar.getId().toString())
+                                .header(AUTHORIZATION, "Bearer " + token)
+                                .accept(MediaType.APPLICATION_JSON)
+                )
+                .andExpectAll(status().isOk())
+                .andExpectAll(result -> {
+                    WebResponse<CarDetailResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+                    });
+                    Assertions.assertNotNull(response.getStatus());
+                    Assertions.assertNull(response.getError());
+                    Assertions.assertNotNull(response.getData());
+                    Assertions.assertEquals(HttpStatus.OK.value(), response.getStatus());
+
+                    CarDetailResponse responseCarData = response.getData();
+                    Assertions.assertEquals(car.getId().toString(), responseCarData.getId());
+                    Assertions.assertEquals(car.getName(), responseCarData.getName());
+                    Assertions.assertEquals(car.getImageUrl(), responseCarData.getImage());
+                    Assertions.assertEquals(car.getBrand().name(), responseCarData.getBrand());
+                    Assertions.assertEquals(car.getYear(), responseCarData.getYear());
+                    Assertions.assertEquals(car.getCapacity(), responseCarData.getCapacity());
+                    Assertions.assertEquals(car.getCc(), responseCarData.getCc());
+                    Assertions.assertEquals(car.getPricePerDay(), responseCarData.getPricePerDay());
+                    Assertions.assertEquals(car.getTax(), responseCarData.getTax());
+                    Assertions.assertEquals(car.getDiscount(), responseCarData.getDiscount());
+                    Assertions.assertEquals(car.getDescription(), responseCarData.getDescription());
+                    Assertions.assertEquals(car.getTransmission().equals(CarTransmissionEnum.MT) ? "manual" : "automatic", responseCarData.getTransmission());
+                    Assertions.assertEquals(car.getIsActive(), responseCarData.getIsActive());
+                    Assertions.assertEquals(10.0, responseCarData.getRating());
+                    Assertions.assertEquals(10, responseCarData.getTotalReview());
                 });
     }
 
@@ -397,6 +474,7 @@ class CarControllerTest {
                 .brand("toyota")
                 .year(2020)
                 .capacity(6)
+                .luggage(2)
                 .cc(2000)
                 .description("this is a avanza car new version")
                 .transmission("at")
@@ -419,6 +497,7 @@ class CarControllerTest {
                                 .param("transmission", carCreateRequest.getTransmission())
                                 .param("discount", carCreateRequest.getDiscount().toString())
                                 .param("tax", carCreateRequest.getTax().toString())
+                                .param("luggage", carCreateRequest.getLuggage().toString())
                                 .header(AUTHORIZATION, "Bearer " + token)
                                 .contentType(MediaType.MULTIPART_FORM_DATA)
                                 .accept(MediaType.APPLICATION_JSON)
@@ -443,6 +522,7 @@ class CarControllerTest {
                     Assertions.assertEquals(carCreateRequest.getTransmission().toUpperCase(), data.getTransmission());
                     Assertions.assertEquals(carCreateRequest.getTax(), data.getTax());
                     Assertions.assertEquals(carCreateRequest.getDiscount(), data.getDiscount());
+                    Assertions.assertEquals(carCreateRequest.getLuggage(), data.getLuggage());
                 });
     }
 
@@ -1037,6 +1117,7 @@ class CarControllerTest {
                 .cc(3000)
                 .price(400_000D)
                 .tax(1)
+                .luggage(2)
                 .discount(10)
                 .description("edited car data")
                 .transmission(CarTransmissionEnum.MT.name())
@@ -1062,6 +1143,7 @@ class CarControllerTest {
                                 .param("transmission", carEditRequest.getTransmission())
                                 .param("tax", carEditRequest.getTax().toString())
                                 .param("discount", carEditRequest.getDiscount().toString())
+                                .param("luggage", carEditRequest.getLuggage().toString())
                                 .header(AUTHORIZATION, "Bearer " + token)
                 )
                 .andExpectAll(status().isOk())
@@ -1084,6 +1166,7 @@ class CarControllerTest {
                     Assertions.assertEquals(carEditRequest.getTax(), response.getData().getTax());
                     Assertions.assertEquals(carEditRequest.getDiscount(), response.getData().getDiscount());
                     Assertions.assertEquals(carEditRequest.getPrice(), response.getData().getPrice());
+                    Assertions.assertEquals(carEditRequest.getLuggage(), response.getData().getLuggage());
                 });
     }
 
@@ -1281,6 +1364,73 @@ class CarControllerTest {
                     Assertions.assertEquals(20, response.getPerPage());
                     Assertions.assertEquals(30, response.getTotalItem());
                     Assertions.assertEquals(20, response.getData().size());
+
+                });
+    }
+
+    @Test
+    void getListCarAdminWithRatingSuccessTest() throws Exception {
+        List<CarAuthorization> carAuthorizations = new ArrayList<>();
+        for (int i = 0; i < 30; i++) {
+            // Create car dummy data
+            Car carData = Car.builder()
+                    .name("Dummy Car " + i)
+                    .imageUrl("testing_image")
+                    .brand(CarBrandEnum.TOYOTA)
+                    .year(2022)
+                    .capacity(6)
+                    .cc(2000)
+                    .pricePerDay(200_000D)
+                    .tax(0)
+                    .discount(0)
+                    .description("dummy car data")
+                    .transmission(CarTransmissionEnum.AT)
+                    .tax(0)
+                    .discount(0)
+                    .build();
+            Car savedCar = carRepository.save(carData);
+            carAuthorizations.add(
+                    CarAuthorization.builder()
+                            .user(admin)
+                            .car(savedCar)
+                            .build()
+            );
+
+            ratingRepository.save(Rating.builder()
+                    .rating(10.0)
+                    .comment("Good")
+                    .user(user)
+                    .car(savedCar)
+                    .build()
+            );
+        }
+        carAuthorizationRepository.saveAll(carAuthorizations.stream().toList());
+
+        String token = jwtService.generateToken(admin);
+
+        mockMvc.perform(
+                        MockMvcRequestBuilders.get("/api/v1/cars")
+                                .header(AUTHORIZATION, "Bearer " + token)
+                                .accept(MediaType.APPLICATION_JSON)
+                )
+                .andExpectAll(status().isOk())
+                .andExpectAll(result -> {
+                    WebResponsePaging<List<CarResponse>> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<WebResponsePaging<List<CarResponse>>>() {
+                    });
+
+                    System.out.println(response.getData().get(0).toString());
+
+                    Assertions.assertNotNull(response.getStatus());
+                    Assertions.assertNull(response.getError());
+                    Assertions.assertNotNull(response.getData());
+
+                    Assertions.assertEquals(HttpStatus.OK.value(), response.getStatus());
+                    Assertions.assertEquals(1, response.getCurrentPage());
+                    Assertions.assertEquals(2, response.getLastPage());
+                    Assertions.assertEquals(20, response.getPerPage());
+                    Assertions.assertEquals(30, response.getTotalItem());
+                    Assertions.assertEquals(20, response.getData().size());
+                    Assertions.assertEquals(10.0, response.getData().get(0).getRating());
 
                 });
     }

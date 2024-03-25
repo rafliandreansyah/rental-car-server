@@ -13,6 +13,7 @@ import com.rentalcar.server.repository.UserRepository;
 import com.rentalcar.server.security.JwtService;
 import com.rentalcar.server.service.AuthService;
 import com.rentalcar.server.util.DateTimeUtils;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -78,6 +79,8 @@ class UserControllerTest {
         carAuthorizationRepository.deleteAll();
         transactionRepository.deleteAll();
         userRepository.deleteAll();
+        carRepository.deleteAll();
+
         admin = authService.createAdmin(
                 User.builder()
                         .name("Admin")
@@ -86,6 +89,14 @@ class UserControllerTest {
                         .phoneNumber("+628928383744")
                         .build()
         );
+    }
+
+    @AfterEach
+    void afterTest() {
+        carAuthorizationRepository.deleteAll();
+        transactionRepository.deleteAll();
+        userRepository.deleteAll();
+        carRepository.deleteAll();
     }
 
     @Test
@@ -103,7 +114,7 @@ class UserControllerTest {
                 .password("secretpassword")
                 .name("Jono Joni")
                 .phone("+628999366363")
-                .dob(Instant.now())
+                .dob(LocalDate.now().toString())
                 .role(UserRoleEnum.ADMIN.name())
                 .build();
 
@@ -117,7 +128,7 @@ class UserControllerTest {
                                 .param("name", request.getName())
                                 .param("phone", request.getPhone())
                                 .param("role", request.getRole())
-                                .param("dob", LocalDateTime.ofInstant(request.getDob(), ZoneId.of("Asia/Jakarta")).toString())
+                                .param("dob", request.getDob())
                                 .header(AUTHORIZATION, "Bearer " + token)
                                 .contentType(MediaType.MULTIPART_FORM_DATA)
                                 .accept(MediaType.APPLICATION_JSON)
@@ -134,7 +145,7 @@ class UserControllerTest {
                     Assertions.assertEquals(request.getName().toLowerCase(), response.getData().getName());
                     Assertions.assertEquals(request.getPhone(), response.getData().getPhone());
                     Assertions.assertEquals(request.getRole().toLowerCase(), response.getData().getRole());
-                    Assertions.assertEquals(dateTimeUtils.localDateFromInstantZoneJakarta(request.getDob()).toString(), response.getData().getDob());
+                    Assertions.assertEquals(request.getDob(), response.getData().getDob());
                 });
     }
 
@@ -146,7 +157,7 @@ class UserControllerTest {
                 .password("secretpassword")
                 .name("Jono Joni")
                 .phone("+628999366363")
-                .dob(Instant.now())
+                .dob(LocalDate.now().toString())
                 .role(UserRoleEnum.ADMIN.name())
                 .build();
 
@@ -160,7 +171,7 @@ class UserControllerTest {
                                 .param("name", request.getName())
                                 .param("phone", request.getPhone())
                                 .param("role", request.getRole())
-                                .param("dob", LocalDateTime.ofInstant(request.getDob(), ZoneId.of("Asia/Jakarta")).toString())
+                                .param("dob", request.getDob())
                                 .header(AUTHORIZATION, "Bearer " + token)
                                 .contentType(MediaType.MULTIPART_FORM_DATA)
                                 .accept(MediaType.APPLICATION_JSON)
@@ -177,7 +188,7 @@ class UserControllerTest {
                     Assertions.assertEquals(request.getName().toLowerCase(), response.getData().getName());
                     Assertions.assertEquals(request.getPhone(), response.getData().getPhone());
                     Assertions.assertEquals(request.getRole().toLowerCase(), response.getData().getRole());
-                    Assertions.assertEquals(dateTimeUtils.localDateFromInstantZoneJakarta(request.getDob()).toString(), response.getData().getDob());
+                    Assertions.assertEquals(request.getDob(), response.getData().getDob());
                 });
     }
 
@@ -188,7 +199,7 @@ class UserControllerTest {
                 .password("secretpassword")
                 .name("Jono Joni")
                 .phone("+628999366363")
-                .dob(Instant.now())
+                .dob(LocalDate.now().toString())
                 .role(UserRoleEnum.ADMIN.name())
                 .build();
 
@@ -202,7 +213,7 @@ class UserControllerTest {
                                 .param("name", request.getName())
                                 .param("phone", request.getPhone())
                                 .param("role", request.getRole())
-                                .param("dob", LocalDateTime.ofInstant(request.getDob(), ZoneId.of("Asia/Jakarta")).toString())
+                                .param("dob", request.getDob())
                                 .header(AUTHORIZATION, "Bearer " + token)
                                 .contentType(MediaType.MULTIPART_FORM_DATA)
                                 .accept(MediaType.APPLICATION_JSON)
@@ -225,7 +236,7 @@ class UserControllerTest {
                 .password("secretpassword")
                 .name("Jono Joni")
                 .phone("+628999366363")
-                .dob(Instant.now())
+                .dob(LocalDate.now().toString())
                 .role(UserRoleEnum.ADMIN.name())
                 .build();
 
@@ -239,7 +250,7 @@ class UserControllerTest {
                                 .param("name", request.getName())
                                 .param("phone", request.getPhone())
                                 .param("role", request.getRole())
-                                .param("dob", LocalDateTime.ofInstant(request.getDob(), ZoneId.of("Asia/Jakarta")).toString())
+                                .param("dob", request.getDob())
                                 .header(AUTHORIZATION, "Bearer " + token)
                                 .contentType(MediaType.MULTIPART_FORM_DATA)
                                 .accept(MediaType.APPLICATION_JSON)
@@ -263,7 +274,7 @@ class UserControllerTest {
                 .email("jono@gmail.com")
                 .password("secretpassword")
                 .phone("+628999366363")
-                .dob(Instant.now())
+                .dob(LocalDate.now().toString())
                 .role(UserRoleEnum.ADMIN.name())
                 .build();
 
@@ -277,7 +288,7 @@ class UserControllerTest {
                                 .param("name", request.getName())
                                 .param("phone", request.getPhone())
                                 .param("role", request.getRole())
-                                .param("dob", LocalDateTime.ofInstant(request.getDob(), ZoneId.of("Asia/Jakarta")).toString())
+                                .param("dob", request.getDob())
                                 .header(AUTHORIZATION, "Bearer " + token)
                                 .contentType(MediaType.MULTIPART_FORM_DATA)
                                 .accept(MediaType.APPLICATION_JSON)
@@ -300,7 +311,7 @@ class UserControllerTest {
                 .email("jono@gmail.com")
                 .name("Jono Joni")
                 .phone("+628999366363")
-                .dob(Instant.now())
+                .dob(LocalDate.now().toString())
                 .role(UserRoleEnum.ADMIN.name())
                 .build();
 
@@ -314,7 +325,7 @@ class UserControllerTest {
                                 .param("name", request.getName())
                                 .param("phone", request.getPhone())
                                 .param("role", request.getRole())
-                                .param("dob", LocalDateTime.ofInstant(request.getDob(), ZoneId.of("Asia/Jakarta")).toString())
+                                .param("dob", request.getDob())
                                 .header(AUTHORIZATION, "Bearer " + token)
                                 .contentType(MediaType.MULTIPART_FORM_DATA)
                                 .accept(MediaType.APPLICATION_JSON)
@@ -338,7 +349,7 @@ class UserControllerTest {
                 .password("secret")
                 .name("Jono Joni")
                 .phone("+628999366363")
-                .dob(Instant.now())
+                .dob(LocalDate.now().toString())
                 .role(UserRoleEnum.ADMIN.name())
                 .build();
 
@@ -352,7 +363,7 @@ class UserControllerTest {
                                 .param("name", request.getName())
                                 .param("phone", request.getPhone())
                                 .param("role", request.getRole())
-                                .param("dob", LocalDateTime.ofInstant(request.getDob(), ZoneId.of("Asia/Jakarta")).toString())
+                                .param("dob", request.getDob())
                                 .header(AUTHORIZATION, "Bearer " + token)
                                 .contentType(MediaType.MULTIPART_FORM_DATA)
                                 .accept(MediaType.APPLICATION_JSON)
@@ -376,7 +387,7 @@ class UserControllerTest {
                 .email("jono@gmail.com")
                 .password("secretpassword")
                 .name("Jono Joni")
-                .dob(Instant.now())
+                .dob(LocalDate.now().toString())
                 .role(UserRoleEnum.ADMIN.name())
                 .build();
 
@@ -390,7 +401,7 @@ class UserControllerTest {
                                 .param("name", request.getName())
                                 .param("phone", request.getPhone())
                                 .param("role", request.getRole())
-                                .param("dob", LocalDateTime.ofInstant(request.getDob(), ZoneId.of("Asia/Jakarta")).toString())
+                                .param("dob", request.getDob())
                                 .header(AUTHORIZATION, "Bearer " + token)
                                 .contentType(MediaType.MULTIPART_FORM_DATA)
                                 .accept(MediaType.APPLICATION_JSON)
@@ -416,7 +427,7 @@ class UserControllerTest {
                 .password("secretpassword")
                 .name("Jono Joni")
                 .phone("08999366363")
-                .dob(Instant.now())
+                .dob(LocalDate.now().toString())
                 .role(UserRoleEnum.ADMIN.name())
                 .build();
 
@@ -430,7 +441,7 @@ class UserControllerTest {
                                 .param("name", request.getName())
                                 .param("phone", request.getPhone())
                                 .param("role", request.getRole())
-                                .param("dob", LocalDateTime.ofInstant(request.getDob(), ZoneId.of("Asia/Jakarta")).toString())
+                                .param("dob", request.getDob())
                                 .header(AUTHORIZATION, "Bearer " + token)
                                 .contentType(MediaType.MULTIPART_FORM_DATA)
                                 .accept(MediaType.APPLICATION_JSON)
@@ -453,7 +464,7 @@ class UserControllerTest {
                 .password("secretpassword")
                 .name("Jono Joni")
                 .phone("+628999366363")
-                .dob(Instant.now())
+                .dob(LocalDate.now().toString())
                 .role("super")
                 .build();
 
@@ -467,7 +478,7 @@ class UserControllerTest {
                                 .param("name", request.getName())
                                 .param("phone", request.getPhone())
                                 .param("role", request.getRole())
-                                .param("dob", LocalDateTime.ofInstant(request.getDob(), ZoneId.of("Asia/Jakarta")).toString())
+                                .param("dob", request.getDob())
                                 .header(AUTHORIZATION, "Bearer " + token)
                                 .contentType(MediaType.MULTIPART_FORM_DATA)
                                 .accept(MediaType.APPLICATION_JSON)
@@ -491,7 +502,7 @@ class UserControllerTest {
                 .password("secretpassword")
                 .name("Jono Joni")
                 .phone("+628999366363")
-                .dob(Instant.now())
+                .dob(LocalDate.now().toString())
                 .role(UserRoleEnum.ADMIN.name())
                 .build();
 
@@ -505,7 +516,7 @@ class UserControllerTest {
                                 .param("name", request.getName())
                                 .param("phone", request.getPhone())
                                 .param("role", request.getRole())
-                                .param("dob", LocalDateTime.ofInstant(request.getDob(), ZoneId.of("Asia/Jakarta")).toString())
+                                .param("dob", request.getDob())
                                 .header(AUTHORIZATION, "Bearer " + token)
                                 .contentType(MediaType.MULTIPART_FORM_DATA)
                                 .accept(MediaType.APPLICATION_JSON)
@@ -530,7 +541,7 @@ class UserControllerTest {
                 .password("secretpassword")
                 .name("Jono Joni")
                 .phone("+628928383744")
-                .dob(Instant.now())
+                .dob(LocalDate.now().toString())
                 .role(UserRoleEnum.ADMIN.name())
                 .build();
 
@@ -544,7 +555,7 @@ class UserControllerTest {
                                 .param("name", request.getName())
                                 .param("phone", request.getPhone())
                                 .param("role", request.getRole())
-                                .param("dob", LocalDateTime.ofInstant(request.getDob(), ZoneId.of("Asia/Jakarta")).toString())
+                                .param("dob", request.getDob())
                                 .header(AUTHORIZATION, "Bearer " + token)
                                 .contentType(MediaType.MULTIPART_FORM_DATA)
                                 .accept(MediaType.APPLICATION_JSON)
@@ -578,7 +589,7 @@ class UserControllerTest {
                 .password("secretpassword")
                 .name("Jono Joni")
                 .phone("+628999366363")
-                .dob(Instant.now())
+                .dob(LocalDate.now().toString())
                 .role(UserRoleEnum.ADMIN.name())
                 .build();
 
@@ -592,7 +603,7 @@ class UserControllerTest {
                                 .param("name", request.getName())
                                 .param("phone", request.getPhone())
                                 .param("role", request.getRole())
-                                .param("dob", LocalDateTime.ofInstant(request.getDob(), ZoneId.of("Asia/Jakarta")).toString())
+                                .param("dob", request.getDob())
                                 .header(AUTHORIZATION, "Bearer " + token)
                                 .contentType(MediaType.MULTIPART_FORM_DATA)
                                 .accept(MediaType.APPLICATION_JSON)

@@ -1,6 +1,5 @@
 package com.rentalcar.server.model;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -11,13 +10,12 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class TransactionEditResponse {
+public class CarRentedToday {
 
-    @JsonProperty("status")
-    private String status;
+    @JsonProperty("total_cars")
+    private Integer totalCars;
 
-    @JsonProperty("paymentImage")
-    @JsonInclude(JsonInclude.Include.NON_NULL)
-    private String paymentImage;
+    @JsonProperty("car_rented_today")
+    private Integer carRentedToday;
 
 }

@@ -5,6 +5,8 @@ import com.rentalcar.server.model.*;
 import com.rentalcar.server.model.base.WebResponse;
 import com.rentalcar.server.model.base.WebResponsePaging;
 import com.rentalcar.server.service.CarService;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -15,6 +17,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
+@Tag(name = "Car")
 @RestController
 @RequestMapping("/api/v1/cars")
 @RequiredArgsConstructor
@@ -23,19 +26,19 @@ public class CarController {
     private final CarService carService;
 
     @GetMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<WebResponse<CarDetailResponse>> getDetailCar(User user, @PathVariable("id") String id) {
+    public ResponseEntity<WebResponse<CarDetailResponse>> getDetailCar(@Parameter(hidden = true) User user, @PathVariable("id") String id) {
         CarDetailResponse detailCarResponse = carService.getDetailCar(user, id);
         return ResponseEntity.ok(WebResponse.<CarDetailResponse>builder().status(HttpStatus.OK.value()).data(detailCarResponse).build());
     }
 
     @DeleteMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<WebResponse<String>> deleteCarById(User user, @PathVariable("id") String id) {
+    public ResponseEntity<WebResponse<String>> deleteCarById(@Parameter(hidden = true) User user, @PathVariable("id") String id) {
         return ResponseEntity.ok(WebResponse.<String>builder().data(carService.deleteCarById(user, id)).status(HttpStatus.OK.value()).build());
     }
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<WebResponse<CarCreateAndEditResponse>> createCar(
-            User user,
+            @Parameter(hidden = true) User user,
             @ModelAttribute CarCreateRequest
                     carCreateRequest, @RequestParam(name = "image", required = false) MultipartFile image,
             @RequestParam(name = "image_detail", required = false) List<MultipartFile> imagesDetail) {
@@ -45,7 +48,7 @@ public class CarController {
 
     @PostMapping(value = "/authorization", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<WebResponse<String>> createCarAuthorization(
-            User user,
+            @Parameter(hidden = true) User user,
             @RequestBody CarCreateAuthorizationRequest carCreateAuthorizationRequest
     ) {
         return ResponseEntity.status(HttpStatus.CREATED).body(WebResponse.<String>builder().status(HttpStatus.CREATED.value()).data(carService.createCarAuthorization(user, carCreateAuthorizationRequest)).build());
@@ -53,7 +56,7 @@ public class CarController {
 
     @PatchMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<WebResponse<CarCreateAndEditResponse>> editCar(
-            User user,
+            @Parameter(hidden = true) User user,
             @ModelAttribute CarEditRequest carEditRequest,
             @PathVariable("id") String id,
             @RequestParam(name = "deleted_detail_images_id", required = false) List<String> imagesDetailId,
@@ -71,7 +74,7 @@ public class CarController {
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     public ResponseEntity<WebResponsePaging<List<CarResponse>>> getCars(
-            User user,
+            @Parameter(hidden = true) User user,
             @RequestParam(name = "name", required = false) String name,
             @RequestParam(name = "transmission", required = false) String transmission,
             @RequestParam(name = "start_date_rent", required = false) String startDateRent,
@@ -102,5 +105,26 @@ public class CarController {
                         .build()
         );
     }
+
+    @PostMapping(value = "/car/rating", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<WebResponse<String>> createRating(
+            @Parameter(hidden = true) User user,
+            @RequestParam("car_id") String carId,
+            @RequestParam("rating") Double rating,
+            @RequestParam(value = "comment", required = false) String comment,
+            @RequestParam(name = "image", required = false) MultipartFile image
+            ) {
+
+        String response = carService.createRating(user, carId, rating, comment, image);
+
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(WebResponse.<String>builder()
+                        .status(HttpStatus.CREATED.value())
+                        .data(response)
+                        .build()
+                );
+
+    }
+
 
 }

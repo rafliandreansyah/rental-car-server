@@ -23,6 +23,10 @@ public class CarResponse {
 
     private String transmission;
 
+    private Integer luggage;
+
+    private Double rating;
+
     private Double price;
 
 }

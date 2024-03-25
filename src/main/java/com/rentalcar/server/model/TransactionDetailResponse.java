@@ -46,6 +46,8 @@ public class TransactionDetailResponse {
 
     private Integer discount;
 
+    private Boolean isRated;
+
     @JsonProperty("total_price")
     private Double totalPrice;
 

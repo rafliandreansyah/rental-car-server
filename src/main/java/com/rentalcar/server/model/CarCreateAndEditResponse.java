@@ -31,6 +31,8 @@ public class CarCreateAndEditResponse {
 
 	private Integer capacity;
 
+	private Integer luggage;
+
 	private String transmission;
 
 	private Double price;

@@ -24,4 +24,6 @@ public interface CarService {
 
     Car createDummyCar();
 
+    String createRating(User user, String carId, Double rating, String comment, MultipartFile ratingFile);
+
 }

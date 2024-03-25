@@ -8,8 +8,12 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
+import com.rentalcar.server.entity.*;
 import com.rentalcar.server.model.*;
+import com.rentalcar.server.repository.*;
 import com.rentalcar.server.util.EnumUtils;
+import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.*;
@@ -19,16 +23,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
-import com.rentalcar.server.entity.Car;
-import com.rentalcar.server.entity.CarRented;
-import com.rentalcar.server.entity.Transaction;
-import com.rentalcar.server.entity.TransactionStatusEnum;
-import com.rentalcar.server.entity.User;
-import com.rentalcar.server.entity.UserRoleEnum;
-import com.rentalcar.server.repository.CarRentedRepository;
-import com.rentalcar.server.repository.CarRepository;
-import com.rentalcar.server.repository.TransactionRepository;
-import com.rentalcar.server.repository.UserRepository;
 import com.rentalcar.server.util.DateTimeUtils;
 import com.rentalcar.server.util.UUIDUtils;
 
@@ -45,6 +39,7 @@ public class TransactionServiceImpl implements TransactionService {
     private final UserRepository userRepository;
     private final CarRepository carRepository;
     private final CarRentedRepository carRentedRepository;
+    private final RatingRepository ratingRepository;
     private final UUIDUtils uuidUtils;
     private final DateTimeUtils dateTimeUtils;
     private final EnumUtils enumUtils;
@@ -107,6 +102,7 @@ public class TransactionServiceImpl implements TransactionService {
                 .carPrice(carData.getPricePerDay())
                 .carTax(carData.getTax())
                 .carYear(carData.getYear())
+                .status(TransactionStatusEnum.WAITING_PAYMENT)
                 .totalPrice(carData.getPricePerDay() * transactionCreateRequest.getDuration())
                 .build());
 
@@ -164,7 +160,7 @@ public class TransactionServiceImpl implements TransactionService {
                         "don't have a access");
             }
 
-            if (transaction.getStatus() != null) {
+            if (!transaction.getStatus().equals(TransactionStatusEnum.WAITING_PAYMENT)) {
                 throw new ResponseStatusException(HttpStatus.FORBIDDEN,
                         "cannot delete transaction because payment has already been made");
             }
@@ -195,6 +191,12 @@ public class TransactionServiceImpl implements TransactionService {
 
         }
 
+        boolean isRated = false;
+        List<Rating> userRated = ratingRepository.findByUserIdAndCarId(user.getId(), transaction.getCar().getId());
+        if (userRated != null && !userRated.isEmpty()) {
+            isRated = true;
+        }
+
         return TransactionDetailResponse.builder()
                 .id(transaction.getId().toString())
                 .noInvoice(transaction.getNoInvoice())
@@ -214,7 +216,7 @@ public class TransactionServiceImpl implements TransactionService {
                 .discount(transaction.getCarDiscount())
                 .price(transaction.getCarPrice())
                 .totalPrice(transaction.getTotalPrice())
-                .status(transaction.getStatus() != null ? transaction.getStatus().name(): null)
+                .status(transaction.getStatus().name())
                 .userId(transaction.getUser().getId().toString())
                 .user(TransactionDetailUserDataResponse.builder()
                         .id(transaction.getUser().getId().toString())
@@ -224,7 +226,7 @@ public class TransactionServiceImpl implements TransactionService {
                         .dob(transaction.getUser().getDateOfBirth() != null ? dateTimeUtils
                                 .localDateFromInstantZoneJakarta(
                                         transaction.getUser().getDateOfBirth())
-                                .toString() :  null)
+                                .toString() : null)
                         .phone(transaction.getUser().getPhoneNumber())
                         .isActive(transaction.getUser().getIsActive())
                         .role(transaction.getUser().getRole().name())
@@ -232,6 +234,7 @@ public class TransactionServiceImpl implements TransactionService {
                                 transaction.getUser().getCreatedAt()).toString())
                         .build())
                 .carId(transaction.getCar().getId().toString())
+                .isRated(isRated)
                 .createdAt(transaction.getCreatedAt().toString())
                 .build();
     }
@@ -241,7 +244,7 @@ public class TransactionServiceImpl implements TransactionService {
         transactionsRequest.setPage(transactionsRequest.getPage() > 0 ? transactionsRequest.getPage() - 1 : transactionsRequest.getPage());
 
 
-        if (!user.getRole().equals(UserRoleEnum.ADMIN)) {
+        if (user.getRole().equals(UserRoleEnum.USER)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "don't have access");
         }
 
@@ -260,11 +263,24 @@ public class TransactionServiceImpl implements TransactionService {
         Specification<Transaction> specification = ((root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
 
+            /*
+             * Super admin is user perintis@gmail.com
+             * */
+            if (!user.getEmail().equalsIgnoreCase("perintis@gmail.com")) {
+
+                Join<Transaction, Car> carJoin = root.join("car", JoinType.INNER);
+                Join<Car, CarAuthorization> carAuthorizationJoin = carJoin.join("carAuthorizations", JoinType.INNER);
+
+                predicates.add(
+                        criteriaBuilder.equal(carAuthorizationJoin.get("user"), user)
+                );
+            }
+
             if (Objects.nonNull(transactionsRequest.getStartDate()) && Objects.nonNull(transactionsRequest.getEndDate())) {
                 int startTDateIndex = transactionsRequest.getStartDate().indexOf("T");
                 int endTDateIndex = transactionsRequest.getEndDate().indexOf("T");
                 LocalDateTime startDateLocalDateTime = dateTimeUtils.localDateTimeFromString(startTDateIndex != -1 ? transactionsRequest.getStartDate().substring(0, startTDateIndex) + "T00:00:00" : transactionsRequest.getStartDate() + "T00:00:00");
-                LocalDateTime endDateLocalDateTime = dateTimeUtils.localDateTimeFromString(endTDateIndex != -1 ?  transactionsRequest.getEndDate().substring(0, endTDateIndex) + "T23:59:59": transactionsRequest.getEndDate() + "T23:59:59");
+                LocalDateTime endDateLocalDateTime = dateTimeUtils.localDateTimeFromString(endTDateIndex != -1 ? transactionsRequest.getEndDate().substring(0, endTDateIndex) + "T23:59:59" : transactionsRequest.getEndDate() + "T23:59:59");
 
                 Instant startDate = dateTimeUtils.instantFromLocalDateTimeZoneJakarta(startDateLocalDateTime);
                 Instant endDate = dateTimeUtils.instantFromLocalDateTimeZoneJakarta(endDateLocalDateTime);
@@ -301,7 +317,7 @@ public class TransactionServiceImpl implements TransactionService {
                         .carName(transaction.getCarName())
                         .brand(transaction.getCarBrand().toString())
                         .totalPrice(transaction.getTotalPrice())
-                        .status(transaction.getStatus() != null ? transaction.getStatus().toString() : null)
+                        .status(transaction.getStatus().name())
                         .build()
                 ).toList();
 
@@ -310,7 +326,7 @@ public class TransactionServiceImpl implements TransactionService {
 
     @Transactional
     @Override
-    public TransactionEditResponse editTransaction(User user, String trxId, Integer status, MultipartFile paymentImage) {
+    public TransactionEditResponse editTransaction(User user, String trxId, String status, MultipartFile paymentImage) {
 
         /*
          * Status On transaction
@@ -332,7 +348,14 @@ public class TransactionServiceImpl implements TransactionService {
         Transaction transactionData = transactionRepository.findById(transactionId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "transaction not found"));
 
         // check status
-        if (Objects.isNull(status) || status > 4) {
+        if (Objects.isNull(status)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "status not found");
+        }
+
+        TransactionStatusEnum transactionStatusEnum;
+        try {
+            transactionStatusEnum = TransactionStatusEnum.valueOf(status);
+        }catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "status not found");
         }
 
@@ -342,13 +365,13 @@ public class TransactionServiceImpl implements TransactionService {
             transactionData.setPaymentImage(path);
         }
 
-        transactionData.setStatus(enumUtils.getTransactionEnumFromInteger(status));
+        transactionData.setStatus(transactionStatusEnum);
 
         Transaction savedTransaction = transactionRepository.save(transactionData);
 
         return TransactionEditResponse.builder()
                 .paymentImage(path)
-                .status(enumUtils.getStatusFromTransactionEnum(savedTransaction.getStatus()))
+                .status(savedTransaction.getStatus().name())
                 .build();
     }
 
